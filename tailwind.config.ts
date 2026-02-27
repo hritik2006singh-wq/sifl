@@ -8,18 +8,21 @@ const config: Config = {
     ],
     theme: {
         extend: {
-            colors: {
-                primary: '#006400', // deep institutional green
-                secondary: '#F5F5F5', // soft neutral light gray
-            },
-            borderRadius: {
-                card: '16px',
-                btn: '12px',
-            },
-            boxShadow: {
-                card: '0 4px 6px rgba(0,0,0,0.1)',
-            },
-        },
+   colors: {
+    primary: "#0fbd49",
+    "background-light": "#f6f8f6",
+    "background-dark": "#102216",
+  },
+  fontFamily: {
+    display: ["Public Sans", "sans-serif"],
+  },
+  borderRadius: {
+    DEFAULT: "0.5rem",
+    lg: "1rem",
+    xl: "1.5rem",
+    full: "9999px",
+  },
+},
     },
     plugins: [],
 };
