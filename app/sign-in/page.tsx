@@ -82,7 +82,7 @@ export default function SignInPage() {
                             </div>
 
                             <div className="text-sm">
-                                <a href="#" className="font-medium text-primary hover:text-primary-hover">
+                                <a href="/forgot-password" className="font-medium text-primary hover:text-primary-hover">
                                     Forgot your password?
                                 </a>
                             </div>
@@ -94,7 +94,7 @@ export default function SignInPage() {
                     </form>
 
                     <div className="mt-8 text-center text-sm text-gray-500">
-                        Need technical assistance? <a href="#" className="font-medium text-primary hover:underline">Contact IT Support</a>
+                        Need technical assistance? <a href="/contact" className="font-medium text-primary hover:underline">Contact IT Support</a>
                     </div>
                 </div>
             </div>

@@ -1,8 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Navbar } from '@/components/Navbar';
-import { Footer } from '@/components/Footer';
 import { Section } from '@/components/Section';
 import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
@@ -20,16 +18,8 @@ export default function ConsultationPage() {
     const [time, setTime] = useState('');
     const [objective, setObjective] = useState('');
 
-    return (
-        <div className="min-h-screen flex flex-col bg-gray-50">
-            <Navbar />
-
-            <main className="flex-grow py-12">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="text-center mb-12">
-                        <h1 className="text-4xl font-extrabold text-foreground mb-4">{bookingContent.header.title}</h1>
-                        <p className="text-lg text-gray-600 max-w-2xl mx-auto">{bookingContent.header.subtitle}</p>
-                    </div>
+    return ( 
+           <main className="pt-30 bg-background-light text-slate-900">
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
                         {/* LEFT SIDE: FORM */}
@@ -85,8 +75,8 @@ export default function ConsultationPage() {
                                                     type="button"
                                                     onClick={() => setTime(ts)}
                                                     className={`py-3 px-2 text-sm font-medium rounded-btn border transition-colors ${time === ts
-                                                            ? 'border-primary bg-primary/10 text-primary'
-                                                            : 'border-gray-300 text-gray-700 hover:border-primary hover:text-primary'
+                                                        ? 'border-primary bg-primary/10 text-primary'
+                                                        : 'border-gray-300 text-gray-700 hover:border-primary hover:text-primary'
                                                         }`}
                                                 >
                                                     {ts}
@@ -126,10 +116,6 @@ export default function ConsultationPage() {
                             </Card>
                         </div>
                     </div>
-                </div>
             </main>
-
-            <Footer />
-        </div>
     );
 }

@@ -1,0 +1,284 @@
+"use client";
+
+import { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
+import { Button } from '@/components/Button';
+import { CheckCircle2 } from 'lucide-react';
+
+const heroImages = [
+    "/hero1.jpg",
+    "/hero2.jpg",
+    "/hero3.jpg",
+    "/hero4.jpg",
+    "/hero5.jpg",
+    "/hero6.jpg",
+];
+
+const universities = [
+    { name: "USA", logo: "/images/Flag/usa.jpg" },
+    { name: "UK", logo: "/images/Flag/uk.jpg" },
+    { name: "Canada", logo: "/images/Flag/canada.jpg" },
+    { name: "Australia", logo: "/images/Flag/australia.jpg" },
+    { name: "Ireland", logo: "/images/Flag/ireland.jpg" },
+    { name: "German", logo: "/images/Flag/german.jpg" },
+    { name: "Spanish", logo: "/images/Flag/spain.jpg" },
+    { name: "Japanese", logo: "/images/Flag/jap.jpg" },
+    { name: "French", logo: "/images/Flag/french.jpg" },
+];
+
+const duplicatedUniversities = [...universities, ...universities, ...universities, ...universities];
+
+export default function HeroSection() {
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const [carouselIdx, setCarouselIdx] = useState(0);
+    const trackRef = useRef<HTMLDivElement>(null);
+    const rAF = useRef<number | null>(null);
+
+    // Hero background slider
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setCurrentIndex((prev) => (prev + 1) % heroImages.length);
+        }, 5000);
+
+        return () => clearInterval(interval);
+    }, []);
+
+    // Marquee continuous right to left logic
+    useEffect(() => {
+        let offset = 0;
+        const speed = 0.5;
+
+        const animate = () => {
+            offset -= speed;
+
+            if (trackRef.current) {
+                trackRef.current.style.transform =
+                    `translateX(${offset}px) translateY(-50%)`;
+
+                const trackWidth = trackRef.current.scrollWidth / 2;
+
+                if (Math.abs(offset) >= trackWidth) {
+                    offset = 0;
+                }
+            }
+
+            rAF.current = requestAnimationFrame(animate);
+        };
+
+        rAF.current = requestAnimationFrame(animate);
+
+        return () => {
+            if (rAF.current) cancelAnimationFrame(rAF.current);
+        };
+    }, []);
+    // Carousel auto-advance
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setCarouselIdx(prev => (prev + 1) % universities.length);
+        }, 3000);
+        return () => clearInterval(timer);
+    }, []);
+
+    return (
+        <>
+            <section className="hero">
+                <style dangerouslySetInnerHTML={{
+                    __html: `
+                    .hero {
+                        position: relative;
+                        height: 100vh;
+                        overflow: hidden;
+                    }
+
+                    .slide {
+                        position: absolute;
+                        inset: 0;
+                        background-size: cover;
+                        background-position: center;
+                        background-repeat: no-repeat;
+                        opacity: 0;
+                        transform: scale(1);
+                        transition: opacity 1.3s ease-in-out, transform 2s ease-out;
+                        z-index: 0;
+                    }
+
+                    .slide.active {
+                        opacity: 1;
+                        transform: scale(1.04);
+                    }
+                `}} />
+
+                {heroImages.map((src, index) => (
+                    <div
+                        key={index}
+                        className={`slide ${index === currentIndex ? "active" : ""}`}
+                        style={{ backgroundImage: `url(${src})` }}
+                    />
+                ))}
+
+                {/* Dark Overlay Gradient — boosted for readability */}
+                <div
+                    className="absolute inset-0 z-[1]"
+                    style={{
+                        background: 'linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.40) 40%, rgba(0,0,0,0.70) 100%)'
+                    }}
+                />
+
+                {/* Content Layer — pushed below the floating navbar */}
+                <div
+                    className="relative z-[2] w-full h-full flex flex-col items-center justify-center text-center px-4 sm:px-6 lg:px-8 pt-32"
+                >
+
+                    {/* TWO-LINE HEADLINE */}
+                    <h1
+                        className="animate-fade-in-up mb-4 text-white"
+                        style={{
+                            fontFamily: 'var(--font-jakarta), var(--font-inter), sans-serif',
+                            fontWeight: 800,
+                            letterSpacing: '-0.03em',
+                            lineHeight: 1.05,
+                            fontSize: 'clamp(2.5rem, 6.5vw, 5.5rem)',
+                        }}
+                    >
+                        From Admission.<br />
+                        To{' '}
+                        <span
+                            style={{
+                                background: 'linear-gradient(90deg, #10b981 0%, #34d399 100%)',
+                                WebkitBackgroundClip: 'text',
+                                WebkitTextFillColor: 'transparent',
+                                backgroundClip: 'text',
+                            }}
+                        >Fluency.</span>
+                    </h1>
+
+                    {/* THREE-WORD TAGLINE */}
+                    <p
+                        className="animate-fade-in-up mb-10"
+                        style={{
+                            animationDelay: '0.1s',
+                            fontSize: '0.6875rem',
+                            fontWeight: 700,
+                            letterSpacing: '0.22em',
+                            textTransform: 'uppercase',
+                            color: 'rgba(255,255,255,0.45)',
+                        }}
+                    >
+                        <span className="block">
+                            With
+                        </span>
+
+                        <span className="block mt-2 tracking-[0.25em]">
+                            Srishti Institute of Foreign Languages
+                        </span>
+                    </p>
+
+                    {/* CTA BUTTONS — centered */}
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-4 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+                        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-4 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+
+                            <Link href="#programs">
+                                <Button
+                                    size="lg"
+                                    className="bg-[#10b981] hover:bg-[#059669] text-white font-bold border-none shadow-xl transition-all duration-300 h-14 px-8 text-lg hover:shadow-[0_0_22px_rgba(16,185,129,0.4)] min-w-[200px]"
+                                >
+                                    Explore Programs
+                                </Button>
+                            </Link>
+
+                            <Link href="#contact">
+                                <Button
+                                    size="lg"
+                                    variant="outline"
+                                    className="border-white/30 text-white hover:bg-white/10 hover:border-white/50 transition-all duration-300 h-14 px-8 text-lg min-w-[200px]"
+                                >
+                                    Book Free Demo
+                                </Button>
+                            </Link>
+
+                        </div>
+                    </div>
+
+                    <p className="text-xs text-white/45 mb-10 animate-fade-in-up tracking-wider uppercase" style={{ animationDelay: '0.3s' }}>
+                        Free Demo class&nbsp;·&nbsp; No obligation
+                    </p>
+
+                    {/* Metrics Row — centered */}
+                    <div className="w-full flex justify-center animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+                        <div className="flex flex-wrap justify-center items-center gap-x-8 gap-y-4 text-white/80 font-medium whitespace-nowrap">
+                            <div className="flex items-center gap-2">
+                                <CheckCircle2 className="text-[#10b981] h-4 w-4 flex-shrink-0" />
+                                <span className="text-sm">100+ Students Taught</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <CheckCircle2 className="text-[#10b981] h-4 w-4 flex-shrink-0" />
+                                <span className="text-sm">Experienced Teachers</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <CheckCircle2 className="text-[#10b981] h-4 w-4 flex-shrink-0" />
+                                <span className="text-sm">5+ Languages</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Smooth Rounded Bottom Curve */}
+                <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-none z-20 pointer-events-none translate-y-[1px]">
+                    <svg
+                        viewBox="0 0 1440 100"
+                        className="block w-full h-[60px] md:h-[100px]"
+                        preserveAspectRatio="none"
+                        style={{ filter: "drop-shadow(0px -4px 10px rgba(0,0,0,0.1))" }}
+                    >
+                        <path d="M0,100 C360,0 1080,0 1440,100 Z" fill="#ffffff" />
+                    </svg>
+                </div>
+            </section>
+
+            {/* ── TRUSTED UNIVERSITIES SHOWCASE ── */}
+            <div className="bg-white pt-8 pb-12 overflow-hidden relative border-b border-gray-100">
+                <div className="text-center mb-10 relative z-10 w-full max-w-lg mx-auto bg-white" style={{ isolation: 'isolate' }}>
+                    <p className="text-[0.625rem] font-bold tracking-[0.22em] uppercase text-slate-400">
+                        Trusted by students in countries like :
+                    </p>
+                </div>
+
+                <div className="relative w-full mx-auto h-[140px] flex items-center justify-center overflow-hidden" style={{ maxWidth: '1440px' }}>
+                    {/* Ghost mask to fade edges */}
+                    <div className="absolute inset-0 z-20 pointer-events-none"
+                        style={{ background: 'linear-gradient(to right, white 0%, transparent 15%, transparent 85%, white 100%)' }}
+                    />
+                    {/* Carousel items */}
+                    <div className="relative w-full overflow-hidden h-[140px]">
+
+                        <div
+                            ref={trackRef}
+                            className="absolute left-0 top-1/2 flex items-center gap-16"
+                            style={{ transform: "translateY(-50%)" }}
+                        >
+                            {duplicatedUniversities.map((uni, index) => (
+                                <div
+                                    key={index}
+                                    className="flex flex-col items-center transition-all duration-300"
+                                    style={{
+                                        width: "160px",
+                                    }}
+                                >
+                                    <img
+                                        src={uni.logo}
+                                        alt={uni.name}
+                                        className="h-14 w-auto object-contain"
+                                    />
+                                    <span className="text-sm mt-2 text-slate-700 whitespace-nowrap">
+                                        {uni.name}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </>
+    );
+}

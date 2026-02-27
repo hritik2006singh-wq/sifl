@@ -1,47 +1,72 @@
-import React from 'react';
-import Link from 'next/link';
+"use client";
 
-export const Navbar: React.FC = () => {
-    return (
-        <header className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b border-gray-100 shadow-sm">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex justify-between items-center h-20">
-                    <div className="flex-shrink-0 flex items-center">
-                        <Link href="/" className="text-3xl font-extrabold text-primary tracking-tighter">
-                            SIFL
-                        </Link>
-                    </div>
+import Link from "next/link";
 
-                    <nav className="hidden md:flex space-x-8">
-                        <Link href="/" className="text-gray-700 hover:text-primary font-medium transition-colors">Home</Link>
-                        <Link href="/about" className="text-gray-700 hover:text-primary font-medium transition-colors">About Us</Link>
-                        <Link href="/programs" className="text-gray-700 hover:text-primary font-medium transition-colors">Programs</Link>
-                    </nav>
+export default function Navbar() {
+  return (
+    <header className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-6xl">
+      <div className="
+        flex items-center justify-between
+        px-6 py-4
+        rounded-2xl
+        bg-white/40
+        backdrop-blur-xl
+        border border-white/30
+        shadow-[0_8px_32px_rgba(0,0,0,0.12)]
+      ">
+        {/* Logo */}
+        <Link href="/" className="flex items-center gap-3 cursor-pointer">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600 text-white font-bold">
+            文
+          </div>
+          <span className="text-lg font-bold tracking-tight">SIFL</span>
+        </Link>
 
-                    <div className="hidden md:flex items-center space-x-4">
-                        <Link
-                            href="/sign-in"
-                            className="text-primary font-medium hover:text-primary-hover transition-colors"
-                        >
-                            Sign In
-                        </Link>
-                        <Link
-                            href="/consultation"
-                            className="bg-primary text-white px-5 py-2.5 rounded-btn font-medium hover:bg-primary-hover transition-colors shadow-sm"
-                        >
-                            Book Consultation
-                        </Link>
-                    </div>
+        {/* Nav Links */}
+        <nav className="hidden md:flex items-center gap-8 text-sm font-medium">
+          <Link href="/" className="hover:text-emerald-600 transition">
+            Home
+          </Link>
 
-                    <div className="md:hidden flex items-center">
-                        <button className="text-gray-700 hover:text-primary focus:outline-none">
-                            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </header>
-    );
-};
+          <Link href="/programs" className="hover:text-emerald-600 transition">
+            Programs
+          </Link>
+
+          <Link href="/about" className="hover:text-emerald-600 transition">
+            About
+          </Link>
+
+          <Link href="/success-stories" className="hover:text-emerald-600 transition">
+            Success Stories
+          </Link>
+
+          <Link href="/why-sifl" className="hover:text-emerald-600 transition">
+            Why SIFL
+          </Link>
+
+          <Link href="/consultation" className="hover:text-emerald-600 transition">
+            How It Works
+          </Link>
+        </nav>
+
+        {/* CTA */}
+        <Link
+          href="#consultation"
+          className="
+            px-5 py-2.5
+            rounded-xl
+            bg-emerald-600
+            text-white
+            text-sm
+            font-semibold
+            shadow-lg
+            hover:bg-emerald-700
+            transition
+          "
+        >
+          Book Consultation
+        </Link>
+      </div>
+    </header>
+  );
+}

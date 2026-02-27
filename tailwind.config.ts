@@ -8,18 +8,18 @@ const config: Config = {
     ],
     theme: {
         extend: {
-   colors: {
-    primary: "#0fbd49",
-    "background-light": "#f6f8f6",
-    "background-dark": "#102216",
-  },
-  fontFamily: {
-    display: ["Public Sans", "sans-serif"],
-  },
-  borderRadius: {
-    DEFAULT: "0.5rem",
-    lg: "1rem",
-    xl: "1.5rem",
+            colors: {
+                primary: "#0fbd49",
+                "background-light": "#f6f8f6",
+                "background-dark": "#102216",
+            },
+            fontFamily: {
+                display: ["Public Sans", "sans-serif"],
+            },
+            borderRadius: {
+                DEFAULT: "0.5rem",
+                lg: "1rem",
+                xl: "1.5rem",
     full: "9999px",
   },
 },
