@@ -5,7 +5,7 @@ export const Footer: React.FC = () => {
     return (
         <footer className="bg-slate-900 text-slate-400 py-12 border-t border-slate-800">
             <div className="max-w-7xl mx-auto px-6 lg:px-8">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 md:gap-12 mb-12">
                     <div className="col-span-1 md:col-span-1">
                         <Link href="/" className="flex items-center gap-2 mb-4">
                             <div className="flex h-8 w-8 items-center justify-center rounded bg-primary text-white font-bold">

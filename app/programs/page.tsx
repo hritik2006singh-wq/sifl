@@ -387,10 +387,10 @@ export default function ProgramsPage() {
                       SIFL Academy's proven methodology.
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                      <Link href="/consultation" className="px-8 py-4 bg-white text-primary rounded-xl font-black text-lg shadow-xl hover:scale-105 transition-transform text-center">
+                      <Link href="/consultation" className="w-full md:w-auto px-8 py-4 bg-white text-primary rounded-xl font-black text-lg shadow-xl hover:scale-105 transition-transform text-center">
                         Get Started Today
                       </Link>
-                      <Link href="/consultation" className="px-8 py-4 bg-transparent border-2 border-white/40 text-white rounded-xl font-bold hover:bg-white/10 transition-all text-center">
+                      <Link href="/consultation" className="w-full md:w-auto px-8 py-4 bg-transparent border-2 border-white/40 text-white rounded-xl font-bold hover:bg-white/10 transition-all text-center">
                         Talk to an Advisor
                       </Link>
                     </div>

@@ -68,7 +68,7 @@ export default function ConsultationPage() {
                                     />
                                     <div>
                                         <label className="block mb-2 text-sm font-medium text-gray-700">Select Time</label>
-                                        <div className="grid grid-cols-2 gap-2">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                                             {bookingContent.form.timeSlots.map((ts, idx) => (
                                                 <button
                                                     key={idx}

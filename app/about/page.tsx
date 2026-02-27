@@ -4,7 +4,7 @@ export default function AboutPage() {
 
       {/* HERO SECTION */}
       <section className="px-6 lg:px-40 py-20">
-        <div className="mx-auto max-w-[1200px] grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        <div className="mx-auto max-w-[1200px] grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-12 items-center">
 
           <div className="space-y-6">
             <span className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-wider">
@@ -24,7 +24,7 @@ export default function AboutPage() {
             className="aspect-square rounded-xl overflow-hidden shadow-2xl bg-cover bg-center"
             style={{
               backgroundImage:
-                "url('/brand/about-hero.jpg')"
+                "url('/images/faculty/hero.jpg')"
             }}
           />
         </div>
@@ -46,13 +46,13 @@ export default function AboutPage() {
                 className="aspect-square rounded-lg mb-6 bg-cover bg-center"
                 style={{
                   backgroundImage:
-                    "url('/brand/campus/campus-3.jpg')"
+                    "url('/images/faculty/uncle-ji.jpeg')"
                 }}
               />
-              <h3 className="text-xl font-bold">Dr. Alistair Vaughn</h3>
-              <p className="text-primary text-sm mb-3">Dean of Strategic Studies</p>
+              <h3 className="text-xl font-bold">Mr. Tuteja</h3>
+              <p className="text-primary text-sm mb-3">  Co-Founder | Investor | Mentor | </p>
               <p className="text-slate-600 text-sm">
-                Former UN diplomat with over 25 years of experience in international conflict resolution.
+                A results-driven investor backing education with disciplined capital, strategic oversight, and a mandate to scale quality learning outcomes.
               </p>
             </div>
 
@@ -62,10 +62,10 @@ export default function AboutPage() {
                 className="aspect-square rounded-lg mb-6 bg-cover bg-center"
                 style={{
                   backgroundImage:
-                    "url('/brand/campus/campus-4.jpg')"
+                    "url('/images/faculty/sristhi-di.jpeg')"
                 }}
               />
-              <h3 className="text-xl font-bold">Srishti Tuteja</h3>
+              <h3 className="text-xl font-bold">Ms.Srishti Tuteja</h3>
               <p className="text-primary text-sm mb-3">Founder | Lead German Teacher</p>
               <p className="text-slate-600 text-sm">
                 Certified German language teacher with C1 from the Goethe-Institut and a Diploma in German from the University of Delhi.
@@ -93,7 +93,7 @@ export default function AboutPage() {
 
       {/* VISION & MISSION */}
       <section className="px-6 lg:px-40 py-20">
-        <div className="mx-auto max-w-[1200px] grid grid-cols-1 md:grid-cols-2 gap-12">
+        <div className="mx-auto max-w-[1200px] grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12">
           <div className="p-10 rounded-xl bg-white border border-primary/10 shadow-sm relative overflow-hidden group">
             <div className="absolute top-0 right-0 p-4 text-primary/10 transition-transform group-hover:scale-110">
               <span className="material-symbols-outlined text-8xl" style={{}}>

@@ -11,10 +11,10 @@ export default function WhySiflPage() {
                     {/* Timeline Section */}
                     <div className="mb-20 pt-14 pb-12">
                         <h2 className="text-2xl font-bold text-center mb-11 text-slate-900">Your Journey to Fluency</h2>
-                        <div className="w-full overflow-x-auto pb-8" style={{ scrollbarWidth: 'none' }}>
-                            <div className="relative flex justify-between items-center min-w-[800px] md:min-w-full max-w-5xl mx-auto px-10">
+                        <div className="w-full  pb-8" style={{ scrollbarWidth: 'none' }}>
+                            <div className="relative flex flex-col md:flex-row items-center gap-10 md:gap-0 max-w-full md:max-w-5xl mx-auto px-4 md:px-10">
                                 {/* Connecting Line */}
-                                <div className="absolute top-7 left-10 right-10 h-[2px] bg-slate-200 z-0" />
+                                <div className="hidden md:block absolute top-7 left-10 right-10 h-[2px] bg-slate-200 z-0" />
 
                                 {[
                                     { title: 'Book Call', icon: 'phone_in_talk' },
@@ -27,7 +27,7 @@ export default function WhySiflPage() {
                                 ].map((item, i) => (
                                     <div
                                         key={i}
-                                        className="relative z-10 flex flex-col items-center group cursor-pointer w-24"
+                                        className="relative z-10 flex flex-col items-center group cursor-pointer w-full md:w-24"
                                     >
                                         <div className="relative flex items-center justify-center">
 
@@ -64,7 +64,7 @@ export default function WhySiflPage() {
                     {/* Expandable Language Cards */}
                     <div className="mb-20">
                         <h2 className="text-2xl font-bold text-center mb-8 text-slate-900">Program Quick Facts</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-5xl mx-auto">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-full md:max-w-5xl mx-auto">
                             {[
                                 { lang: 'German', desc: 'A1 to C2 Goethe Standard. Focus on Engineering and Healthcare relocation to DACH region with intensive speaking labs.' },
                                 { lang: 'English', desc: 'IELTS/PTE preparation. Covers Academic & General training modules utilizing official exam methodologies.' },
@@ -73,7 +73,7 @@ export default function WhySiflPage() {
                                 { lang: 'Japanese', desc: 'JLPT N5 to N1. Incorporates Hiragana, Katakana, Kanji, and crucial business etiquette for modern Japan.' }
                             ].map((prog, i) => (
                                 <details key={i} className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm cursor-pointer group transition-all duration-300 hover:border-primary/50 hover:shadow-md">
-                                    <summary className="font-bold text-lg text-slate-800 outline-none list-none flex justify-between items-center group-open:text-primary">
+                                    <summary className="font-bold text-lg text-slate-800 outline-none list-none flex flex-col md:flex-row justify-between items-center group-open:text-primary">
                                         {prog.lang} Language
                                         <span className="material-symbols-outlined transition-transform duration-300 group-open:rotate-180 text-primary">expand_more</span>
                                     </summary>

@@ -68,7 +68,7 @@ export default function SignInPage() {
                             required
                         />
 
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-col md:flex-row items-center justify-between">
                             <div className="flex items-center">
                                 <input
                                     id="remember-me"

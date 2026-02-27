@@ -57,7 +57,7 @@ export default function ProgramView({
                     <h2 className="text-2xl font-bold mb-6">Learning Timeline</h2>
                     <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-300 before:to-transparent">
                         {timeline.map((item, idx) => (
-                            <div key={idx} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                            <div key={idx} className="relative flex flex-col md:flex-row items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
                                 <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-white bg-slate-300 group-hover:bg-primary group-hover:scale-110 transition-all text-white font-bold shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow-sm z-10">
                                     {idx + 1}
                                 </div>
@@ -70,7 +70,7 @@ export default function ProgramView({
                     </div>
 
                     <div className="mt-16 text-center">
-                        <Link href="/consultation" className="inline-block px-8 py-4 bg-primary text-white font-bold rounded-xl shadow-lg hover:shadow-primary/30 hover:-translate-y-1 transition-all">
+                        <Link href="/consultation" className="inline-block w-full md:w-auto px-8 py-4 bg-primary text-white font-bold rounded-xl shadow-lg hover:shadow-primary/30 hover:-translate-y-1 transition-all">
                             Enroll Now
                         </Link>
                     </div>

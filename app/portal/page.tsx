@@ -15,7 +15,7 @@ export default function DashboardIndex() {
             {/* METRICS ROW */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {dashboardContent.metrics.map((metric, idx) => (
-                    <div key={idx} className="bg-white p-6 rounded-card shadow-sm border border-gray-100 flex items-center justify-between">
+                    <div key={idx} className="bg-white p-6 rounded-card shadow-sm border border-gray-100 flex flex-col md:flex-row items-center justify-between">
                         <span className="text-gray-500 font-medium">{metric.label}</span>
                         <span className="text-2xl font-bold text-primary">{metric.value}</span>
                     </div>
@@ -43,7 +43,7 @@ export default function DashboardIndex() {
                     </DashboardCard>
 
                     <DashboardCard title="Recent Test Results">
-                        <div className="overflow-x-auto">
+                        <div className="">
                             <table className="w-full text-left border-collapse">
                                 <thead>
                                     <tr className="border-b border-gray-100 text-sm text-gray-500">
@@ -75,7 +75,7 @@ export default function DashboardIndex() {
                             {dashboardContent.assignmentsDue.map((assignment, idx) => (
                                 <div key={idx} className="p-4 border border-gray-100 rounded-lg hover:border-primary/30 transition-colors">
                                     <h4 className="font-bold text-sm mb-1">{assignment.title}</h4>
-                                    <div className="flex justify-between items-center text-xs">
+                                    <div className="flex flex-col md:flex-row justify-between items-center text-xs">
                                         <span className="text-gray-500">{assignment.course}</span>
                                         <span className="font-bold text-red-500">{assignment.due}</span>
                                     </div>

@@ -6,8 +6,8 @@ export default function Navbar() {
   return (
     <header className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-6xl">
       <div className="
-        flex items-center justify-between
-        px-6 py-4
+        flex flex-col md:flex-row items-center justify-between
+        px-4 md:px-8 py-4
         rounded-2xl
         bg-white/40
         backdrop-blur-xl

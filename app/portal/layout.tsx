@@ -11,7 +11,7 @@ export default function PortalLayout({ children }: { children: ReactNode }) {
             </div>
 
             {/* MOBILE HEADER (Optional fallback) */}
-            <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 z-50 flex items-center justify-between px-4">
+            <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 z-50 flex flex-col md:flex-row items-center justify-between px-4">
                 <span className="text-xl font-bold text-primary">SIFL Portal</span>
                 <button className="text-gray-500">☰</button>
             </div>

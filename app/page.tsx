@@ -10,7 +10,7 @@ export default function Page() {
         {/* Trust Metrics */}
         <section className="bg-white py-12 dark:bg-slate-900/50">
           <div className="mx-auto max-w-7xl px-6">
-            <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:grid-cols-4">
               <div className="flex flex-col items-center border-r border-slate-100 last:border-0 dark:border-slate-800">
                 <p className="text-4xl font-black text-primary" style={{}}>
                   100+
@@ -56,7 +56,7 @@ export default function Page() {
               >
                 Our Language Programs
               </h2>
-              <div className="mt-4 h-1.5 w-24 rounded-full bg-primary" />
+              <div className="mt-4 h-1.5 w-full md:w-24 rounded-full bg-primary" />
               <p
                 className="mt-6 max-w-2xl text-slate-600 dark:text-slate-400"
                 style={{}}
@@ -79,7 +79,7 @@ export default function Page() {
                   data-alt="Brandenburg Gate Berlin"
                   style={{
                     backgroundImage:
-                      `url('/brand/hero-bg.jpg')`,
+                      `url('/images/programs/german.jpg')`, 
                     backgroundSize: "cover"
                   }}
                 />
@@ -132,7 +132,7 @@ export default function Page() {
                   data-alt="Big Ben London"
                   style={{
                     backgroundImage:
-                      `url('/brand/campus/campus-1.jpg')`,
+                      `url('/images/programs/english.jpg')`,
                     backgroundSize: "cover"
                   }}
                 />
@@ -157,7 +157,7 @@ export default function Page() {
                   data-alt="Eiffel Tower Paris"
                   style={{
                     backgroundImage:
-                      `url('/brand/campus/campus-2.jpg')`,
+                      `url('/images/programs/french.jpg')`,
                     backgroundSize: "cover"
                   }}
                 />
@@ -177,7 +177,7 @@ export default function Page() {
                   data-alt="Mount Fuji Japan"
                   style={{
                     backgroundImage:
-                      `url('/brand/programs/japanese.jpg')`,
+                      `url('/images/programs/japanese.jpg')`,
                     backgroundSize: "cover"
                   }}
                 />
@@ -197,7 +197,7 @@ export default function Page() {
                   data-alt="Sagrada Familia Spain"
                   style={{
                     backgroundImage:
-                      `url('/brand/programs/other.jpg')`,
+                      `url('/images/programs/spanish.jpg')`,
                     backgroundSize: "cover"
                   }}
                 />
@@ -217,7 +217,7 @@ export default function Page() {
         {/* Why Choose SIFL */}
         <section className="bg-primary/5 py-24" id="why">
           <div className="mx-auto max-w-7xl px-6">
-            <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
+            <div className="grid gap-6 md:gap-12 lg:grid-cols-2 lg:items-center">
               <div>
                 <h2
                   className="text-3xl font-black text-slate-900 dark:text-slate-100 md:text-4xl"
@@ -549,11 +549,11 @@ export default function Page() {
                 Four simple steps to start your international career.
               </p>
             </div>
-            <div className="relative grid gap-12 md:grid-cols-4">
+            <div className="relative grid gap-6 md:gap-12 md:grid-cols-4">
               {/* Progress Line (desktop) */}
               <div className="absolute left-0 top-12 hidden h-0.5 w-full bg-slate-100 dark:bg-slate-800 md:block" />
               <div className="relative flex flex-col items-center text-center">
-                <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-white text-primary shadow-xl dark:bg-slate-900">
+                <div className="mb-6 flex h-24 w-full md:w-24 items-center justify-center rounded-full bg-white text-primary shadow-xl dark:bg-slate-900">
                   <span className="material-symbols-outlined text-4xl" style={{}}>
                     event_available
                   </span>
@@ -566,7 +566,7 @@ export default function Page() {
                 </p>
               </div>
               <div className="relative flex flex-col items-center text-center">
-                <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-white text-primary shadow-xl dark:bg-slate-900">
+                <div className="mb-6 flex h-24 w-full md:w-24 items-center justify-center rounded-full bg-white text-primary shadow-xl dark:bg-slate-900">
                   <span className="material-symbols-outlined text-4xl" style={{}}>
                     psychology
                   </span>
@@ -579,7 +579,7 @@ export default function Page() {
                 </p>
               </div>
               <div className="relative flex flex-col items-center text-center">
-                <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-white text-primary shadow-xl dark:bg-slate-900">
+                <div className="mb-6 flex h-24 w-full md:w-24 items-center justify-center rounded-full bg-white text-primary shadow-xl dark:bg-slate-900">
                   <span className="material-symbols-outlined text-4xl" style={{}}>
                     edit_note
                   </span>
@@ -592,7 +592,7 @@ export default function Page() {
                 </p>
               </div>
               <div className="relative flex flex-col items-center text-center">
-                <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-primary text-white shadow-xl shadow-primary/40">
+                <div className="mb-6 flex h-24 w-full md:w-24 items-center justify-center rounded-full bg-primary text-white shadow-xl shadow-primary/40">
                   <span className="material-symbols-outlined text-4xl" style={{}}>
                     rocket_launch
                   </span>
@@ -626,13 +626,13 @@ export default function Page() {
                 </p>
                 <div className="flex flex-wrap justify-center gap-4">
                   <button
-                    className="rounded-xl bg-primary px-10 py-4 text-lg font-bold text-white shadow-xl shadow-primary/30 transition-transform active:scale-95"
+                    className="rounded-xl bg-primary px-4 md:w-full md:w-auto px-10 py-4 text-lg font-bold text-white shadow-xl shadow-primary/30 transition-transform active:scale-95"
                     style={{}}
                   >
                     Book Free Consultation
                   </button>
                   <button
-                    className="rounded-xl border border-white/20 bg-white/5 px-10 py-4 text-lg font-bold text-white backdrop-blur-md transition-colors hover:bg-white/10"
+                    className="rounded-xl border border-white/20 bg-white/5 px-4 md:w-full md:w-auto px-10 py-4 text-lg font-bold text-white backdrop-blur-md transition-colors hover:bg-white/10"
                     style={{}}
                   >
                     Contact Us
