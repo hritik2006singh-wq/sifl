@@ -3,7 +3,7 @@ import { Public_Sans } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-
+import LeadCapture from "@/components/LeadCapture";
 const publicSans = Public_Sans({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700", "800", "900"],
@@ -38,6 +38,7 @@ export default function RootLayout({
         </main>
 
         <Footer />
+        <LeadCapture />
       </body>
     </html>
   );

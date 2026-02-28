@@ -1,91 +1,108 @@
-export default function WhySiflPage() {
+import Link from "next/link";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+    title: "Why SIFL | The Structured Advantage",
+    description: "Discover the structured teaching philosophy, measurable outcomes, and certified trainers at SIFL.",
+};
+
+export default function WhySIFLPage() {
     return (
+        <div className="pt-24 pb-20 bg-slate-50 min-h-screen">
+            <div className="mx-auto max-w-4xl px-6">
 
-        <><main className="pt-16 bg-background-light text-slate-900"></main><div className="min-h-screen flex flex-col bg-gray-50">
+                {/* Header */}
+                <div className="mb-16 text-center">
+                    <h1 className="text-4xl md:text-5xl font-black tracking-tight text-slate-900 mb-6">
+                        Why Students Choose <span className="text-primary">SIFL</span>
+                    </h1>
+                    <p className="text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
+                        We operate on a single philosophy: Language learning should not be random. It must be systematically structured to ensure you achieve your career or academic goals abroad.
+                    </p>
+                </div>
 
-            <main className="flex-grow py-12">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="text-center mb-12">
+                {/* Structured Blocks */}
+                <div className="space-y-8">
+
+                    {/* Block 1: Teaching Methodology */}
+                    <div className="bg-white rounded-3xl p-8 md:p-12 shadow-sm border border-slate-100 flex flex-col md:flex-row gap-8 items-start">
+                        <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                            <span className="material-symbols-outlined text-3xl">architecture</span>
+                        </div>
+                        <div>
+                            <h2 className="text-2xl font-black text-slate-900 mb-4">Engineered Teaching Methodology</h2>
+                            <p className="text-slate-600 leading-relaxed mb-4">
+                                Our curriculum isn't just a collection of vocabulary words. We use an engineered, CEFR-aligned immersion approach that builds syntax and instinct simultaneously.
+                            </p>
+                            <ul className="space-y-2 mt-4">
+                                <li className="flex items-center gap-3 text-sm font-medium text-slate-700">
+                                    <span className="material-symbols-outlined text-primary text-sm">check_circle</span> Active Recall Integration
+                                </li>
+                                <li className="flex items-center gap-3 text-sm font-medium text-slate-700">
+                                    <span className="material-symbols-outlined text-primary text-sm">check_circle</span> Scenario-Based Immersion
+                                </li>
+                            </ul>
+                        </div>
                     </div>
 
-                    {/* Timeline Section */}
-                    <div className="mb-20 pt-14 pb-12">
-                        <h2 className="text-2xl font-bold text-center mb-11 text-slate-900">Your Journey to Fluency</h2>
-                        <div className="w-full  pb-8" style={{ scrollbarWidth: 'none' }}>
-                            <div className="relative flex flex-col md:flex-row items-center gap-10 md:gap-0 max-w-full md:max-w-5xl mx-auto px-4 md:px-10">
-                                {/* Connecting Line */}
-                                <div className="hidden md:block absolute top-7 left-10 right-10 h-[2px] bg-slate-200 z-0" />
-
-                                {[
-                                    { title: 'Book Call', icon: 'phone_in_talk' },
-                                    { title: 'Demo Class', icon: 'smart_display' },
-                                    { title: 'Enroll', icon: 'how_to_reg' },
-                                    { title: 'Learn', icon: 'menu_book' },
-                                    { title: 'Mock Exams', icon: 'quiz' },
-                                    { title: 'Book Exam', icon: 'event_available' },
-                                    { title: 'Certify', icon: 'workspace_premium' }
-                                ].map((item, i) => (
-                                    <div
-                                        key={i}
-                                        className="relative z-10 flex flex-col items-center group cursor-pointer w-full md:w-24"
-                                    >
-                                        <div className="relative flex items-center justify-center">
-
-                                            {/* Icon Circle */}
-                                            <div className="
-        w-14 h-14
-        rounded-full
-        bg-white
-        border-2 border-primary/30
-        flex items-center justify-center
-        shadow-md
-        transition-all duration-300
-        group-hover:scale-110
-        group-hover:-translate-y-3 transition-all duration-300 ease-out    
-        group-hover:shadow-xl   
-        z-20
-      ">
-                                                <span className="material-symbols-outlined text-primary text-2xl">
-                                                    {item.icon}
-                                                </span>
-                                            </div>
-
-                                        </div>
-
-                                        <span className="mt-4 text-xs font-semibold text-slate-600 text-center uppercase tracking-wider">
-                                            {item.title}
-                                        </span>
-                                    </div>
-                                ))}
+                    {/* Block 2: Measurable Outcomes */}
+                    <div className="bg-white rounded-3xl p-8 md:p-12 shadow-sm border border-slate-100 flex flex-col md:flex-row gap-8 items-start">
+                        <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                            <span className="material-symbols-outlined text-3xl">trending_up</span>
+                        </div>
+                        <div>
+                            <h2 className="text-2xl font-black text-slate-900 mb-4">Measurable Outcomes</h2>
+                            <p className="text-slate-600 leading-relaxed mb-4">
+                                Every minute spent in our classrooms maps to a quantifiable outcome. We prepare you strictly for official certifications like IELTS, Goethe, DELF, and JLPT.
+                            </p>
+                            <div className="grid grid-cols-2 gap-4 mt-6">
+                                <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                                    <p className="text-3xl font-black text-primary mb-1">98%</p>
+                                    <p className="text-xs font-bold text-slate-500 uppercase">First-Attempt Pass Rate</p>
+                                </div>
+                                <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                                    <p className="text-3xl font-black text-primary mb-1">100+</p>
+                                    <p className="text-xs font-bold text-slate-500 uppercase">Students Abroad</p>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Expandable Language Cards */}
-                    <div className="mb-20">
-                        <h2 className="text-2xl font-bold text-center mb-8 text-slate-900">Program Quick Facts</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-full md:max-w-5xl mx-auto">
-                            {[
-                                { lang: 'German', desc: 'A1 to C2 Goethe Standard. Focus on Engineering and Healthcare relocation to DACH region with intensive speaking labs.' },
-                                { lang: 'English', desc: 'IELTS/PTE preparation. Covers Academic & General training modules utilizing official exam methodologies.' },
-                                { lang: 'French', desc: 'DELF/DALF alignment. Focuses on conversational diplomacy, arts, and Canadian immigration pathways.' },
-                                { lang: 'Spanish', desc: 'DELE preparation. Covering European & Latin American business Spanish to excel in international trade.' },
-                                { lang: 'Japanese', desc: 'JLPT N5 to N1. Incorporates Hiragana, Katakana, Kanji, and crucial business etiquette for modern Japan.' }
-                            ].map((prog, i) => (
-                                <details key={i} className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm cursor-pointer group transition-all duration-300 hover:border-primary/50 hover:shadow-md">
-                                    <summary className="font-bold text-lg text-slate-800 outline-none list-none flex flex-col md:flex-row justify-between items-center group-open:text-primary">
-                                        {prog.lang} Language
-                                        <span className="material-symbols-outlined transition-transform duration-300 group-open:rotate-180 text-primary">expand_more</span>
-                                    </summary>
-                                    <div className="mt-4 text-slate-600 text-sm leading-relaxed border-t border-slate-100 pt-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                                        {prog.desc}
-                                    </div>
-                                </details>
-                            ))}
+                    {/* Block 3: Trainer Authority */}
+                    <div className="bg-white rounded-3xl p-8 md:p-12 shadow-sm border border-slate-100 flex flex-col md:flex-row gap-8 items-start">
+                        <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                            <span className="material-symbols-outlined text-3xl">verified_user</span>
+                        </div>
+                        <div>
+                            <h2 className="text-2xl font-black text-slate-900 mb-4">Trainer Authority</h2>
+                            <p className="text-slate-600 leading-relaxed">
+                                You are taught exclusively by certified linguistic professionals with years of pedagogical experience. Our faculty undergoes rigorous continuous assessment to ensure cutting-edge instructional delivery.
+                            </p>
                         </div>
                     </div>
+
+                    {/* Block 4: Long-Term Career Alignment */}
+                    <div className="bg-white rounded-3xl p-8 md:p-12 shadow-sm border border-slate-100 flex flex-col md:flex-row gap-8 items-start">
+                        <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                            <span className="material-symbols-outlined text-3xl">rocket_launch</span>
+                        </div>
+                        <div>
+                            <h2 className="text-2xl font-black text-slate-900 mb-4">Long-Term Career Alignment</h2>
+                            <p className="text-slate-600 leading-relaxed mb-6">
+                                SIFL is an educational launchpad. We align your linguistic training strictly with the requirements of top global employers and premier universities in Germany, Singapore, and Malaysia.
+                            </p>
+                            <Link
+                                href="/consultation"
+                                className="inline-flex items-center justify-center whitespace-nowrap rounded-xl bg-primary px-8 py-3.5 text-sm font-bold text-white shadow-lg hover:bg-primary-hover transition-all active:scale-95"
+                            >
+                                👉 Book Free Demo
+                            </Link>
+                        </div>
+                    </div>
+
                 </div>
-            </main>
-        </div></>
-    )
+
+            </div>
+        </div>
+    );
 }

@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Section } from '@/components/Section';
 import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
 import { FormInput } from '@/components/FormInput';
@@ -18,104 +17,126 @@ export default function ConsultationPage() {
     const [time, setTime] = useState('');
     const [objective, setObjective] = useState('');
 
-    return ( 
-           <main className="pt-30 bg-background-light text-slate-900">
+    return (
+        <main className="pt-24 pb-24 bg-slate-50 min-h-screen">
+            <div className="mx-auto max-w-6xl px-4 sm:px-6">
 
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-                        {/* LEFT SIDE: FORM */}
-                        <div className="lg:col-span-2">
-                            <Card className="p-8">
-                                <h2 className="text-2xl font-bold mb-6">Booking Details</h2>
+                <div className="mb-10 text-center">
+                    <h1 className="text-3xl md:text-5xl font-black text-slate-900 mb-4">Book Your Free Demo</h1>
+                    <p className="text-slate-600 max-w-xl mx-auto text-lg leading-relaxed">
+                        Take the first structured step toward your global career. Select a time below to map out your language proficiency roadmap.
+                    </p>
+                </div>
 
-                                <div className="mb-8">
-                                    <label className="block mb-3 text-sm font-medium text-gray-700">Meeting Type</label>
-                                    <ToggleOption
-                                        options={bookingContent.form.meetingTypes}
-                                        selectedId={meetingType}
-                                        onChange={setMeetingType}
-                                    />
-                                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                    {/* LEFT SIDE: FORM */}
+                    <div className="lg:col-span-2">
+                        <Card className="p-8 md:p-10 shadow-sm border border-slate-100 bg-white">
+                            <h2 className="text-2xl font-bold mb-8 text-slate-800">Demo Details</h2>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                                    <SelectInput
-                                        label="Language of Interest"
-                                        options={bookingContent.form.languages}
-                                        value={language}
-                                        onChange={(e) => setLanguage(e.target.value)}
-                                    />
-                                    <SelectInput
-                                        label="Current Academic Level"
-                                        options={bookingContent.form.levels}
-                                        value={level}
-                                        onChange={(e) => setLevel(e.target.value)}
-                                    />
-                                </div>
+                            <div className="mb-8">
+                                <label className="block mb-3 text-sm font-bold text-slate-700">Meeting Format</label>
+                                <ToggleOption
+                                    options={bookingContent.form.meetingTypes}
+                                    selectedId={meetingType}
+                                    onChange={setMeetingType}
+                                />
+                            </div>
 
-                                <div className="mb-6">
-                                    <FormInput
-                                        label="Primary Objective"
-                                        placeholder="E.g., University admission, professional requirement..."
-                                        multiline
-                                        value={objective}
-                                        onChange={(e) => setObjective(e.target.value)}
-                                    />
-                                </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                                <SelectInput
+                                    label="Target Language"
+                                    options={bookingContent.form.languages}
+                                    value={language}
+                                    onChange={(e) => setLanguage(e.target.value)}
+                                />
+                                <SelectInput
+                                    label="Current Level (Approximate)"
+                                    options={bookingContent.form.levels}
+                                    value={level}
+                                    onChange={(e) => setLevel(e.target.value)}
+                                />
+                            </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                                    <CalendarSelector
-                                        selectedDate={date}
-                                        onSelect={setDate}
-                                    />
-                                    <div>
-                                        <label className="block mb-2 text-sm font-medium text-gray-700">Select Time</label>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                                            {bookingContent.form.timeSlots.map((ts, idx) => (
-                                                <button
-                                                    key={idx}
-                                                    type="button"
-                                                    onClick={() => setTime(ts)}
-                                                    className={`py-3 px-2 text-sm font-medium rounded-btn border transition-colors ${time === ts
-                                                        ? 'border-primary bg-primary/10 text-primary'
-                                                        : 'border-gray-300 text-gray-700 hover:border-primary hover:text-primary'
-                                                        }`}
-                                                >
-                                                    {ts}
-                                                </button>
-                                            ))}
-                                        </div>
+                            <div className="mb-8">
+                                <FormInput
+                                    label="Primary Career / Study Objective"
+                                    placeholder="E.g., Masters in Germany, Nursing in UK, Corporate transfer..."
+                                    multiline
+                                    value={objective}
+                                    onChange={(e) => setObjective(e.target.value)}
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-4">
+                                <CalendarSelector
+                                    selectedDate={date}
+                                    onSelect={setDate}
+                                />
+                                <div>
+                                    <label className="block mb-3 text-sm font-bold text-slate-700">Available Time Slots</label>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        {bookingContent.form.timeSlots.map((ts, idx) => (
+                                            <button
+                                                key={idx}
+                                                type="button"
+                                                onClick={() => setTime(ts)}
+                                                className={`py-3 px-2 text-sm font-bold rounded-xl border transition-all ${time === ts
+                                                    ? 'border-primary bg-primary text-white shadow-md'
+                                                    : 'border-slate-200 bg-slate-50 text-slate-600 hover:border-primary hover:text-primary active:scale-95'
+                                                    }`}
+                                            >
+                                                {ts}
+                                            </button>
+                                        ))}
                                     </div>
                                 </div>
-                            </Card>
-                        </div>
-
-                        {/* RIGHT SIDE: SUMMARY */}
-                        <div className="lg:col-span-1 sticky top-28">
-                            <Card className="p-8 bg-white border border-gray-100 shadow-lg">
-                                <h3 className="text-xl font-bold mb-6">{bookingContent.summary.title}</h3>
-
-                                <div className="space-y-4 mb-8">
-                                    <div className="flex justify-between pb-4 border-b border-gray-100 items-center">
-                                        <span className="text-gray-500 text-sm">Type</span>
-                                        <span className="font-medium text-foreground">{bookingContent.form.meetingTypes.find(m => m.id === meetingType)?.label}</span>
-                                    </div>
-                                    <div className="flex justify-between pb-4 border-b border-gray-100 items-center">
-                                        <span className="text-gray-500 text-sm">Language</span>
-                                        <span className="font-medium text-foreground">{bookingContent.form.languages.find(l => l.value === language)?.label}</span>
-                                    </div>
-                                    <div className="flex justify-between pb-4 border-b border-gray-100 items-center">
-                                        <span className="text-gray-500 text-sm">Date</span>
-                                        <span className="font-medium text-foreground">{date ? new Date(date).toLocaleDateString() : 'Not selected'}</span>
-                                    </div>
-                                    <div className="flex justify-between pb-4 border-b border-gray-100 items-center">
-                                        <span className="text-gray-500 text-sm">Time</span>
-                                        <span className="font-medium text-foreground">{time || 'Not selected'}</span>
-                                    </div>
-                                </div>
-
-                                <Button fullWidth size="lg">{bookingContent.summary.confirmButton}</Button>
-                            </Card>
-                        </div>
+                            </div>
+                        </Card>
                     </div>
-            </main>
+
+                    {/* RIGHT SIDE: SUMMARY */}
+                    <div className="lg:col-span-1 sticky top-24">
+                        <Card className="p-8 bg-white border border-slate-100 shadow-xl rounded-3xl relative overflow-hidden">
+                            <div className="absolute top-0 left-0 w-full h-1.5 bg-primary" />
+                            <h3 className="text-xl font-black mb-6 text-slate-900">{bookingContent.summary.title}</h3>
+
+                            <div className="space-y-5 mb-8">
+                                <div className="flex justify-between pb-4 border-b border-slate-100 items-center">
+                                    <span className="text-slate-500 text-sm font-medium">Format</span>
+                                    <span className="font-bold text-slate-900">{bookingContent.form.meetingTypes.find(m => m.id === meetingType)?.label}</span>
+                                </div>
+                                <div className="flex justify-between pb-4 border-b border-slate-100 items-center">
+                                    <span className="text-slate-500 text-sm font-medium">Language</span>
+                                    <span className="font-bold text-slate-900">{bookingContent.form.languages.find(l => l.value === language)?.label}</span>
+                                </div>
+                                <div className="flex justify-between pb-4 border-b border-slate-100 items-center">
+                                    <span className="text-slate-500 text-sm font-medium">Date</span>
+                                    <span className="font-bold text-slate-900">{date ? new Date(date).toLocaleDateString() : 'Not selected'}</span>
+                                </div>
+                                <div className="flex justify-between pb-4 border-b border-slate-100 items-center">
+                                    <span className="text-slate-500 text-sm font-medium">Time</span>
+                                    <span className="font-bold text-slate-900">{time || 'Not selected'}</span>
+                                </div>
+                            </div>
+
+                            <Button fullWidth size="lg" className="w-full bg-primary hover:bg-primary-hover shadow-lg active:scale-95 transition-all mb-4">
+                                👉 Confirm Booking
+                            </Button>
+
+                            {/* Trust Reinforcement Line */}
+                            <div className="text-center mt-6 pt-6 border-t border-slate-100">
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center justify-center gap-1.5">
+                                    <span className="material-symbols-outlined text-[14px]">encrypted</span> Secure & Confidential
+                                </p>
+                                <p className="mt-2 text-sm text-slate-500 font-medium">
+                                    Join 1,000+ professionals who successfully built their global careers through SIFL.
+                                </p>
+                            </div>
+                        </Card>
+                    </div>
+                </div>
+            </div>
+        </main>
     );
 }

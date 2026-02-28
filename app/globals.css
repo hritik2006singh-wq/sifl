@@ -9,7 +9,7 @@
   --color-accent: #006644;
   
   --radius-card: 16px;
-  --radius-btn: 12px;
+  --radius-btn: 8px; /* Compact buttons */
   
   --shadow-card: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
   --shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
@@ -34,17 +34,60 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  line-height: 1.6; /* Increased global line height */
+  font-size: 0.95rem; /* Slightly smaller body */
 }
 
-/* Base resets */
-h1, h2, h3, h4, h5, h6 {
+/* Base typography resets conforming to hierarchy */
+h1 {
   color: var(--color-primary);
   font-weight: 700;
   letter-spacing: -0.025em;
+  line-height: 1.1;
+}
+
+h2 {
+  color: var(--color-primary);
+  font-weight: 600; /* Medium bold */
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+h3 {
+  color: var(--color-primary);
+  font-weight: 500; /* Semi bold */
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+
+h4, h5, h6 {
+  color: var(--color-primary);
+  font-weight: 500;
+  line-height: 1.4;
 }
 
 @media (prefers-color-scheme: dark) {
   h1, h2, h3, h4, h5, h6 {
     color: #e2e8f0;
   }
+}
+
+/* Minimal Custom Animations */
+@keyframes slide-right-in {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+.animate-slide-in {
+  animation: slide-right-in 0.3s ease-out forwards;
+}
+
+@keyframes auto-scroll-x {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(calc(-100% - 1rem)); } 
+}
+.animate-auto-scroll {
+  animation: auto-scroll-x 25s linear infinite;
+}
+.pause-on-hover:hover {
+  animation-play-state: paused;
 }

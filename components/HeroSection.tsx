@@ -137,11 +137,10 @@ export default function HeroSection() {
                             fontWeight: 800,
                             letterSpacing: '-0.03em',
                             lineHeight: 1.05,
-                            fontSize: 'clamp(2.5rem, 6.5vw, 5.5rem)',
+                            fontSize: 'clamp(2.5rem, 6vw, 5rem)',
                         }}
                     >
-                        From Admission.<br />
-                        To{' '}
+                        Start Your Global Career With<br />
                         <span
                             style={{
                                 background: 'linear-gradient(90deg, #10b981 0%, #34d399 100%)',
@@ -149,74 +148,62 @@ export default function HeroSection() {
                                 WebkitTextFillColor: 'transparent',
                                 backgroundClip: 'text',
                             }}
-                        >Fluency.</span>
+                        >Structured Language Mastery.</span>
                     </h1>
 
                     {/* THREE-WORD TAGLINE */}
                     <p
-                        className="animate-fade-in-up mb-10"
+                        className="animate-fade-in-up mb-10 max-w-2xl text-center text-white/80"
                         style={{
                             animationDelay: '0.1s',
-                            fontSize: '0.6875rem',
-                            fontWeight: 700,
-                            letterSpacing: '0.22em',
-                            textTransform: 'uppercase',
-                            color: 'rgba(255,255,255,0.45)',
+                            fontSize: '1.125rem',
+                            fontWeight: 500,
+                            lineHeight: 1.6,
                         }}
                     >
-                        <span className="block">
-                            With
-                        </span>
-
-                        <span className="block mt-2 tracking-[0.25em]">
-                            Srishti Institute of Foreign Languages
-                        </span>
+                        Your trusted pathway to universities and careers in Germany, Singapore, and Malaysia.
                     </p>
 
                     {/* CTA BUTTONS — centered */}
-                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-4 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-                        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-4 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+                        <Link href="/consultation">
+                            <Button
+                                size="lg"
+                                className="bg-[#10b981] hover:bg-[#059669] text-white font-bold border-none shadow-xl transition-all duration-300 h-14 px-8 text-lg min-w-[200px]"
+                            >
+                                👉 Book Free Demo
+                            </Button>
+                        </Link>
 
-                            <Link href="#programs">
-                                <Button
-                                    size="lg"
-                                    className="bg-[#10b981] hover:bg-[#059669] text-white font-bold border-none shadow-xl transition-all duration-300 h-14 px-8 text-lg hover:shadow-[0_0_22px_rgba(16,185,129,0.4)] min-w-[200px]"
-                                >
-                                    Explore Programs
-                                </Button>
-                            </Link>
-
-                            <Link href="#contact">
-                                <Button
-                                    size="lg"
-                                    variant="outline"
-                                    className="border-white/30 text-white hover:bg-white/10 hover:border-white/50 transition-all duration-300 h-14 px-8 text-lg min-w-[200px]"
-                                >
-                                    Book Free Demo
-                                </Button>
-                            </Link>
-
-                        </div>
+                        <Link href="/programs">
+                            <Button
+                                size="lg"
+                                variant="outline"
+                                className="border-white/30 text-white hover:bg-white/10 hover:border-white/50 transition-all duration-300 h-14 px-8 text-lg min-w-[200px]"
+                            >
+                                Explore Programs
+                            </Button>
+                        </Link>
                     </div>
 
                     <p className="text-xs text-white/45 mb-10 animate-fade-in-up tracking-wider uppercase" style={{ animationDelay: '0.3s' }}>
                         Free Demo class&nbsp;·&nbsp; No obligation
                     </p>
 
-                    {/* Metrics Row — centered */}
-                    <div className="w-full flex justify-center animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
-                        <div className="flex flex-wrap justify-center items-center gap-x-8 gap-y-4 text-white/80 font-medium whitespace-nowrap">
-                            <div className="flex items-center gap-2">
-                                <CheckCircle2 className="text-[#10b981] h-4 w-4 flex-shrink-0" />
-                                <span className="text-sm">100+ Students Taught</span>
+                    {/* Metrics Row — centered, horizontal scroll on mobile */}
+                    <div className="w-full max-w-full overflow-hidden animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+                        <div className="flex items-center justify-start md:justify-center gap-8 overflow-x-auto snap-x snap-mandatory pb-4 px-4 hide-scrollbar w-full whitespace-nowrap text-white/90 font-medium">
+                            <div className="flex items-center gap-2 snap-center shrink-0">
+                                <CheckCircle2 className="text-[#10b981] h-5 w-5 shrink-0" />
+                                <span className="text-sm md:text-base">100+ Students Abroad</span>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <CheckCircle2 className="text-[#10b981] h-4 w-4 flex-shrink-0" />
-                                <span className="text-sm">Experienced Teachers</span>
+                            <div className="flex items-center gap-2 snap-center shrink-0">
+                                <CheckCircle2 className="text-[#10b981] h-5 w-5 shrink-0" />
+                                <span className="text-sm md:text-base">5+ Languages</span>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <CheckCircle2 className="text-[#10b981] h-4 w-4 flex-shrink-0" />
-                                <span className="text-sm">5+ Languages</span>
+                            <div className="flex items-center gap-2 snap-center shrink-0">
+                                <CheckCircle2 className="text-[#10b981] h-5 w-5 shrink-0" />
+                                <span className="text-sm md:text-base">5+ Expert Trainers</span>
                             </div>
                         </div>
                     </div>
@@ -237,9 +224,9 @@ export default function HeroSection() {
 
             {/* ── TRUSTED UNIVERSITIES SHOWCASE ── */}
             <div className="bg-white pt-8 pb-12 overflow-hidden relative border-b border-gray-100">
-                <div className="text-center mb-10 relative z-10 w-full max-w-lg mx-auto bg-white" style={{ isolation: 'isolate' }}>
-                    <p className="text-[0.625rem] font-bold tracking-[0.22em] uppercase text-slate-400">
-                        Trusted by students in countries like :
+                <div className="text-center mb-10 relative z-10 w-full max-w-lg mx-auto bg-white px-4">
+                    <p className="text-xs md:text-sm font-bold tracking-widest uppercase text-slate-500">
+                        Trusted by students targeting Germany, Singapore & Malaysia
                     </p>
                 </div>
 
