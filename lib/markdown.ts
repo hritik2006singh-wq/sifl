@@ -14,10 +14,14 @@ export function getPostSlugs() {
 }
 
 export function getPostBySlug(slug: string, fields: string[] = []) {
-    if (!slug) return null;
+    const rawSlug = slug ?? "";
+    let stringSlug = rawSlug.toString().trim();
+    if (!stringSlug) return null;
 
-    // safe slug parsing
-    const normalizedSlug = slug.toString().replace(/\.mdx?$/, '').trim();
+    if (stringSlug.endsWith('.mdx')) stringSlug = stringSlug.slice(0, -4);
+    else if (stringSlug.endsWith('.md')) stringSlug = stringSlug.slice(0, -3);
+
+    const normalizedSlug = stringSlug;
     if (!normalizedSlug) return null;
 
     const fullPath = path.join(postsDirectory, `${normalizedSlug}.mdx`);
@@ -45,10 +49,11 @@ export function getPostBySlug(slug: string, fields: string[] = []) {
         // Default fallbacks
         const safeData: Record<string, any> = {
             ...data,
-            title: data.title ?? "Untitled Post",
+            title: data.title ?? "",
             description: data.description ?? "",
-            date: data.date ?? new Date().toISOString(),
-            image: data.image ?? null
+            date: data.date ?? "",
+            image: data.image ?? "",
+            author: data.author ?? "SIFL"
         };
 
         type Items = {
@@ -77,8 +82,9 @@ export function getPostBySlug(slug: string, fields: string[] = []) {
 export function getAllPosts(fields: string[] = []) {
     const slugs = getPostSlugs();
     const posts = slugs
+        .filter(Boolean)
         .map((slug) => getPostBySlug(slug, fields))
-        .filter((post): post is Exclude<typeof post, null> => post !== null)
+        .filter((post): post is Exclude<typeof post, null> => post !== null && typeof post.slug !== "undefined")
         .sort((post1, post2) => ((post1?.date ?? '') > (post2?.date ?? '') ? -1 : 1));
     return posts ?? [];
 }

@@ -19,7 +19,7 @@ export const SelectInput: React.FC<SelectInputProps> = ({
     className = '',
     ...props
 }) => {
-    const selectId = id || label.toLowerCase().replace(/\s+/g, '-');
+    const selectId = id || (label || "").toLowerCase().replace(/\s+/g, '-');
 
     return (
         <div className={`flex flex-col mb-4 ${className}`}>

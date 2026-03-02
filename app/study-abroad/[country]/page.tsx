@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
+import { notFound } from 'next/navigation';
 
 // Static Data for the Prototype 
 const countryData: Record<string, any> = {
@@ -46,7 +47,8 @@ type Props = {
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-    const data = countryData[params.country.toLowerCase()];
+    const safeCountry = (params?.country || "").toLowerCase();
+    const data = countryData[safeCountry];
     if (!data) return { title: "Country Not Found" };
 
     return {
@@ -59,7 +61,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default function CountryPage({ params }: Props) {
-    const data = countryData[params.country.toLowerCase()];
+    if (!params?.country) { notFound(); }
+    const safeCountry = (params.country || "").toLowerCase();
+    const data = countryData[safeCountry];
     if (!data) return <div className="p-20 text-center text-3xl font-bold">Country Not Found</div>;
 
     return (

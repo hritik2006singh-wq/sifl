@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
+import { notFound } from 'next/navigation';
 
 // Static Data Prototype
 const courseData: Record<string, any> = {
@@ -46,7 +47,8 @@ type Props = {
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-    const data = courseData[params.language.toLowerCase()];
+    const safeLang = (params?.language || "").toLowerCase();
+    const data = courseData[safeLang];
     if (!data) return { title: "Course Not Found" };
 
     return {
@@ -59,7 +61,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default function OnlineLanguagePage({ params }: Props) {
-    const data = courseData[params.language.toLowerCase()];
+    if (!params?.language) { notFound(); }
+    const safeLang = (params.language || "").toLowerCase();
+    const data = courseData[safeLang];
     if (!data) return <div className="p-20 text-center text-3xl font-bold">Course Not Found</div>;
 
     return (

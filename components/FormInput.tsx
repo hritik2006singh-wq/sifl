@@ -14,7 +14,7 @@ export const FormInput: React.FC<FormInputProps> = ({
     className = '',
     ...props
 }) => {
-    const inputId = id || label.toLowerCase().replace(/\s+/g, '-');
+    const inputId = id || (label || "").toLowerCase().replace(/\s+/g, '-');
 
     const baseClasses = `w-full px-4 py-3 rounded-btn border bg-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors text-foreground ${error ? 'border-red-500' : 'border-gray-300'
         }`;
