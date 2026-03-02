@@ -71,7 +71,7 @@ export default function YSIFLPage() {
                     <div className="grid lg:grid-cols-2 gap-16 items-center">
                         <div className="order-2 lg:order-1 relative">
                             <div className="aspect-square rounded-3xl overflow-hidden shadow-2xl relative">
-                                <img src="/brand/faculty/member-1.jpg" alt="Teaching Philosophy" className="w-full h-full object-cover" />
+                                <img src="/brand/success/mindvision.png" alt="Teaching Philosophy" className="w-full h-full object-cover" />
                                 <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent" />
                                 <div className="absolute bottom-8 left-8 right-8">
                                     <h3 className="text-2xl font-black text-white mb-2">Our Vision</h3>

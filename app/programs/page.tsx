@@ -304,7 +304,7 @@ export default function ProgramsPage() {
                         "The most rigorous and rewarding program I've attended."
                       </p>
                       <p className="text-[10px] text-slate-400 mt-2">
-                        — Ashima Rana
+                        — Karan S.
                       </p>
                     </div>
                   </div>

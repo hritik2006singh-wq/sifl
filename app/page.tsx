@@ -49,7 +49,7 @@ export default function Page() {
   // Programs Slider Mapping to New Silos
   const programs = [
     { id: 'german', title: 'German', subtitle: 'A1 to C2 Levels', img: '/images/programs/german.jpg', route: "/programs/german" },
-    { id: 'english', title: 'English', subtitle: 'IELTS & Business', img: '/images/programs/english.jpg', route: "/programs/ielts" },
+    { id: 'english', title: 'English', subtitle: 'IELTS & Business', img: '/images/programs/english.jpg', route: "/programs/english" },
     { id: 'french', title: 'French', subtitle: 'DELF Preparation', img: '/images/programs/french.jpg', route: "/programs/french" },
     { id: 'japanese', title: 'Japanese', subtitle: 'JLPT N5-N1 Path', img: '/images/programs/japanese.jpg', route: "/programs/japanese" },
     { id: 'spanish', title: 'Spanish', subtitle: 'DELE Certification', img: '/images/programs/spanish.jpg', route: "/programs/spanish" },

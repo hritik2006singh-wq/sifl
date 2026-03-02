@@ -137,8 +137,8 @@ export default function AboutPage() {
                 Student Achievements
               </h2>
               <p className="mt-4 text-slate-600 leading-relaxed" style={{}}>
-                Our students aren't just preparing for the future; they are actively
-                shaping it through innovative projects and global recognition.
+                Our students don't just give exams,
+                they ace them with flying colours.
               </p>
             </div>
             <Link href="/success-stories" className="font-semibold text-primary hover:text-primary-hover whitespace-nowrap hidden md:block">
@@ -152,7 +152,7 @@ export default function AboutPage() {
                 data-alt="Group of students working on a project together"
                 style={{
                   backgroundImage:
-                    `url('/brand/faculty/leader-1.jpg')`,
+                    `url('/brand/success/shrey.jpeg')`,
                   backgroundSize: "cover",
                   backgroundPosition: "center center"
                 }}
@@ -162,14 +162,13 @@ export default function AboutPage() {
                   className="text-primary text-xs font-bold uppercase mb-2"
                   style={{}}
                 >
-                  Sustainable Dev Award
+                  Sharrnya Thapa
                 </div>
                 <h4 className="font-bold text-lg text-slate-900 mb-2" style={{}}>
-                  Global Impact Challenge 2023
+                  Aced A1 with 95%
                 </h4>
                 <p className="text-sm text-slate-600 line-clamp-2" style={{}}>
-                  Our student team won first place for their modular water
-                  filtration system designed for rural communities.
+                  Sharrnya Thapa (Class of '24) aced A2 with 95%.
                 </p>
               </div>
             </div>
@@ -179,7 +178,7 @@ export default function AboutPage() {
                 data-alt="Corporate boardroom meeting with diverse people"
                 style={{
                   backgroundImage:
-                    `url('/brand/faculty/leader-2.jpg')`,
+                    `url('/brand/success/hritik.jpeg')`,
                   backgroundSize: "cover",
                   backgroundPosition: "center center"
                 }}
@@ -189,14 +188,13 @@ export default function AboutPage() {
                   className="text-primary text-xs font-bold uppercase mb-2"
                   style={{}}
                 >
-                  Fellowship
+                  Hritik Singh
                 </div>
                 <h4 className="font-bold text-lg text-slate-900 mb-2" style={{}}>
-                  Rhodes Scholarship Recipient
+                  Aced B2 with 95%
                 </h4>
                 <p className="text-sm text-slate-600 line-clamp-2" style={{}}>
-                  Julian Chen (Class of '24) awarded the prestigious scholarship for
-                  his research in behavioral economics.
+                  Hritik Singh (Class of '24) aced B2 with 95%.
                 </p>
               </div>
             </div>
@@ -206,7 +204,7 @@ export default function AboutPage() {
                 data-alt="Modern office collaborative workspace"
                 style={{
                   backgroundImage:
-                    `url('/brand/faculty/leader-3.jpg')`,
+                    `url('/brand/success/disha.jpeg')`,
                   backgroundSize: "cover",
                   backgroundPosition: "center center"
                 }}
@@ -216,14 +214,13 @@ export default function AboutPage() {
                   className="text-primary text-xs font-bold uppercase mb-2"
                   style={{}}
                 >
-                  Innovation
+                  Disha Tuteja
                 </div>
                 <h4 className="font-bold text-lg text-slate-900 mb-2" style={{}}>
-                  Incubator Launch: EcoTrack
+                  Aced A2 with 95%
                 </h4>
                 <p className="text-sm text-slate-600 line-clamp-2" style={{}}>
-                  Three senior students successfully launched a carbon-tracking
-                  startup, raising $2M in seed funding.
+                  Disha Tuteja (Class of '24) aced A2 with 95%.
                 </p>
               </div>
             </div>
