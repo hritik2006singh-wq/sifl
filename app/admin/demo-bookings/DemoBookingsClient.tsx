@@ -59,7 +59,10 @@ export default function DemoBookingsClient() {
                 const slotId = `${tId}_${booking.date}_${booking.timeSlot}`;
                 const slotRef = doc(db, "slots", slotId);
 
+                const bookingDoc = await transaction.get(bookingRef);
                 const slotDoc = await transaction.get(slotRef);
+
+                if (!bookingDoc.exists()) throw new Error("Document missing");
 
                 transaction.update(bookingRef, { status: "rejected" });
 
@@ -188,14 +191,17 @@ export default function DemoBookingsClient() {
                 const oldSlotRef = doc(db, "slots", oldSlotId);
                 const newSlotRef = doc(db, "slots", newSlotId);
 
-                // Make sure new slot isn't taken
+                // Make sure new slot isn't taken and release old
                 const newSlotDoc = await transaction.get(newSlotRef);
+                const oldSlotDoc = await transaction.get(oldSlotRef);
+                const bookingDoc = await transaction.get(bookingRef);
+
+                if (!bookingDoc.exists()) throw new Error("Document missing");
+
                 if (newSlotDoc.exists() && newSlotDoc.data().status !== "available") {
                     throw new Error("New slot is already taken.");
                 }
 
-                // Release old slot if it exists
-                const oldSlotDoc = await transaction.get(oldSlotRef);
                 if (oldSlotDoc.exists()) {
                     transaction.update(oldSlotRef, { status: "available", bookingId: null });
                 }

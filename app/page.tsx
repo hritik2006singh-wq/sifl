@@ -44,8 +44,6 @@ function useAutoSlider(itemCount: number, autoSlideInterval = 3500, resumeDelay 
   return { currentIndex, setCurrentIndex, scrollContainerRef, handleInteraction, setIsPaused };
 }
 
-export const revalidate = 3600;
-
 export default function Page() {
   // Programs Slider
   // Programs Slider Mapping to New Silos

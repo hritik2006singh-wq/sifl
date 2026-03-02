@@ -55,8 +55,10 @@ export default function AdminSchedulePage() {
                 const slotId = `${booking.teacherId}_${booking.date}_${booking.timeSlot}`;
                 const slotRef = doc(db, "slots", slotId);
 
-                await transaction.get(bookingRef);
+                const bookingDoc = await transaction.get(bookingRef);
                 const slotDoc = await transaction.get(slotRef);
+
+                if (!bookingDoc.exists()) throw new Error("Document missing");
 
                 transaction.update(bookingRef, { status: "approved" });
                 if (slotDoc.exists()) {
@@ -78,8 +80,10 @@ export default function AdminSchedulePage() {
                 const slotId = `${booking.teacherId}_${booking.date}_${booking.timeSlot}`;
                 const slotRef = doc(db, "slots", slotId);
 
-                await transaction.get(bookingRef);
+                const bookingDoc = await transaction.get(bookingRef);
                 const slotDoc = await transaction.get(slotRef);
+
+                if (!bookingDoc.exists()) throw new Error("Document missing");
 
                 transaction.update(bookingRef, { status: "rejected" });
                 if (slotDoc.exists()) {

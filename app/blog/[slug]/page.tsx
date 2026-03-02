@@ -4,6 +4,7 @@ import { getPostBySlug, getAllPosts } from "@/lib/markdown";
 import { marked } from "marked";
 import BlogCTABlock from "@/components/BlogCTABlock";
 import Image from "next/image";
+import { notFound } from "next/navigation";
 
 export const revalidate = 3600;
 
@@ -19,8 +20,9 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+    if (!params?.slug) return {};
     const post = getPostBySlug(params.slug, ['title', 'description', 'date', 'image']);
-    if (!post.title) return { title: "Article Not Found" };
+    if (!post || !post.title) return {};
 
     return {
         title: `${post.title} | SIFL Blog`,
@@ -39,8 +41,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function BlogPost({ params }: Props) {
+    if (!params?.slug) notFound();
     const post = getPostBySlug(params.slug, ['title', 'description', 'date', 'image', 'author', 'content']);
-    if (!post.title) return <div className="p-20 text-center text-3xl font-bold">Article Not Found</div>;
+    if (!post || !post.title) notFound();
 
     const contentHtml = await marked.parse(post.content);
 

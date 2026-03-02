@@ -2,6 +2,10 @@ import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
 
+if (typeof window !== "undefined") {
+    throw new Error("Server-only code executed on client");
+}
+
 const postsDirectory = path.join(process.cwd(), 'content/blog');
 
 export function getPostSlugs() {
@@ -10,8 +14,10 @@ export function getPostSlugs() {
 }
 
 export function getPostBySlug(slug: string, fields: string[] = []) {
+    if (!slug) return {};
     const realSlug = slug.replace(/\.mdx$/, '');
     const fullPath = path.join(postsDirectory, `${realSlug}.mdx`);
+    if (!fs.existsSync(fullPath)) return {};
     const fileContents = fs.readFileSync(fullPath, 'utf8');
     const { data, content } = matter(fileContents);
 

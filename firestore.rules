@@ -27,19 +27,18 @@ service cloud.firestore {
 
     // 2️⃣ Users Collection
     match /users/{userId} {
-      // Students read only themselves. Teachers read all (to see their students). 
-      // Admins already covered by wildcard.
-      allow read: if isAuthenticated() && (request.auth.uid == userId || isTeacher());
-      
-      // Nobody can create but Admin (Teacher/Student creation handled securely inside Admin Panel / Secondary Auth or specific cloud function).
-      allow create: if false; 
-      
-      // People can update their own profile EXCEPT setting roles/payments.
-      allow update: if isAuthenticated() 
-                    && request.auth.uid == userId 
-                    && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'is_paid', 'email']));
-                    
-      allow delete: if false;
+      allow read, update: if request.auth.uid == userId;
+    }
+
+    match /teachers/{teacherId} {
+      allow read: if request.auth != null;
+      allow update: if request.auth.token.role == "admin" 
+                    || request.auth.uid == teacherId;
+    }
+
+    match /students/{studentId} {
+      allow read: if request.auth != null;
+      allow update: if request.auth.token.role == "admin";
     }
 
     // 3️⃣ Study Materials
