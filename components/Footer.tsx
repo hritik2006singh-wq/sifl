@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export const Footer: React.FC = () => {
     return (
@@ -8,10 +9,15 @@ export const Footer: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6 md:gap-12 mb-12">
                     <div className="col-span-1 md:col-span-1">
                         <Link href="/" className="flex items-center gap-2 mb-4">
-                            <div className="flex h-8 w-8 items-center justify-center rounded bg-primary text-white font-bold">
-                                文
-                            </div>
-                            <span className="text-xl font-black tracking-tight text-white">
+                            <Image
+                                src="/images/hero/logo.jpg"
+                                alt="SIFL Logo"
+                                width={40}
+                                height={40}
+                                className="object-contain"
+                                priority
+                            />
+                            <span className="text-xl font-bold tracking-tight text-white">
                                 SIFL
                             </span>
                         </Link>
