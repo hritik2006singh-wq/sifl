@@ -4,6 +4,7 @@ import { getAllPosts } from "@/lib/markdown";
 import Image from "next/image";
 
 export const revalidate = 3600;
+export const dynamic = "force-static";
 
 export const metadata: Metadata = {
     title: 'Language Learning & Study Abroad Insights | SIFL Blog',

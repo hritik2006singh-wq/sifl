@@ -7,14 +7,15 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 
 export const revalidate = 3600;
+export const dynamic = "force-static";
 
 type Props = {
     params: { slug: string }
 };
 
 export async function generateStaticParams() {
-    const posts = getAllPosts(['slug']);
-    return posts.map((post) => ({
+    const posts = getAllPosts(['slug']) ?? [];
+    return posts.filter((p) => p?.slug).map((post) => ({
         slug: post.slug,
     }));
 }
@@ -22,20 +23,20 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
     if (!params?.slug) return {};
     const post = getPostBySlug(params.slug, ['title', 'description', 'date', 'image']);
-    if (!post || !post.title) return {};
+    if (!post) return {};
 
     return {
-        title: `${post.title} | SIFL Blog`,
-        description: post.description,
+        title: post?.title ? `${post.title} | SIFL Blog` : "SIFL Blog",
+        description: post?.description ?? "Read this article on SIFL Blog",
         alternates: {
             canonical: `https://sifl.edu.in/blog/${params.slug}`
         },
         openGraph: {
-            title: post.title,
-            description: post.description,
+            title: post?.title ?? "SIFL Blog",
+            description: post?.description ?? "Read this article on SIFL Blog",
             type: "article",
-            publishedTime: new Date(post.date).toISOString(),
-            images: [post.image],
+            publishedTime: post?.date ? new Date(post.date).toISOString() : undefined,
+            images: post?.image ? [post.image] : [],
         }
     };
 }
@@ -43,20 +44,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function BlogPost({ params }: Props) {
     if (!params?.slug) notFound();
     const post = getPostBySlug(params.slug, ['title', 'description', 'date', 'image', 'author', 'content']);
-    if (!post || !post.title) notFound();
+    if (!post) notFound();
 
-    const contentHtml = await marked.parse(post.content);
+    const contentHtml = await marked.parse(post?.content ?? "");
 
     const jsonLd = {
         '@context': 'https://schema.org',
         '@type': 'Article',
-        headline: post.title,
-        description: post.description,
-        image: `https://sifl.edu.in${post.image}`,
-        datePublished: new Date(post.date).toISOString(),
+        headline: post?.title ?? "",
+        description: post?.description ?? "",
+        image: post?.image ? `https://sifl.edu.in${post.image}` : undefined,
+        datePublished: post?.date ? new Date(post.date).toISOString() : undefined,
         author: {
             '@type': 'Organization',
-            name: post.author || 'SIFL'
+            name: post?.author || 'SIFL'
         },
         publisher: {
             '@type': 'Organization',
@@ -79,22 +80,22 @@ export default async function BlogPost({ params }: Props) {
 
                 <header className="mb-12">
                     <h1 className="text-3xl md:text-5xl font-black text-slate-900 leading-tight mb-6">
-                        {post.title}
+                        {post?.title ?? ""}
                     </h1>
                     <div className="flex items-center gap-4 border-b border-slate-200 pb-8">
                         <div className="size-12 rounded-full overflow-hidden relative">
                             <Image src="/images/hero/logo.jpg" alt="SIFL" fill className="object-cover" />
                         </div>
                         <div>
-                            <p className="font-bold text-slate-900">{post.author}</p>
-                            <p className="text-sm font-medium text-slate-500">{post.date}</p>
+                            <p className="font-bold text-slate-900">{post?.author ?? "SIFL Team"}</p>
+                            <p className="text-sm font-medium text-slate-500">{post?.date ?? ""}</p>
                         </div>
                     </div>
                 </header>
 
-                {post.image && (
+                {post?.image && (
                     <div className="relative w-full aspect-[21/9] rounded-3xl overflow-hidden mb-12 shadow-md">
-                        <Image src={post.image} alt={post.title} fill className="object-cover" priority />
+                        <Image src={post.image} alt={post?.title ?? "Blog Image"} fill className="object-cover" priority />
                     </div>
                 )}
 
