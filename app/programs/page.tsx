@@ -28,7 +28,7 @@ export default function ProgramsPage() {
                       data-alt="Classical German architecture and town square"
                       style={{
                         backgroundImage:
-                          `url('/brand/programs/german.jpg')`
+                          `url('/images/hero/ger.jpg')`
                       }}
                     />
                     <h3 className="text-3xl font-black md:text-4xl mb-2 text-slate-900">German</h3>
@@ -50,7 +50,7 @@ export default function ProgramsPage() {
                       data-alt="Iconic red telephone booth in London street"
                       style={{
                         backgroundImage:
-                          `url('/brand/programs/english.jpg')`
+                          `url('/images/hero/eng.jpg')`
                       }}
                     />
                     <h3 className="text-2xl font-bold mb-1 text-slate-900">English</h3>
@@ -72,7 +72,7 @@ export default function ProgramsPage() {
                       data-alt="Eiffel tower view from Parisian street"
                       style={{
                         backgroundImage:
-                          `url('/brand/programs/french.jpg')`
+                          `url('/images/hero/france.jpg')`
                       }}
                     />
                     <h3 className="text-xl font-bold mb-1 text-slate-900">French</h3>
@@ -94,7 +94,7 @@ export default function ProgramsPage() {
                       data-alt="Sunny architecture in Madrid Spain city"
                       style={{
                         backgroundImage:
-                          `url('/brand/programs/spanish.jpg')`
+                          `url('/images/hero/spain.jpg')`
                       }}
                     />
                     <h3 className="text-xl font-bold mb-1 text-slate-900">Spanish</h3>
@@ -116,7 +116,7 @@ export default function ProgramsPage() {
                       data-alt="Mount Fuji Japan"
                       style={{
                         backgroundImage:
-                          `url('/brand/programs/japanese.jpg')`
+                          `url('/images/hero/jap.jpg')`
                       }}
                     />
                     <h3 className="text-xl font-bold mb-1 text-slate-900">Japanese</h3>
@@ -304,7 +304,7 @@ export default function ProgramsPage() {
                         "The most rigorous and rewarding program I've attended."
                       </p>
                       <p className="text-[10px] text-slate-400 mt-2">
-                        — Elena R., Senior Diplomat
+                        — Shagun Sharma
                       </p>
                     </div>
                   </div>
@@ -324,7 +324,7 @@ export default function ProgramsPage() {
                     </div>
                     <div className="flex gap-4">
                       <span className="px-4 py-2 bg-primary/20 rounded-full text-primary text-xs font-bold">
-                        2024 Enrollment Open
+                        2026 Enrollment Open
                       </span>
                     </div>
                   </div>
@@ -364,9 +364,9 @@ export default function ProgramsPage() {
                         mixers.
                       </p>
                       <Link
-                        href="https://maps.google.com" target="_blank"
+                        href="https://maps.app.goo.gl/QbtxS5djMVzreoAA6" target="_blank"
                         className="block w-full text-center py-4 rounded-xl border border-slate-600 font-bold hover:bg-white hover:text-slate-900 transition-all"
-                        data-location="London"
+                        data-location="Laxmi Nagar"
                       >
                         Find a Campus Near You
                       </Link>

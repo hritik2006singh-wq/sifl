@@ -3,76 +3,120 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import Image from "next/image";
 
 export default function Navbar() {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const links = [
-    { name: "Programs", href: "/programs" },
-    { name: "About", href: "/about" },
-    { name: "Success Stories", href: "/success-stories" },
-    { name: "How It Works", href: "/how-it-works" },
+    { name: "Study Abroad", href: "/study-abroad" },
+    { name: "Online Courses", href: "/online-courses" },
+    { name: "Why SIFL", href: "/ysifl" },
+    { name: "Blog", href: "/blog" },
   ];
 
   return (
     <>
-      <header className="fixed top-0 left-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-gray-100 shadow-sm transition-all h-16 flex items-center">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex items-center justify-between">
+      {/* Floating Glass Navbar */}
+      <header className="fixed top-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-7xl z-50 h-16 flex items-center transition-all duration-300
+        bg-white/70 backdrop-blur-md
+        border border-white/40 rounded-2xl
+        shadow-[0_8px_32px_rgba(0,0,0,0.08)]
+      ">
+        <div className="w-full px-4 lg:px-6 flex items-center justify-between">
 
-          {/* Left: Logo */}
-          <Link href="/" className="flex items-center gap-2 cursor-pointer flex-shrink-0">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-white font-bold text-sm">
-              文
+          {/* Left: Logo (Image Holder Added) */}
+          <Link href="/" className="flex items-center gap-3 cursor-pointer flex-shrink-0">
+
+            {/* Logo Image Holder */}
+            <div className="relative h-9 w-9 rounded-xl overflow-hidden bg-white/40 backdrop-blur-md border border-white/30 shadow-sm">
+              <Image
+                src="/images/hero/logo.jpg"
+                alt="SIFL Logo"
+                fill
+                className="object-contain p-1"
+                priority
+              />
             </div>
-            <div className="flex flex-col -gap-1">
-              <span className="text-base font-bold tracking-tight text-primary leading-none mt-1">SIFL</span>
-            </div>
+
+            <span className="text-base font-semibold tracking-tight text-primary">
+              SIFL
+            </span>
           </Link>
 
-          {/* Center/Desktop: Nav Links */}
-          <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
+          {/* Desktop Nav */}
+          <nav className="hidden md:flex items-center gap-8 text-sm font-medium">
             {links.map((link) => {
-              const isActive = pathname === link.href || (pathname.startsWith(link.href) && link.href !== "/");
+              const isActive =
+                pathname === link.href ||
+                (pathname.startsWith(link.href) && link.href !== "/");
+
               return (
                 <Link
                   key={link.name}
                   href={link.href}
-                  className={`transition-colors py-1 ${isActive
-                      ? "text-primary border-b-2 border-primary font-semibold"
-                      : "text-gray-600 hover:text-primary"
+                  className={`relative transition-colors duration-200 py-1 ${isActive
+                    ? "text-primary font-semibold"
+                    : "text-gray-700 hover:text-primary"
                     }`}
                 >
                   {link.name}
+                  {isActive && (
+                    <span className="absolute -bottom-1 left-0 w-full h-[2px] bg-primary rounded-full" />
+                  )}
                 </Link>
               );
             })}
           </nav>
 
-          {/* Right/Desktop: CTA & Mobile Toggle */}
+          {/* CTA + Hamburger */}
           <div className="flex items-center gap-4">
+
+            {/* Desktop CTA */}
             <Link
-              href="/consultation"
-              className="hidden md:inline-flex items-center px-5 py-2 rounded-lg bg-primary text-white text-sm font-semibold shadow-sm hover:bg-primary-hover transition"
+              href="/login"
+              className="hidden md:inline-flex items-center px-4 py-2 rounded-xl
+                text-gray-800 font-medium text-sm
+                hover:bg-black/5 transition-all duration-200"
             >
-              👉 Book Free Demo
+              Login
+            </Link>
+
+            <Link
+              href="/demo-booking"
+              className="hidden md:inline-flex items-center px-5 py-2 rounded-xl
+                bg-primary text-white text-sm font-semibold
+                shadow-md hover:scale-[1.02] transition-all duration-200"
+            >
+              Book Free Demo
             </Link>
 
             {/* Hamburger */}
             <button
-              className="md:hidden p-2 text-gray-700 focus:outline-none"
+              className="md:hidden p-2 text-gray-800 focus:outline-none"
               onClick={() => setIsMobileMenuOpen(true)}
               aria-label="Open menu"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M4 12h16M4 18h16" />
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
               </svg>
             </button>
           </div>
         </div>
       </header>
 
-      {/* Mobile Drawer Overlay */}
+      {/* Mobile Overlay */}
       {isMobileMenuOpen && (
         <div
           className="fixed inset-0 z-50 bg-black/20 backdrop-blur-sm md:hidden"
@@ -80,32 +124,54 @@ export default function Navbar() {
         />
       )}
 
-      {/* Mobile Drawer */}
+      {/* Mobile Drawer (Glass Styled) */}
       <div
-        className={`fixed top-0 right-0 h-full w-64 bg-white z-[60] shadow-2xl transform transition-transform duration-300 ease-out md:hidden flex flex-col ${isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
-          }`}
+        className={`fixed top-0 right-0 h-full w-72
+        bg-white/70 backdrop-blur-2xl
+        border-l border-white/30
+        shadow-2xl
+        z-[60]
+        transform transition-transform duration-300 ease-out
+        md:hidden flex flex-col
+        ${isMobileMenuOpen ? "translate-x-0" : "translate-x-full"}
+      `}
       >
         <div className="p-4 flex justify-end">
           <button
             onClick={() => setIsMobileMenuOpen(false)}
-            className="p-2 text-gray-500 hover:text-gray-800"
+            className="p-2 text-gray-600 hover:text-gray-900"
             aria-label="Close menu"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
 
-        <nav className="flex flex-col px-6 gap-6 mt-4">
+        <nav className="flex flex-col px-6 gap-6 mt-6">
           {links.map((link) => {
-            const isActive = pathname === link.href || (pathname.startsWith(link.href) && link.href !== "/");
+            const isActive =
+              pathname === link.href ||
+              (pathname.startsWith(link.href) && link.href !== "/");
+
             return (
               <Link
                 key={link.name}
                 href={link.href}
                 onClick={() => setIsMobileMenuOpen(false)}
-                className={`text-base transition-colors ${isActive ? "text-primary font-bold" : "text-gray-700 font-medium"
+                className={`text-base transition-colors ${isActive
+                  ? "text-primary font-semibold"
+                  : "text-gray-800 font-medium"
                   }`}
               >
                 {link.name}
@@ -113,13 +179,25 @@ export default function Navbar() {
             );
           })}
 
-          <div className="mt-6 border-t border-gray-100 pt-6">
+          <div className="mt-8 pt-6 border-t border-black/10 flex flex-col gap-4">
             <Link
-              href="/consultation"
+              href="/login"
               onClick={() => setIsMobileMenuOpen(false)}
-              className="flex justify-center w-full px-5 py-3 rounded-lg bg-primary text-white text-sm font-semibold shadow-sm hover:bg-primary-hover transition"
+              className="flex justify-center w-full px-5 py-3 rounded-xl
+                border border-gray-200 text-gray-800 text-sm font-semibold
+                hover:bg-gray-50 transition-all"
             >
-              👉 Book Free Demo
+              Login
+            </Link>
+
+            <Link
+              href="/demo-booking"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex justify-center w-full px-5 py-3 rounded-xl
+                bg-primary text-white text-sm font-semibold
+                shadow-md hover:scale-[1.02] transition-all"
+            >
+              Book Free Demo
             </Link>
           </div>
         </nav>

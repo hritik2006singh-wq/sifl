@@ -12,6 +12,7 @@ const heroImages = [
     "/hero4.jpg",
     "/hero5.jpg",
     "/hero6.jpg",
+    "/hero7.jpg",
 ];
 
 const universities = [
@@ -139,8 +140,8 @@ export default function HeroSection() {
                             lineHeight: 1.05,
                             fontSize: 'clamp(2.5rem, 6vw, 5rem)',
                         }}
-                    >
-                        Start Your Global Career With<br />
+                    >Speak Beyond
+                        <br />
                         <span
                             style={{
                                 background: 'linear-gradient(90deg, #10b981 0%, #34d399 100%)',
@@ -148,7 +149,7 @@ export default function HeroSection() {
                                 WebkitTextFillColor: 'transparent',
                                 backgroundClip: 'text',
                             }}
-                        >Structured Language Mastery.</span>
+                        >Borders With Confidence.</span>
                     </h1>
 
                     {/* THREE-WORD TAGLINE */}
@@ -161,7 +162,7 @@ export default function HeroSection() {
                             lineHeight: 1.6,
                         }}
                     >
-                        Your trusted pathway to universities and careers in Germany, Singapore, and Malaysia.
+                        Your trusted pathway to fluency with "SIFL".
                     </p>
 
                     {/* CTA BUTTONS — centered */}
@@ -171,7 +172,7 @@ export default function HeroSection() {
                                 size="lg"
                                 className="bg-[#10b981] hover:bg-[#059669] text-white font-bold border-none shadow-xl transition-all duration-300 h-14 px-8 text-lg min-w-[200px]"
                             >
-                                👉 Book Free Demo
+                            Book Free Demo
                             </Button>
                         </Link>
 
@@ -226,7 +227,7 @@ export default function HeroSection() {
             <div className="bg-white pt-8 pb-12 overflow-hidden relative border-b border-gray-100">
                 <div className="text-center mb-10 relative z-10 w-full max-w-lg mx-auto bg-white px-4">
                     <p className="text-xs md:text-sm font-bold tracking-widest uppercase text-slate-500">
-                        Trusted by students targeting Germany, Singapore & Malaysia
+                        Trusted by students now in:
                     </p>
                 </div>
 

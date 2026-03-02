@@ -23,7 +23,7 @@ export const Footer: React.FC = () => {
                     <div>
                         <h4 className="text-white font-bold mb-4">Quick Links</h4>
                         <ul className="space-y-3 text-sm">
-                            <li><Link href="/consultation" className="hover:text-white transition-colors">👉 Book Free Demo</Link></li>
+                            <li><Link href="/consultation" className="hover:text-white transition-colors">Book Free Demo</Link></li>
                         </ul>
                     </div>
 

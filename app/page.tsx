@@ -44,25 +44,29 @@ function useAutoSlider(itemCount: number, autoSlideInterval = 3500, resumeDelay 
   return { currentIndex, setCurrentIndex, scrollContainerRef, handleInteraction, setIsPaused };
 }
 
+export const revalidate = 3600;
+
 export default function Page() {
   // Programs Slider
+  // Programs Slider Mapping to New Silos
   const programs = [
-    { id: 'german', title: 'German', subtitle: 'A1 to C2 Levels', img: '/images/programs/german.jpg', route: '/programs/german' },
-    { id: 'english', title: 'English', subtitle: 'IELTS & Business', img: '/images/programs/english.jpg', route: '/programs/english' },
-    { id: 'french', title: 'French', subtitle: 'DELF Preparation', img: '/images/programs/french.jpg', route: '/programs/french' },
-    { id: 'japanese', title: 'Japanese', subtitle: 'JLPT N5-N1 Path', img: '/images/programs/japanese.jpg', route: '/programs/japanese' },
-    { id: 'spanish', title: 'Spanish', subtitle: 'DELE Certification', img: '/images/programs/spanish.jpg', route: '/programs/spanish' },
+    { id: 'german', title: 'German', subtitle: 'A1 to C2 Levels', img: '/images/programs/german.jpg', route: '/online-courses/german' },
+    { id: 'english', title: 'English', subtitle: 'IELTS & Business', img: '/images/programs/english.jpg', route: '/online-courses/ielts' },
+    { id: 'french', title: 'French', subtitle: 'DELF Preparation', img: '/images/programs/french.jpg', route: '/online-courses/french' },
+    { id: 'japanese', title: 'Japanese', subtitle: 'JLPT N5-N1 Path', img: '/images/programs/japanese.jpg', route: '/online-courses/japanese' },
+    { id: 'spanish', title: 'Spanish', subtitle: 'DELE Certification', img: '/images/programs/spanish.jpg', route: '/online-courses/spanish' },
   ];
   const progSlider = useAutoSlider(programs.length);
 
-  // Advantages Slider
+  // Why Choose SIFL Grid
   const advantages = [
-    { title: 'Structured Learning', icon: 'architecture', desc: 'Step-by-step curriculum aligned with international standards.', route: '/how-it-works' },
-    { title: 'Career-focused Curriculum', icon: 'work_history', desc: 'Job interview prep and professional terminology included.', route: '/how-it-works' },
-    { title: 'Certified Trainers', icon: 'badge', desc: 'Learn from native-level experts with years of teaching experience.', route: '/about' },
-    { title: 'Global Outcome Focus', icon: 'public', desc: 'Designed specifically for professional migration and study abroad.', route: '/how-it-works' },
+    { title: 'Structured Learning Path', icon: 'architecture', desc: 'Step-by-step curriculum aligned with international standards.', route: '/ysifl' },
+    { title: 'Career-Focused Curriculum', icon: 'work_history', desc: 'Job interview prep and professional terminology included.', route: '/ysifl' },
+    { title: 'Certified & Experienced Trainers', icon: 'badge', desc: 'Learn from native-level experts with years of teaching experience.', route: '/ysifl' },
+    { title: 'Global Outcome Focus', icon: 'public', desc: 'Designed specifically for professional migration and study abroad.', route: '/ysifl' },
+    { title: 'Interactive Live Sessions', icon: 'record_voice_over', desc: 'Engaging real-time classes prioritizing spoken fluency.', route: '/ysifl' },
+    { title: '100+ Students Placed Abroad 🌍', icon: 'flight_takeoff', desc: 'Join our growing alumni network thriving in international careers.', route: '/ysifl' },
   ];
-  const advSlider = useAutoSlider(advantages.length);
 
   // Success Stories Slider
   const stories = [
@@ -89,11 +93,11 @@ export default function Page() {
                 <h2 className="text-3xl font-black tracking-tight text-slate-900 md:text-5xl">Global Programs</h2>
                 <div className="mt-4 h-1.5 w-16 rounded-full bg-primary" />
                 <p className="mt-4 text-slate-600 max-w-xl text-lg">
-                  Industry-recognized certifications strictly structured for your study or migration success.
+                  Industry-recognized online courses strictly structured for your study or migration success.
                 </p>
               </div>
-              <Link href="/programs" className="font-semibold text-primary hover:text-primary-hover whitespace-nowrap hidden md:block">
-                View All Programs →
+              <Link href="/online-courses" className="font-semibold text-primary hover:text-primary-hover whitespace-nowrap hidden md:block">
+                View All Courses →
               </Link>
             </div>
 
@@ -123,48 +127,48 @@ export default function Page() {
                 </Link>
               ))}
             </div>
-            <Link href="/programs" className="md:hidden flex justify-center mt-4 font-bold text-primary">
-              View All Programs →
+            <Link href="/online-courses" className="md:hidden flex justify-center mt-4 font-bold text-primary">
+              View All Courses →
             </Link>
           </div>
         </section>
 
-        {/* --- Structured Advantage Section --- */}
+        {/* --- Why Choose SIFL Section --- */}
         <section className="bg-slate-50 py-24" id="advantage">
           <div className="mx-auto max-w-7xl px-6">
             <div className="flex flex-col lg:flex-row gap-12 lg:items-center mb-16">
               <div className="lg:w-1/2">
-                <h2 className="text-3xl font-black text-slate-900 md:text-5xl">The SIFL Advantage</h2>
+                <h2 className="text-3xl font-black text-slate-900 md:text-5xl">Why Choose SIFL?</h2>
                 <div className="mt-4 h-1.5 w-16 rounded-full bg-primary" />
                 <p className="mt-6 text-lg text-slate-600 font-medium">
                   We don't just teach words. We systematically build the linguistic bridge to your target career destination using structured methodologies.
                 </p>
-                <Link href="/how-it-works" className="inline-block mt-8 font-bold text-primary hover:underline">
-                  See How It Works →
-                </Link>
+                <div className="mt-6 inline-flex items-center gap-3 bg-white px-5 py-3 rounded-full border border-emerald-100 shadow-sm">
+                  <span className="flex size-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+                    <span className="material-symbols-outlined text-[20px]">public</span>
+                  </span>
+                  <span className="font-bold text-slate-800 tracking-tight">Over 100+ Students Now Studying Abroad</span>
+                </div>
               </div>
               <div className="lg:w-1/2 rounded-3xl overflow-hidden shadow-2xl aspect-[4/3]" style={{ backgroundImage: `url('/brand/faculty/member-1.jpg')`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
             </div>
 
-            {/* Horizontal Tiles */}
-            <div
-              className="flex overflow-x-auto gap-6 pb-8 snap-x snap-mandatory hide-scrollbar -mx-6 px-6 md:mx-0 md:px-0"
-              ref={advSlider.scrollContainerRef}
-              onMouseEnter={() => advSlider.setIsPaused(true)}
-              onMouseLeave={() => advSlider.setIsPaused(false)}
-              onTouchStart={advSlider.handleInteraction}
-              onScroll={advSlider.handleInteraction}
-            >
+            {/* Grid Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {advantages.map((adv, idx) => (
                 <Link
                   href={adv.route}
                   key={idx}
-                  className="group flex-shrink-0 w-[260px] md:w-[300px] snap-center rounded-2xl bg-white p-6 shadow-sm border border-slate-100 transition-all hover:shadow-xl hover:border-primary/30 active:scale-95 cursor-pointer block"
+                  className="group flex flex-col rounded-2xl bg-white p-8 shadow-sm border border-slate-100 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 block"
                 >
-                  <span className="material-symbols-outlined text-primary text-4xl mb-4 transition-transform group-hover:scale-110">{adv.icon}</span>
-                  <h4 className="text-xl font-bold text-slate-900 mb-2">{adv.title}</h4>
-                  <p className="text-slate-500 text-sm">{adv.desc}</p>
-                  <p className="mt-4 text-xs font-bold text-primary group-hover:underline uppercase tracking-wide">Learn More</p>
+                  <div className="size-14 rounded-2xl bg-emerald-50 text-primary flex items-center justify-center mb-6 transition-transform group-hover:scale-110 group-hover:bg-primary group-hover:text-white">
+                    <span className="material-symbols-outlined text-[28px]">{adv.icon}</span>
+                  </div>
+                  <h4 className="text-xl font-bold text-slate-900 mb-3">{adv.title}</h4>
+                  <p className="text-slate-500 text-sm leading-relaxed mb-6 flex-1">{adv.desc}</p>
+                  <p className="mt-auto inline-flex items-center gap-2 text-sm font-bold text-primary group-hover:underline">
+                    Learn More <span className="material-symbols-outlined text-[16px] transition-transform group-hover:translate-x-1">arrow_forward</span>
+                  </p>
                 </Link>
               ))}
             </div>
@@ -253,7 +257,7 @@ export default function Page() {
             </div>
 
             <div className="mt-12 text-center">
-              <Link href="/how-it-works" className="inline-flex items-center gap-2 font-bold text-white hover:text-primary transition-colors border border-white/20 px-6 py-3 rounded-full hover:bg-white/10">
+              <Link href="/ysifl/our-methodology" className="inline-flex items-center gap-2 font-bold text-white hover:text-primary transition-colors border border-white/20 px-6 py-3 rounded-full hover:bg-white/10">
                 Explore The Full Journey
                 <span className="material-symbols-outlined text-sm">arrow_forward</span>
               </Link>
@@ -276,14 +280,19 @@ export default function Page() {
                   Join professionals who have successfully mastered languages and advanced their careers abroad.
                 </p>
                 <div className="flex flex-col sm:flex-row justify-center gap-4 w-full sm:w-auto mt-4">
-                  <Link href="/consultation" className="w-full sm:w-auto">
+                  <Link href="/demo-booking" className="w-full sm:w-auto">
                     <button className="w-full rounded-xl bg-primary px-10 py-4 text-base font-bold text-white shadow-[0_0_30px_rgba(16,185,129,0.3)] transition-all active:scale-95 hover:-translate-y-1">
-                      👉 Book Free Demo
+                      Book Free Demo
                     </button>
                   </Link>
-                  <Link href="/programs" className="w-full sm:w-auto">
+                  <Link href="/study-abroad" className="w-full sm:w-auto">
+                    <button className="w-full rounded-xl bg-slate-800 px-10 py-4 text-base font-bold text-white shadow-lg transition-all active:scale-95 hover:-translate-y-1">
+                      Destinations
+                    </button>
+                  </Link>
+                  <Link href="/online-courses" className="w-full sm:w-auto">
                     <button className="w-full rounded-xl border border-white/20 bg-white/5 px-10 py-4 text-base font-bold text-white backdrop-blur-md transition-all hover:bg-white/15 hover:-translate-y-1">
-                      Explore Programs
+                      Explore Courses
                     </button>
                   </Link>
                 </div>

@@ -36,9 +36,9 @@ export default function LeadCapture() {
             {/* Mobile Sticky CTA */}
             {isMobile && (
                 <div className="fixed bottom-4 left-4 right-4 z-40 md:hidden animate-fade-in-up">
-                    <Link href="/consultation" className="block w-full">
+                    <Link href="/demo-booking" className="block w-full">
                         <button className="w-full bg-primary text-white font-bold py-3.5 px-6 rounded-xl shadow-[0_10px_25px_rgba(0,77,51,0.4)] flex items-center justify-center gap-2 active:scale-95 transition-transform border border-white/20">
-                            <span className="text-lg">👉</span> Book Free Demo
+                            <span className="text-lg"></span> Book Free Demo
                         </button>
                     </Link>
                 </div>
@@ -70,9 +70,9 @@ export default function LeadCapture() {
                                 Take the first step towards your global career. Schedule a 15-minute language roadmap session with our experts.
                             </p>
 
-                            <Link href="/consultation" onClick={() => setShowExitModal(false)}>
+                            <Link href="/demo-booking" onClick={() => setShowExitModal(false)}>
                                 <button className="w-full bg-primary text-white font-bold py-4 px-6 rounded-xl hover:bg-primary-hover transition-colors shadow-lg active:scale-95 text-lg">
-                                    👉 Book Free Demo
+                                Book Free Demo
                                 </button>
                             </Link>
 

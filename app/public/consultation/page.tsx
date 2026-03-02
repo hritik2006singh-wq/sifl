@@ -121,7 +121,7 @@ export default function ConsultationPage() {
                             </div>
 
                             <Button fullWidth size="lg" className="w-full bg-primary hover:bg-primary-hover shadow-lg active:scale-95 transition-all mb-4">
-                                👉 Confirm Booking
+                                Confirm Booking
                             </Button>
 
                             {/* Trust Reinforcement Line */}
