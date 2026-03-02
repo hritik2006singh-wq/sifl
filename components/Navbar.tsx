@@ -10,19 +10,22 @@ export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const links = [
-    { name: "Study Abroad", href: "/study-abroad" },
-    { name: "Online Courses", href: "/online-courses" },
+    { name: "Home", href: "/" },
+    { name: "Programs", href: "/programs" },
+    { name: "About", href: "/about" },
     { name: "Why SIFL", href: "/ysifl" },
+    { name: "Success Stories", href: "/success-stories" },
     { name: "Blog", href: "/blog" },
   ];
 
   return (
     <>
       {/* Floating Glass Navbar */}
-      <header className="fixed top-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-7xl z-50 h-16 flex items-center transition-all duration-300
+      <header className="fixed md:top-4 md:left-1/2 md:-translate-x-1/2 md:w-[calc(100%-2rem)] max-w-7xl z-50 md:h-16 flex items-center transition-all duration-300
         bg-white/70 backdrop-blur-md
-        border border-white/40 rounded-2xl
-        shadow-[0_8px_32px_rgba(0,0,0,0.08)]
+        border md:border-white/40 md:rounded-2xl
+        shadow-[0_8px_32px_rgba(0,0,0,0.08)] md:shadow-[0_8px_32px_rgba(0,0,0,0.08)]
+        max-md:sticky max-md:top-0 max-md:-mx-4 max-md:w-[cal(100%+2rem)] max-md:px-4 max-md:h-14 max-md:border-b max-md:border-gray-200 max-md:rounded-none max-md:shadow-sm
       ">
         <div className="w-full px-4 lg:px-6 flex items-center justify-between">
 
@@ -126,7 +129,7 @@ export default function Navbar() {
 
       {/* Mobile Drawer (Glass Styled) */}
       <div
-        className={`fixed top-0 right-0 h-full w-72
+        className={`fixed top-0 right-0 h-full w-[80%]
         bg-white/70 backdrop-blur-2xl
         border-l border-white/30
         shadow-2xl
@@ -169,12 +172,15 @@ export default function Navbar() {
                 key={link.name}
                 href={link.href}
                 onClick={() => setIsMobileMenuOpen(false)}
-                className={`text-base transition-colors ${isActive
+                className={`flex items-center text-base min-h-[48px] px-2 transition-colors relative ${isActive
                   ? "text-primary font-semibold"
                   : "text-gray-800 font-medium"
                   }`}
               >
-                {link.name}
+                {isActive && (
+                  <span className="absolute left-0 w-1 h-8 bg-primary rounded-r-full" />
+                )}
+                <span className="ml-4">{link.name}</span>
               </Link>
             );
           })}

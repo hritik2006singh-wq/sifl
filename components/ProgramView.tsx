@@ -70,7 +70,7 @@ export default function ProgramView({
                     </div>
 
                     <div className="mt-16 text-center">
-                        <Link href="/consultation" className="inline-block w-full md:w-auto px-8 py-4 bg-primary text-white font-bold rounded-xl shadow-lg hover:shadow-primary/30 hover:-translate-y-1 transition-all">
+                        <Link href="/demo-booking" className="inline-block w-full md:w-auto px-8 py-4 bg-primary text-white font-bold rounded-xl shadow-lg hover:shadow-primary/30 hover:-translate-y-1 transition-all">
                             Enroll Now
                         </Link>
                     </div>

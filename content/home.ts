@@ -45,6 +45,6 @@ export const homeContent = {
     cta: {
         title: 'Ready to Begin Your Language Journey?',
         subtitle: 'Take the first step towards global communication today.',
-        buttonText: 'Book Your Free Consultation'
+        buttonText: 'Book Your Free Demo'
     }
 };

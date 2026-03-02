@@ -156,7 +156,7 @@ export default function YSIFLPage() {
                     <h2 className="text-3xl md:text-4xl font-black text-slate-900 mb-6">Experience the SIFL Advantage</h2>
                     <p className="text-lg text-slate-600 mb-10">Stop delaying your global dreams. Join 100+ professionals who have successfully migrated through our programs.</p>
                     <Link href="/demo-booking" className="inline-block px-10 py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-xl hover:shadow-emerald-600/30 transition-all active:scale-95 text-lg">
-                        Schedule Your Free Consultation
+                        Schedule Your Free Demo
                     </Link>
                 </div>
             </section>

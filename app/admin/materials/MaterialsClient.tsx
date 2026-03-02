@@ -174,7 +174,7 @@ export default function MaterialsClient() {
         </button>
       </div>
 
-      <div className="bg-white rounded-xl shadow-md border overflow-hidden">
+      <div className="hidden md:block bg-white rounded-xl shadow-md border overflow-hidden">
         <table className="w-full text-left">
           <thead className="bg-gray-50">
             <tr>
@@ -216,12 +216,72 @@ export default function MaterialsClient() {
         </table>
       </div>
 
-      {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-md">
-            <h2 className="text-xl font-bold mb-6 text-gray-800">Upload Material</h2>
+      {/* Mobile Cards */}
+      <div className="md:hidden flex flex-col space-y-4 mb-8">
+        {materials.map((m) => (
+          <div key={m.id} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col space-y-3">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex-1 min-w-0">
+                <h3 className="font-bold text-gray-900 text-base leading-tight break-words">{m.title}</h3>
+              </div>
+              {m.type === "video" ? (
+                <span className="material-symbols-outlined text-blue-500 bg-blue-50 p-2 rounded-xl shrink-0">video_file</span>
+              ) : (
+                <span className="material-symbols-outlined text-red-500 bg-red-50 p-2 rounded-xl shrink-0">picture_as_pdf</span>
+              )}
+            </div>
 
-            <form onSubmit={handleUpload} className="space-y-4">
+            <div className="grid grid-cols-2 gap-2 bg-gray-50 p-3 rounded-xl border border-gray-100 mt-2">
+              <div>
+                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">Language</p>
+                <p className="text-sm font-semibold text-gray-900">{m.language}</p>
+              </div>
+              <div>
+                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">Level</p>
+                <p className="text-sm font-semibold text-gray-900">{m.level}</p>
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              {m.fileURL && (
+                <a
+                  href={m.fileURL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 text-center text-sm font-bold bg-primary/10 text-primary py-2.5 rounded-xl border border-primary/20 hover:bg-primary/20 transition-colors"
+                >
+                  View
+                </a>
+              )}
+              {user?.role === "admin" && (
+                <button
+                  onClick={() => handleDelete(m.id)}
+                  className="flex-[0.5] text-center px-2 text-sm font-bold bg-red-50 text-red-700 py-2.5 rounded-xl border border-red-100 hover:bg-red-100 transition-colors"
+                >
+                  Delete
+                </button>
+              )}
+            </div>
+          </div>
+        ))}
+        {materials.length === 0 && (
+          <div className="py-8 text-center text-gray-500 bg-gray-50 rounded-2xl border border-dashed">
+            No materials found.
+          </div>
+        )}
+      </div>
+
+      {showModal && (
+        <div className="fixed inset-0 bg-gray-900/60 z-50 flex items-end md:items-center justify-center p-0 md:p-4 backdrop-blur-sm overflow-hidden w-full">
+          <div className="bg-white w-full max-w-md shadow-2xl overflow-hidden rounded-t-[2rem] md:rounded-3xl mt-20 md:my-8 h-[calc(100vh-5rem)] md:h-auto flex flex-col animate-slide-up md:animate-none">
+            <div className="px-6 py-5 md:py-6 border-b border-gray-100 flex justify-between items-center bg-gray-50 md:bg-white shrink-0">
+              <h2 className="text-xl font-bold text-gray-800 m-0">Upload Material</h2>
+              <button type="button" onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600 bg-white size-8 flex items-center justify-center rounded-full shadow-sm md:shadow-none md:bg-transparent md:size-auto">
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            <form onSubmit={handleUpload} className="p-6 flex-1 overflow-y-auto space-y-4 pb-32 md:pb-6">
               <input
                 type="text"
                 placeholder="Title"
@@ -303,18 +363,18 @@ export default function MaterialsClient() {
                 )}
               </div>
 
-              <div className="flex justify-end gap-3 pt-2">
+              <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-100 md:static md:bg-transparent md:border-none md:p-0 md:pt-4 flex justify-end gap-3 z-40 pb-[max(1rem,env(safe-area-inset-bottom))] md:pb-0">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 text-gray-600 hover:text-gray-900 font-medium transition"
+                  className="flex-1 md:flex-none px-6 py-3.5 md:py-2 text-base md:text-sm text-gray-600 hover:text-gray-900 font-bold md:font-medium transition border border-gray-200 md:border-transparent rounded-xl md:rounded-lg active:scale-95 md:active:scale-100"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={uploading}
-                  className="bg-primary hover:bg-primary/90 text-white px-5 py-2 rounded-lg font-medium transition shadow-sm"
+                  className="flex-1 md:flex-none bg-primary hover:bg-primary/90 text-white px-8 py-3.5 md:py-2 rounded-xl md:rounded-lg text-base md:text-sm font-bold md:font-medium transition shadow-sm active:scale-95 md:active:scale-100"
                 >
                   {uploading ? "Uploading..." : "Upload"}
                 </button>

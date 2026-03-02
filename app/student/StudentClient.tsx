@@ -75,82 +75,82 @@ export default function StudentClient() {
         <div className="max-w-6xl mx-auto space-y-8">
 
             {/* Section A: Header Card */}
-            <div className="bg-gradient-to-br from-primary to-emerald-700 rounded-3xl p-8 md:p-10 shadow-2xl text-white relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
-                <div className="absolute top-0 right-0 p-12 opacity-10">
-                    <span className="material-symbols-outlined text-[150px] rotate-[-15deg]">school</span>
+            <div className="bg-gradient-to-br from-primary to-emerald-700 rounded-3xl p-6 md:p-10 shadow-2xl text-white relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
+                <div className="absolute top-0 right-0 p-8 md:p-12 opacity-10">
+                    <span className="material-symbols-outlined text-[100px] md:text-[150px] rotate-[-15deg]">school</span>
                 </div>
 
-                <div className="z-10 flex flex-col md:flex-row items-center text-center md:text-left gap-6">
-                    <div className="relative group size-24 md:size-28 rounded-full border-4 border-white/20 shadow-xl overflow-hidden bg-white/10 flex items-center justify-center">
+                <div className="z-10 flex flex-col md:flex-row items-center text-center md:text-left gap-4 md:gap-6 w-full">
+                    <div className="relative group size-20 md:size-28 rounded-full border-[3px] md:border-4 border-white/20 shadow-xl overflow-hidden bg-white/10 flex items-center justify-center shrink-0">
                         {user?.profileImage ? (
                             <img src={user.profileImage} alt="Profile" className="w-full h-full object-cover" />
                         ) : (
-                            <span className="text-4xl font-bold">{user?.name?.charAt(0) || user?.email?.charAt(0) || "S"}</span>
+                            <span className="text-3xl md:text-4xl font-bold">{user?.name?.charAt(0) || user?.email?.charAt(0) || "S"}</span>
                         )}
                     </div>
-                    <div>
-                        <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight mb-2">Welcome back, {user?.name || "Student"}!</h1>
-                        <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
-                            <span className="px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-sm font-semibold flex items-center gap-1.5">
-                                <span className="material-symbols-outlined text-[16px]">mail</span>
-                                {user?.email}
+                    <div className="flex-1 min-w-0">
+                        <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight mb-2 truncate">Welcome back, {user?.name || "Student"}!</h1>
+                        <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 md:gap-3">
+                            <span className="px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-xs md:text-sm font-semibold flex items-center gap-1.5 max-w-full">
+                                <span className="material-symbols-outlined text-[14px] md:text-[16px] shrink-0">mail</span>
+                                <span className="truncate">{user?.email}</span>
                             </span>
                             {user?.is_paid && (
-                                <span className="px-3 py-1 bg-amber-400 text-amber-900 rounded-full text-sm font-bold flex items-center gap-1.5 shadow-sm">
-                                    <span className="material-symbols-outlined text-[16px]">workspace_premium</span>
-                                    Premium Member
+                                <span className="px-3 py-1 bg-amber-400 text-amber-900 rounded-full text-xs md:text-sm font-bold flex items-center gap-1.5 shadow-sm shrink-0">
+                                    <span className="material-symbols-outlined text-[14px] md:text-[16px]">workspace_premium</span>
+                                    Premium
                                 </span>
                             )}
                         </div>
                     </div>
                 </div>
 
-                <div className="z-10 md:ml-auto">
-                    <Link href="/student/profile" className="px-6 py-3 bg-white text-primary rounded-xl font-bold shadow-lg hover:bg-gray-50 hover:scale-105 transition-all inline-block">
+                <div className="z-10 md:ml-auto w-full md:w-auto mt-2 md:mt-0">
+                    <Link href="/student/profile" className="block w-full text-center px-6 py-3.5 md:py-3 bg-white text-primary rounded-xl font-bold shadow-lg active:scale-95 md:hover:scale-105 transition-all">
                         Edit Profile
                     </Link>
                 </div>
             </div>
 
             {/* Section B: Stats Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-                <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex flex-col gap-2 hover:shadow-md transition-shadow">
-                    <div className="p-3 bg-blue-50 text-blue-600 rounded-2xl w-max">
-                        <span className="material-symbols-outlined">event_upcoming</span>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
+                <div className="bg-white p-5 md:p-6 rounded-3xl shadow-sm border border-gray-100 flex flex-col gap-2 hover:shadow-md active:scale-[0.98] transition-all">
+                    <div className="p-2.5 md:p-3 bg-blue-50 text-blue-600 rounded-2xl w-max">
+                        <span className="material-symbols-outlined text-[20px] md:text-[24px]">event_upcoming</span>
                     </div>
                     <div>
-                        <p className="text-sm font-bold text-gray-500 uppercase tracking-widest">Upcoming Classes</p>
-                        <p className="text-3xl font-black text-gray-900 mt-1">{classes.length}</p>
+                        <p className="text-[10px] md:text-sm font-bold text-gray-500 uppercase tracking-widest line-clamp-1">Upcoming Classes</p>
+                        <p className="text-2xl md:text-3xl font-black text-gray-900 mt-0.5 md:mt-1">{classes.length}</p>
                     </div>
                 </div>
-                <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex flex-col gap-2 hover:shadow-md transition-shadow">
-                    <div className="p-3 bg-purple-50 text-purple-600 rounded-2xl w-max">
-                        <span className="material-symbols-outlined">check_circle</span>
+                <div className="bg-white p-5 md:p-6 rounded-3xl shadow-sm border border-gray-100 flex flex-col gap-2 hover:shadow-md active:scale-[0.98] transition-all">
+                    <div className="p-2.5 md:p-3 bg-purple-50 text-purple-600 rounded-2xl w-max">
+                        <span className="material-symbols-outlined text-[20px] md:text-[24px]">check_circle</span>
                     </div>
                     <div>
-                        <p className="text-sm font-bold text-gray-500 uppercase tracking-widest">Completed</p>
-                        <p className="text-3xl font-black text-gray-900 mt-1">{pastClassesCount}</p>
+                        <p className="text-[10px] md:text-sm font-bold text-gray-500 uppercase tracking-widest line-clamp-1">Completed</p>
+                        <p className="text-2xl md:text-3xl font-black text-gray-900 mt-0.5 md:mt-1">{pastClassesCount}</p>
                     </div>
                 </div>
-                <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex flex-col gap-2 hover:shadow-md transition-shadow">
-                    <div className="p-3 bg-amber-50 text-amber-600 rounded-2xl w-max">
-                        <span className="material-symbols-outlined">menu_book</span>
+                <div className="bg-white p-5 md:p-6 rounded-3xl shadow-sm border border-gray-100 flex flex-col gap-2 hover:shadow-md active:scale-[0.98] transition-all">
+                    <div className="p-2.5 md:p-3 bg-amber-50 text-amber-600 rounded-2xl w-max">
+                        <span className="material-symbols-outlined text-[20px] md:text-[24px]">menu_book</span>
                     </div>
                     <div>
-                        <p className="text-sm font-bold text-gray-500 uppercase tracking-widest">Materials</p>
-                        <p className="text-3xl font-black text-gray-900 mt-1">{materialsCount}</p>
+                        <p className="text-[10px] md:text-sm font-bold text-gray-500 uppercase tracking-widest line-clamp-1">Materials</p>
+                        <p className="text-2xl md:text-3xl font-black text-gray-900 mt-0.5 md:mt-1">{materialsCount}</p>
                     </div>
                 </div>
-                <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex flex-col gap-2 hover:shadow-md transition-shadow relative overflow-hidden">
-                    <div className="p-3 bg-emerald-50 text-emerald-600 rounded-2xl w-max z-10">
-                        <span className="material-symbols-outlined">trending_up</span>
+                <div className="bg-white p-5 md:p-6 rounded-3xl shadow-sm border border-gray-100 flex flex-col gap-2 hover:shadow-md active:scale-[0.98] transition-all relative overflow-hidden">
+                    <div className="p-2.5 md:p-3 bg-emerald-50 text-emerald-600 rounded-2xl w-max z-10">
+                        <span className="material-symbols-outlined text-[20px] md:text-[24px]">trending_up</span>
                     </div>
                     <div className="z-10">
-                        <p className="text-sm font-bold text-gray-500 uppercase tracking-widest">Attendance</p>
-                        <p className="text-3xl font-black text-emerald-600 mt-1">{attendancePercent}%</p>
+                        <p className="text-[10px] md:text-sm font-bold text-gray-500 uppercase tracking-widest line-clamp-1">Attendance</p>
+                        <p className="text-2xl md:text-3xl font-black text-emerald-600 mt-0.5 md:mt-1">{attendancePercent}%</p>
                     </div>
                     <div className="absolute right-0 bottom-0 opacity-10">
-                        <span className="material-symbols-outlined text-[120px] translate-y-8 translate-x-4">analytics</span>
+                        <span className="material-symbols-outlined text-[80px] md:text-[120px] translate-y-6 md:translate-y-8 translate-x-4">analytics</span>
                     </div>
                 </div>
             </div>

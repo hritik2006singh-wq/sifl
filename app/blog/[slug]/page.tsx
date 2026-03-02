@@ -5,6 +5,7 @@ import { marked } from "marked";
 import BlogCTABlock from "@/components/BlogCTABlock";
 import Image from "next/image";
 import { notFound } from "next/navigation";
+import ShareButton from "@/components/ShareButton";
 
 export const revalidate = 3600;
 export const dynamic = "force-static";
@@ -78,7 +79,7 @@ export default async function BlogPost({ params }: Props) {
     };
 
     return (
-        <main className="min-h-screen bg-slate-50 pt-24 pb-20">
+        <main className="min-h-screen bg-slate-50 pt-20 md:pt-24 pb-16 md:pb-20">
             <script
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -94,14 +95,17 @@ export default async function BlogPost({ params }: Props) {
                     <h1 className="text-3xl md:text-5xl font-black text-slate-900 leading-tight mb-6">
                         {post.title ?? ""}
                     </h1>
-                    <div className="flex items-center gap-4 border-b border-slate-200 pb-8">
-                        <div className="size-12 rounded-full overflow-hidden relative">
-                            <Image src="/images/hero/logo.jpg" alt="SIFL" fill className="object-cover" />
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-8">
+                        <div className="flex items-center gap-4">
+                            <div className="size-12 rounded-full overflow-hidden relative">
+                                <Image src="/images/hero/logo.jpg" alt="SIFL" fill className="object-cover" />
+                            </div>
+                            <div>
+                                <p className="font-bold text-slate-900">{post.author ?? "SIFL Team"}</p>
+                                <p className="text-sm font-medium text-slate-500">{post.date ?? ""}</p>
+                            </div>
                         </div>
-                        <div>
-                            <p className="font-bold text-slate-900">{post.author ?? "SIFL Team"}</p>
-                            <p className="text-sm font-medium text-slate-500">{post.date ?? ""}</p>
-                        </div>
+                        <ShareButton title={post.title ?? "SIFL Blog"} />
                     </div>
                 </header>
 
@@ -112,7 +116,7 @@ export default async function BlogPost({ params }: Props) {
                 )}
 
                 <div
-                    className="prose prose-lg prose-emerald max-w-none mb-16"
+                    className="prose prose-sm md:prose-lg leading-loose md:leading-relaxed prose-emerald max-w-none mb-16 md:mb-20"
                     dangerouslySetInnerHTML={{ __html: contentHtml }}
                 />
 

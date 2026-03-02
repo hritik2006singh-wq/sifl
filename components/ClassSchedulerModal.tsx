@@ -121,16 +121,16 @@ export default function ClassSchedulerModal({ isOpen, onClose, prefillStudentId,
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-gray-900/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm overflow-y-auto">
-            <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden my-8">
-                <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+        <div className="fixed inset-0 bg-gray-900/60 z-50 flex items-end md:items-center justify-center p-0 md:p-4 backdrop-blur-sm overflow-hidden w-full">
+            <div className="bg-white w-full max-w-lg shadow-2xl overflow-hidden rounded-t-[2rem] md:rounded-3xl mt-20 md:my-8 h-[calc(100vh-5rem)] md:h-auto flex flex-col animate-slide-up md:animate-none">
+                <div className="px-6 py-5 md:py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50 shrink-0">
                     <h3 className="text-xl font-bold text-gray-900">Schedule Class</h3>
-                    <button onClick={resetAndClose} className="text-gray-400 hover:text-gray-600">
+                    <button type="button" onClick={resetAndClose} className="text-gray-400 hover:text-gray-600 bg-white size-8 flex items-center justify-center rounded-full shadow-sm md:shadow-none md:bg-transparent md:size-auto">
                         <span className="material-symbols-outlined">close</span>
                     </button>
                 </div>
 
-                <form onSubmit={handleSchedule} className="p-6 md:p-8 space-y-6">
+                <form onSubmit={handleSchedule} className="p-6 md:p-8 space-y-6 flex-1 overflow-y-auto pb-32 md:pb-8">
                     {/* Assignments */}
                     <div className="space-y-4">
                         {!prefillStudentId && (
@@ -200,11 +200,11 @@ export default function ClassSchedulerModal({ isOpen, onClose, prefillStudentId,
                         <textarea placeholder="Lesson focus, requirements, etc." value={notes} onChange={(e) => setNotes(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-gray-900 outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary min-h-[80px] resize-none"></textarea>
                     </div>
 
-                    <div className="flex justify-end gap-3 pt-6 border-t mt-6">
-                        <button type="button" disabled={loading} onClick={resetAndClose} className="px-6 py-3 font-bold text-sm text-gray-600 hover:bg-gray-100 rounded-xl transition-colors disabled:opacity-50">
+                    <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-100 md:static md:bg-transparent md:border-none md:p-0 md:pt-6 flex justify-end gap-3 z-40 pb-[max(1rem,env(safe-area-inset-bottom))] md:pb-0">
+                        <button type="button" disabled={loading} onClick={resetAndClose} className="flex-1 md:flex-none px-6 py-3.5 md:py-3 text-base md:text-sm font-bold text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-50 active:scale-95 md:active:scale-100">
                             Cancel
                         </button>
-                        <button type="submit" disabled={loading} className="px-6 py-3 text-sm font-bold bg-gray-900 text-white rounded-xl shadow-md hover:bg-gray-800 transition-all disabled:opacity-50">
+                        <button type="submit" disabled={loading} className="flex-1 md:flex-none px-6 py-3.5 md:py-3 text-base md:text-sm font-bold bg-gray-900 text-white rounded-xl shadow-md md:hover:bg-gray-800 md:hover:scale-105 transition-all disabled:opacity-50 active:scale-95 md:active:scale-100">
                             {loading ? "Scheduling..." : "Confirm Schedule"}
                         </button>
                     </div>

@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function AboutPage() {
   return (
     <main className="pt-16 bg-background-light text-slate-900">
@@ -65,7 +67,7 @@ export default function AboutPage() {
                     "url('/images/faculty/sristhi-di.jpeg')"
                 }}
               />
-              <h3 className="text-xl font-bold">Ms.Srishti Tuteja</h3>
+              <h3 className="text-xl font-bold">Ms. Srishti</h3>
               <p className="text-primary text-sm mb-3">Founder | Lead German Teacher</p>
               <p className="text-slate-600 text-sm">
                 Certified German language teacher with C1 from the Goethe-Institut and a Diploma in German from the University of Delhi.
@@ -78,11 +80,11 @@ export default function AboutPage() {
                 className="aspect-square rounded-lg mb-6 bg-cover bg-center"
                 style={{
                   backgroundImage:
-                    "url('/brand/campus/campus-5.jpg')"
+                    "url('/images/faculty/english.jpeg')"
                 }}
               />
               <h3 className="text-xl font-bold">Marcus Thorne, PhD</h3>
-              <p className="text-primary text-sm mb-3">Director of Economics</p>
+              <p className="text-primary text-sm mb-3">Lead English Teacher</p>
               <p className="text-slate-600 text-sm">
                 Specializes in macro-economic forecasting and emerging market dynamics.
               </p>
@@ -139,15 +141,9 @@ export default function AboutPage() {
                 shaping it through innovative projects and global recognition.
               </p>
             </div>
-            <button
-              className="flex items-center gap-2 text-primary font-bold hover:gap-3 transition-all"
-              style={{}}
-            >
-              View All Stories{" "}
-              <span className="material-symbols-outlined" style={{}}>
-                arrow_forward
-              </span>
-            </button>
+            <Link href="/success-stories" className="font-semibold text-primary hover:text-primary-hover whitespace-nowrap hidden md:block">
+              View All Stories →
+            </Link>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <div className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all border border-slate-100">

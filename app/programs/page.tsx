@@ -279,7 +279,7 @@ export default function ProgramsPage() {
                       data-alt="Diverse students studying together in library"
                       style={{
                         backgroundImage:
-                          `url('/brand/success/student-1.jpg')`
+                          `url('/brand/success/success_1.jpeg')`
                       }}
                     />
                     <div className="absolute -bottom-6 -left-6 bg-white p-6 rounded-xl shadow-xl max-w-[200px]">
@@ -304,7 +304,7 @@ export default function ProgramsPage() {
                         "The most rigorous and rewarding program I've attended."
                       </p>
                       <p className="text-[10px] text-slate-400 mt-2">
-                        — Shagun Sharma
+                        — Ashima Rana
                       </p>
                     </div>
                   </div>
@@ -387,10 +387,10 @@ export default function ProgramsPage() {
                       SIFL Academy's proven methodology.
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                      <Link href="/consultation" className="w-full md:w-auto px-8 py-4 bg-white text-primary rounded-xl font-black text-lg shadow-xl hover:scale-105 transition-transform text-center">
+                      <Link href="/demo-booking" className="w-full md:w-auto px-8 py-4 bg-white text-primary rounded-xl font-black text-lg shadow-xl hover:scale-105 transition-transform text-center">
                         Get Started Today
                       </Link>
-                      <Link href="/consultation" className="w-full md:w-auto px-8 py-4 bg-transparent border-2 border-white/40 text-white rounded-xl font-bold hover:bg-white/10 transition-all text-center">
+                      <Link href="/demo-booking" className="w-full md:w-auto px-8 py-4 bg-transparent border-2 border-white/40 text-white rounded-xl font-bold hover:bg-white/10 transition-all text-center">
                         Talk to an Advisor
                       </Link>
                     </div>

@@ -6,27 +6,27 @@ import Link from 'next/link';
 const successStories = [
     {
         id: 1,
-        name: "Elena Rodriguez",
-        program: "Spanish DELE C1",
-        quote: "The immersive methodology at SIFL transformed my career. Within 8 months, I was confidently negotiating contracts in Madrid.",
-        image: "/brand/success/student-1.jpg",
+        name: "Kanak M.",
+        program: "English IELTS 8.5",
+        quote: "The immersive methodology at SIFL transformed my career. Within 8 months, I was confidently negotiating contracts in Ireland.",
+        image: "/brand/success/success_2.jpeg",
         role: "International Business Director"
     },
     {
         id: 2,
-        name: "Kenji Sato",
-        program: "English IELTS 8.0",
-        quote: "I needed a high IELTS score for my MBA in London. The rigorous mock tests and personalized feedback made all the difference.",
-        image: "/brand/success/student-2.jpg",
-        role: "MBA Candidate, LBS"
+        name: "Ananya R.",
+        program: "German C1",
+        quote: "I needed a high German score for my MBA in Germany. The rigorous mock tests and personalized feedback made all the difference.",
+        image: "/brand/success/success_5.jpeg",
+        role: "MBA in Germany"
     },
     {
         id: 3,
-        name: "Amara Okeke",
-        program: "French DELF B2",
-        quote: "Moving to Montreal was daunting, but SIFL prepared me not just with language, but with the cultural nuances required to thrive.",
-        image: "/brand/faculty/leader-1.jpg",
-        role: "Software Engineer"
+        name: "Karan S.",
+        program: "German B2",
+        quote: "Moving to Berlin was daunting, but SIFL prepared me not just with language, but with the cultural nuances required to thrive.",
+        image: "/brand/success/success_1.jpeg",
+        role: "Student in TU Berlin"
     }
 ];
 
@@ -146,7 +146,7 @@ export default function SuccessStoriesPage() {
                     </div>
 
                     <div className="mt-16 text-center">
-                        <Link href="/consultation" className="inline-block w-full md:w-auto px-8 py-4 bg-primary text-white font-bold rounded-xl shadow-lg hover:shadow-primary/30 hover:-translate-y-1 transition-all">
+                        <Link href="/demo-booking" className="inline-block w-full md:w-auto px-8 py-4 bg-primary text-white font-bold rounded-xl shadow-lg hover:shadow-primary/30 hover:-translate-y-1 transition-all">
                             Start Your Own Success Story
                         </Link>
                     </div>

@@ -105,29 +105,29 @@ export default function TeacherClient() {
 
     return (
         <div className="max-w-6xl mx-auto space-y-8">
-            <div className="bg-gradient-to-br from-emerald-800 to-gray-900 rounded-3xl p-8 md:p-10 shadow-2xl text-white relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
-                <div className="absolute top-0 right-0 p-12 opacity-10">
-                    <span className="material-symbols-outlined text-[150px] rotate-12">school</span>
+            <div className="bg-gradient-to-br from-emerald-800 to-gray-900 rounded-3xl p-6 md:p-10 shadow-2xl text-white relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
+                <div className="absolute top-0 right-0 p-8 md:p-12 opacity-10">
+                    <span className="material-symbols-outlined text-[100px] md:text-[150px] rotate-12">school</span>
                 </div>
 
-                <div className="z-10 flex flex-col md:flex-row items-center text-center md:text-left gap-6">
-                    <div className="relative group size-24 md:size-28 rounded-full border-4 border-white/20 shadow-xl overflow-hidden bg-white/10 flex items-center justify-center">
+                <div className="z-10 flex flex-col md:flex-row items-center text-center md:text-left gap-4 md:gap-6 w-full">
+                    <div className="relative group size-20 md:size-28 rounded-full border-[3px] md:border-4 border-white/20 shadow-xl overflow-hidden bg-white/10 flex items-center justify-center shrink-0">
                         {user?.profileImage ? (
                             <img src={user.profileImage} alt="Profile" className="w-full h-full object-cover" />
                         ) : (
-                            <span className="text-4xl font-bold">{user?.name?.charAt(0) || "T"}</span>
+                            <span className="text-3xl md:text-4xl font-bold">{user?.name?.charAt(0) || "T"}</span>
                         )}
                     </div>
-                    <div>
-                        <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight mb-2">Welcome, {user?.name || "Teacher"}!</h1>
-                        <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
-                            <span className="px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-sm font-semibold flex items-center gap-1.5">
-                                <span className="material-symbols-outlined text-[16px]">mail</span>
-                                {user?.email}
+                    <div className="flex-1 min-w-0">
+                        <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight mb-2 truncate">Welcome, {user?.name || "Teacher"}!</h1>
+                        <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 md:gap-3">
+                            <span className="px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-xs md:text-sm font-semibold flex items-center gap-1.5 max-w-full">
+                                <span className="material-symbols-outlined text-[14px] md:text-[16px] shrink-0">mail</span>
+                                <span className="truncate">{user?.email}</span>
                             </span>
-                            <span className="px-3 py-1 bg-emerald-500/20 border border-emerald-500/30 text-emerald-100 rounded-full text-sm font-bold flex items-center gap-1.5 shadow-sm">
-                                <span className="material-symbols-outlined text-[16px]">category</span>
-                                {user?.specialization || "Instructor"}
+                            <span className="px-3 py-1 bg-emerald-500/20 border border-emerald-500/30 text-emerald-100 rounded-full text-xs md:text-sm font-bold flex items-center gap-1.5 shadow-sm shrink-0">
+                                <span className="material-symbols-outlined text-[14px] md:text-[16px]">category</span>
+                                <span className="truncate">{user?.specialization || "Instructor"}</span>
                             </span>
                         </div>
                     </div>
@@ -135,51 +135,51 @@ export default function TeacherClient() {
 
                 <button
                     onClick={() => setShowScheduler(true)}
-                    className="md:absolute md:bottom-8 md:right-8 bg-white text-emerald-900 px-6 py-3 rounded-2xl text-sm font-black shadow-lg hover:scale-105 transition-transform flex items-center gap-2 z-20"
+                    className="w-full md:w-auto mt-2 md:mt-0 md:absolute md:bottom-8 md:right-8 bg-white text-emerald-900 px-6 py-3.5 md:py-3 rounded-2xl text-base md:text-sm font-black shadow-lg active:scale-95 md:hover:scale-105 transition-transform flex items-center justify-center gap-2 z-20"
                 >
                     <span className="material-symbols-outlined text-[20px]">calendar_add_on</span>
                     Schedule Class
                 </button>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-                <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex flex-col gap-2 hover:shadow-md transition-shadow">
-                    <div className="p-3 bg-blue-50 text-blue-600 rounded-2xl w-max">
-                        <span className="material-symbols-outlined">group</span>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
+                <div className="bg-white p-5 md:p-6 rounded-3xl shadow-sm border border-gray-100 flex flex-col gap-2 hover:shadow-md active:scale-[0.98] transition-all">
+                    <div className="p-2.5 md:p-3 bg-blue-50 text-blue-600 rounded-2xl w-max">
+                        <span className="material-symbols-outlined text-[20px] md:text-[24px]">group</span>
                     </div>
                     <div>
-                        <p className="text-sm font-bold text-gray-500 uppercase tracking-widest">Students</p>
-                        <p className="text-3xl font-black text-gray-900 mt-1">{totalStudents}</p>
+                        <p className="text-[10px] md:text-sm font-bold text-gray-500 uppercase tracking-widest line-clamp-1">Students</p>
+                        <p className="text-2xl md:text-3xl font-black text-gray-900 mt-0.5 md:mt-1">{totalStudents}</p>
                     </div>
                 </div>
-                <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex flex-col gap-2 hover:shadow-md transition-shadow">
-                    <div className="p-3 bg-emerald-50 text-emerald-600 rounded-2xl w-max">
-                        <span className="material-symbols-outlined">event_upcoming</span>
+                <div className="bg-white p-5 md:p-6 rounded-3xl shadow-sm border border-gray-100 flex flex-col gap-2 hover:shadow-md active:scale-[0.98] transition-all">
+                    <div className="p-2.5 md:p-3 bg-emerald-50 text-emerald-600 rounded-2xl w-max">
+                        <span className="material-symbols-outlined text-[20px] md:text-[24px]">event_upcoming</span>
                     </div>
                     <div>
-                        <p className="text-sm font-bold text-gray-500 uppercase tracking-widest">Upcoming</p>
-                        <p className="text-3xl font-black text-gray-900 mt-1">{classes.length + todayClasses.length}</p>
+                        <p className="text-[10px] md:text-sm font-bold text-gray-500 uppercase tracking-widest line-clamp-1">Upcoming</p>
+                        <p className="text-2xl md:text-3xl font-black text-gray-900 mt-0.5 md:mt-1">{classes.length + todayClasses.length}</p>
                     </div>
                 </div>
-                <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex flex-col gap-2 hover:shadow-md transition-shadow">
-                    <div className="p-3 bg-purple-50 text-purple-600 rounded-2xl w-max">
-                        <span className="material-symbols-outlined">check_circle</span>
+                <div className="bg-white p-5 md:p-6 rounded-3xl shadow-sm border border-gray-100 flex flex-col gap-2 hover:shadow-md active:scale-[0.98] transition-all">
+                    <div className="p-2.5 md:p-3 bg-purple-50 text-purple-600 rounded-2xl w-max">
+                        <span className="material-symbols-outlined text-[20px] md:text-[24px]">check_circle</span>
                     </div>
                     <div>
-                        <p className="text-sm font-bold text-gray-500 uppercase tracking-widest">Completed</p>
-                        <p className="text-3xl font-black text-gray-900 mt-1">{pastClassesCount}</p>
+                        <p className="text-[10px] md:text-sm font-bold text-gray-500 uppercase tracking-widest line-clamp-1">Completed</p>
+                        <p className="text-2xl md:text-3xl font-black text-gray-900 mt-0.5 md:mt-1">{pastClassesCount}</p>
                     </div>
                 </div>
-                <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex flex-col gap-2 hover:shadow-md transition-shadow relative overflow-hidden">
-                    <div className="p-3 bg-amber-50 text-amber-600 rounded-2xl w-max z-10">
-                        <span className="material-symbols-outlined">pending_actions</span>
+                <div className="bg-white p-5 md:p-6 rounded-3xl shadow-sm border border-gray-100 flex flex-col gap-2 hover:shadow-md active:scale-[0.98] transition-all relative overflow-hidden">
+                    <div className="p-2.5 md:p-3 bg-amber-50 text-amber-600 rounded-2xl w-max z-10">
+                        <span className="material-symbols-outlined text-[20px] md:text-[24px]">pending_actions</span>
                     </div>
                     <div className="z-10">
-                        <p className="text-sm font-bold text-gray-500 uppercase tracking-widest">Pending</p>
-                        <p className="text-3xl font-black text-amber-600 mt-1">{pendingBookingsCount}</p>
+                        <p className="text-[10px] md:text-sm font-bold text-gray-500 uppercase tracking-widest line-clamp-1">Pending</p>
+                        <p className="text-2xl md:text-3xl font-black text-amber-600 mt-0.5 md:mt-1">{pendingBookingsCount}</p>
                     </div>
                     <div className="absolute right-0 bottom-0 opacity-10">
-                        <span className="material-symbols-outlined text-[100px] translate-y-6 translate-x-4">schedule</span>
+                        <span className="material-symbols-outlined text-[80px] md:text-[100px] translate-y-6 md:translate-y-6 translate-x-4">schedule</span>
                     </div>
                 </div>
             </div>

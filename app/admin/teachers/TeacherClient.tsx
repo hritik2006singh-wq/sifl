@@ -187,7 +187,7 @@ export default function TeachersClient() {
                 </button>
             </div>
 
-            <div className="overflow-x-auto">
+            <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                     <thead>
                         <tr className="border-b-2 border-gray-100 text-xs text-gray-400 uppercase tracking-wider">
@@ -221,8 +221,8 @@ export default function TeachersClient() {
                                         onChange={(e) => handleRoleChange(t.id, e.target.value)}
                                         disabled={t.id === user?.uid} // Don't let user demote themselves easily here to avoid instant lockout mistakes
                                         className={`text-xs font-bold px-3 py-1.5 rounded-full border outline-none cursor-pointer ${t.role === 'admin'
-                                                ? 'bg-purple-50 text-purple-700 border-purple-200'
-                                                : 'bg-blue-50 text-blue-700 border-blue-200'
+                                            ? 'bg-purple-50 text-purple-700 border-purple-200'
+                                            : 'bg-blue-50 text-blue-700 border-blue-200'
                                             }`}
                                     >
                                         <option value="teacher">Teacher</option>
@@ -250,18 +250,75 @@ export default function TeachersClient() {
                 </table>
             </div>
 
+            {/* Mobile Cards */}
+            <div className="md:hidden flex flex-col space-y-4 mt-4 mb-8">
+                {teachers.map((t) => (
+                    <div key={t.id} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col space-y-3">
+                        <div className="flex items-center gap-3">
+                            <div className="size-12 rounded-full bg-emerald-100 text-emerald-700 font-bold flex items-center justify-center overflow-hidden shrink-0">
+                                {t.profileImage ? <img src={t.profileImage} className="w-full h-full object-cover" /> : t.name?.charAt(0) || "-"}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <h3 className="font-bold text-gray-900 text-base truncate">{t.name || "N/A"}</h3>
+                                <p className="text-sm text-gray-500 truncate">{t.email}</p>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2 bg-gray-50 p-3 rounded-xl border border-gray-100">
+                            <div>
+                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">Role</p>
+                                <select
+                                    value={t.role}
+                                    onChange={(e) => handleRoleChange(t.id, e.target.value)}
+                                    disabled={t.id === user?.uid}
+                                    className={`text-[10px] font-bold px-2 py-1 rounded-full border outline-none cursor-pointer ${t.role === 'admin'
+                                        ? 'bg-purple-50 text-purple-700 border-purple-200'
+                                        : 'bg-blue-50 text-blue-700 border-blue-200'
+                                        }`}
+                                >
+                                    <option value="teacher">Teacher</option>
+                                    <option value="admin">Admin</option>
+                                </select>
+                            </div>
+                            <div className="flex gap-4">
+                                <div>
+                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">Students</p>
+                                    <p className="text-sm font-semibold text-gray-900">{t.studentCount}</p>
+                                </div>
+                                <div>
+                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">Classes</p>
+                                    <p className="text-sm font-semibold text-gray-900">{t.classesCount}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <Link
+                            href={`/admin/teachers/${t.id}`}
+                            className="w-full text-center text-sm font-bold bg-primary/10 text-primary py-2.5 rounded-xl border border-primary/20 hover:bg-primary/20 transition-colors"
+                        >
+                            View Details
+                        </Link>
+                    </div>
+                ))}
+                {teachers.length === 0 && (
+                    <div className="py-8 text-center text-gray-500 bg-gray-50 rounded-2xl border border-dashed">
+                        No staff members found.
+                    </div>
+                )}
+            </div>
+
             {/* Creation Modal */}
             {showAddModal && (
-                <div className="fixed inset-0 bg-gray-900/60 z-50 flex items-center justify-center backdrop-blur-sm p-4 overflow-y-auto">
-                    <div className="bg-white rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden my-8">
-                        <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                <div className="fixed inset-0 bg-gray-900/60 z-50 flex items-end md:items-center justify-center p-0 md:p-4 backdrop-blur-sm overflow-hidden w-full">
+                    <div className="bg-white w-full max-w-2xl shadow-2xl overflow-hidden rounded-t-[2rem] md:rounded-3xl mt-20 md:my-8 h-[calc(100vh-5rem)] md:h-auto flex flex-col animate-slide-up md:animate-none">
+                        <div className="px-6 py-5 md:py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50 shrink-0">
                             <h3 className="text-xl font-bold text-gray-900">Create Staff Member</h3>
-                            <button onClick={() => setShowAddModal(false)} className="text-gray-400 hover:text-gray-600">
+                            <button type="button" onClick={() => setShowAddModal(false)} className="text-gray-400 hover:text-gray-600 bg-white size-8 flex items-center justify-center rounded-full shadow-sm md:shadow-none md:bg-transparent md:size-auto">
                                 <span className="material-symbols-outlined">close</span>
                             </button>
                         </div>
 
-                        <form onSubmit={handleAddTeacher} className="p-6 md:p-8 space-y-6 max-h-[75vh] overflow-y-auto">
+                        <form onSubmit={handleAddTeacher} className="p-6 md:p-8 space-y-6 flex-1 overflow-y-auto pb-32 md:pb-8">
 
                             {/* Role Selection */}
                             <div className="bg-blue-50 rounded-xl p-4 border border-blue-100 flex items-center justify-between">
@@ -331,19 +388,19 @@ export default function TeachersClient() {
                                 </div>
                             </div>
 
-                            <div className="flex justify-end gap-3 pt-6 border-t mt-6">
+                            <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-100 md:static md:bg-transparent md:border-none md:p-0 md:pt-6 flex justify-end gap-3 z-40 pb-[max(1rem,env(safe-area-inset-bottom))] md:pb-0">
                                 <button
                                     type="button"
                                     disabled={isSubmitting}
                                     onClick={() => setShowAddModal(false)}
-                                    className="px-6 py-3 font-bold text-sm text-gray-600 hover:bg-gray-100 rounded-xl transition-colors disabled:opacity-50"
+                                    className="flex-1 md:flex-none px-6 py-3.5 md:py-3 text-base md:text-sm font-bold text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-50 active:scale-95 md:active:scale-100"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={isSubmitting}
-                                    className="px-6 py-3 text-sm font-bold bg-gray-900 text-white rounded-xl shadow-md hover:bg-gray-800 transition-all disabled:opacity-50"
+                                    className="flex-1 md:flex-none px-6 py-3.5 md:py-3 text-base md:text-sm font-bold bg-gray-900 text-white rounded-xl shadow-md md:hover:bg-gray-800 md:hover:scale-105 transition-all disabled:opacity-50 active:scale-95 md:active:scale-100"
                                 >
                                     {isSubmitting ? "Processing..." : "Create Account"}
                                 </button>

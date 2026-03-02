@@ -19,7 +19,7 @@ export default function BlogIndexPage() {
 
     return (
         <main className="min-h-screen bg-slate-50">
-            <header className="pt-32 pb-20 bg-slate-900 border-b border-slate-800 text-center px-6">
+            <header className="pt-28 pb-16 md:pt-32 md:pb-20 bg-slate-900 border-b border-slate-800 text-center px-6">
                 <div className="max-w-4xl mx-auto">
                     <span className="inline-block py-1 px-3 rounded-full bg-emerald-500/20 text-emerald-400 font-bold text-sm tracking-widest uppercase mb-4">
                         Insights Hub
@@ -31,7 +31,7 @@ export default function BlogIndexPage() {
                 </div>
             </header>
 
-            <section className="py-20 px-6 max-w-7xl mx-auto">
+            <section className="py-16 md:py-20 px-6 max-w-7xl mx-auto">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {articles.map((article) => (
                         <Link href={`/blog/${article.slug}`} key={article.slug} className="group flex flex-col bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-100 hover:shadow-xl hover:-translate-y-1 transition-all">

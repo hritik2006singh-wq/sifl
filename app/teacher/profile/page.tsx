@@ -173,48 +173,48 @@ export default function TeacherProfilePage() {
                 {/* Right col - Editable Form */}
                 <div className="md:col-span-2">
                     <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 md:p-10">
-                        <form onSubmit={handleSaveProfile} className="space-y-6">
+                        <form onSubmit={handleSaveProfile} className="space-y-6 pb-28 md:pb-0">
 
                             <h3 className="text-lg font-bold text-gray-900 border-b border-gray-100 pb-4 mb-6">Personal Details</h3>
 
-                            <div className="space-y-1">
+                            <div className="space-y-1.5 md:space-y-1">
                                 <label className="text-sm font-semibold text-gray-700">Full Name</label>
                                 <input
                                     type="text"
                                     required
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
-                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
+                                    className="w-full px-4 h-12 md:h-auto md:py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all text-base md:text-sm"
                                 />
                             </div>
 
-                            <div className="space-y-1">
+                            <div className="space-y-1.5 md:space-y-1">
                                 <label className="text-sm font-semibold text-gray-700">Email Address</label>
                                 <input
                                     type="email"
                                     disabled
                                     value={email}
-                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-100 text-gray-500 cursor-not-allowed outline-none"
+                                    className="w-full px-4 h-12 md:h-auto md:py-3 rounded-xl border border-gray-200 bg-gray-100 text-gray-500 cursor-not-allowed outline-none text-base md:text-sm"
                                 />
                                 <p className="text-xs text-gray-400 mt-1">Contact your administrator to change your associated email.</p>
                             </div>
 
-                            <div className="space-y-1">
+                            <div className="space-y-1.5 md:space-y-1">
                                 <label className="text-sm font-semibold text-gray-700">Specialization</label>
                                 <input
                                     type="text"
                                     value={specialization}
                                     placeholder="e.g. English Grammar & Essay Writing"
                                     onChange={(e) => setSpecialization(e.target.value)}
-                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
+                                    className="w-full px-4 h-12 md:h-auto md:py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all text-base md:text-sm"
                                 />
                             </div>
 
-                            <div className="pt-8 flex justify-end">
+                            <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-100 md:static md:bg-transparent md:border-none md:p-0 md:pt-8 flex justify-end z-40 pb-[max(1rem,env(safe-area-inset-bottom))] md:pb-0">
                                 <button
                                     type="submit"
                                     disabled={isSaving}
-                                    className="px-8 py-3 bg-gray-900 text-white font-bold rounded-xl shadow-md hover:bg-gray-800 transition-all disabled:opacity-50"
+                                    className="w-full md:w-auto px-8 py-3.5 md:py-3 bg-gray-900 text-white font-bold rounded-xl shadow-md active:scale-95 md:hover:bg-gray-800 transition-all disabled:opacity-50 text-base md:text-sm"
                                 >
                                     {isSaving ? "Saving..." : "Save Profile"}
                                 </button>

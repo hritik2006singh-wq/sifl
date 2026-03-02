@@ -42,8 +42,10 @@ export default function RootLayout({
       <body
         className={`${publicSans.className} bg-[#f6f8f6] text-slate-900 antialiased`}
       >
-        <GlobalLayoutWrapper>{children}</GlobalLayoutWrapper>
-        <WhatsAppFAB />
+        <div className="max-md:min-h-[100dvh] max-md:overflow-x-hidden max-md:bg-gradient-to-b max-md:from-slate-50 max-md:to-white max-md:pb-[calc(6rem+env(safe-area-inset-bottom))] max-md:px-4">
+          <GlobalLayoutWrapper>{children}</GlobalLayoutWrapper>
+          <WhatsAppFAB />
+        </div>
       </body>
     </html>
   );

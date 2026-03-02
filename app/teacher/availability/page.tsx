@@ -90,22 +90,24 @@ export default function TeacherAvailabilityPage() {
 
     return (
         <div className="max-w-5xl mx-auto space-y-8">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 md:pb-0">
                 <div>
-                    <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Availability Center</h1>
+                    <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Availability</h1>
                     <p className="text-gray-500 mt-2">Manage your weekly working hours and blocked dates.</p>
                 </div>
-                <button
-                    disabled={isSaving}
-                    onClick={handleSave}
-                    className="flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white font-bold rounded-xl shadow-md hover:bg-emerald-700 transition-colors disabled:opacity-50"
-                >
-                    <span className="material-symbols-outlined">save</span>
-                    {isSaving ? "Saving..." : "Save Schedule"}
-                </button>
+                <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-100 md:static md:bg-transparent md:border-none md:p-0 flex justify-end z-40 pb-[max(1rem,env(safe-area-inset-bottom))] md:pb-0">
+                    <button
+                        disabled={isSaving}
+                        onClick={handleSave}
+                        className="w-full md:w-auto flex items-center justify-center gap-2 px-6 py-3.5 md:py-3 bg-emerald-600 text-white font-bold rounded-xl shadow-md active:scale-95 md:hover:bg-emerald-700 transition-all disabled:opacity-50 text-base md:text-sm"
+                    >
+                        <span className="material-symbols-outlined text-[20px] md:text-[24px]">save</span>
+                        {isSaving ? "Saving..." : "Save Schedule"}
+                    </button>
+                </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pb-24 md:pb-0">
                 {/* Weekly Template Table */}
                 <div className="lg:col-span-2 space-y-6">
                     <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
@@ -123,7 +125,7 @@ export default function TeacherAvailabilityPage() {
                                 return (
                                     <div key={day} className="p-4 md:px-8 md:py-5 flex flex-col md:flex-row md:items-center justify-between gap-4 group hover:bg-gray-50 transition-colors">
                                         <div className="flex items-center gap-4 min-w-[200px]">
-                                            <label className="relative inline-flex items-center cursor-pointer">
+                                            <label className="relative inline-flex items-center cursor-pointer p-3 -m-3">
                                                 <input
                                                     type="checkbox"
                                                     className="sr-only peer"
@@ -133,7 +135,7 @@ export default function TeacherAvailabilityPage() {
                                                         [day]: { ...prev[day], enabled: e.target.checked }
                                                     }))}
                                                 />
-                                                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                                                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[14px] after:left-[14px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
                                             </label>
                                             <span className={`text-base font-bold capitalize ${dayConfig.enabled ? 'text-gray-900' : 'text-gray-400'}`}>
                                                 {day}
@@ -141,7 +143,7 @@ export default function TeacherAvailabilityPage() {
                                         </div>
 
                                         {dayConfig.enabled ? (
-                                            <div className="flex items-center gap-3 w-full md:w-auto">
+                                            <div className="flex items-center gap-2 md:gap-3 w-full md:w-auto mt-2 md:mt-0">
                                                 <input
                                                     type="time"
                                                     value={dayConfig.start}
@@ -149,9 +151,9 @@ export default function TeacherAvailabilityPage() {
                                                         ...prev,
                                                         [day]: { ...prev[day], start: e.target.value }
                                                     }))}
-                                                    className="px-3 py-2 border border-gray-200 rounded-lg text-sm font-semibold text-gray-700 w-full md:w-32 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
+                                                    className="px-3 h-12 md:h-auto md:py-2 border border-gray-200 rounded-xl md:rounded-lg text-base md:text-sm font-semibold text-gray-700 w-full md:w-32 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
                                                 />
-                                                <span className="text-gray-400 font-bold px-2">to</span>
+                                                <span className="text-gray-400 font-bold px-1 md:px-2">to</span>
                                                 <input
                                                     type="time"
                                                     value={dayConfig.end}
@@ -159,7 +161,7 @@ export default function TeacherAvailabilityPage() {
                                                         ...prev,
                                                         [day]: { ...prev[day], end: e.target.value }
                                                     }))}
-                                                    className="px-3 py-2 border border-gray-200 rounded-lg text-sm font-semibold text-gray-700 w-full md:w-32 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
+                                                    className="px-3 h-12 md:h-auto md:py-2 border border-gray-200 rounded-xl md:rounded-lg text-base md:text-sm font-semibold text-gray-700 w-full md:w-32 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
                                                 />
                                             </div>
                                         ) : (

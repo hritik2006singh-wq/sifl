@@ -21,10 +21,10 @@ const universities = [
     { name: "Canada", logo: "/images/Flag/canada.jpg" },
     { name: "Australia", logo: "/images/Flag/australia.jpg" },
     { name: "Ireland", logo: "/images/Flag/ireland.jpg" },
-    { name: "German", logo: "/images/Flag/german.jpg" },
-    { name: "Spanish", logo: "/images/Flag/spain.jpg" },
-    { name: "Japanese", logo: "/images/Flag/jap.jpg" },
-    { name: "French", logo: "/images/Flag/french.jpg" },
+    { name: "Germany", logo: "/images/Flag/german.jpg" },
+    { name: "Spain", logo: "/images/Flag/spain.jpg" },
+    { name: "Japan", logo: "/images/Flag/jap.jpg" },
+    { name: "Frence", logo: "/images/Flag/french.jpg" },
 ];
 
 const duplicatedUniversities = [...universities, ...universities, ...universities, ...universities];
@@ -167,7 +167,7 @@ export default function HeroSection() {
 
                     {/* CTA BUTTONS — centered */}
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-                        <Link href="/consultation">
+                        <Link href="/demo-booking">
                             <Button
                                 size="lg"
                                 className="bg-[#10b981] hover:bg-[#059669] text-white font-bold border-none shadow-xl transition-all duration-300 h-14 px-8 text-lg min-w-[200px]"

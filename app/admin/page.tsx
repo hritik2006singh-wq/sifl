@@ -332,7 +332,7 @@ export default function AdminDashboardPage() {
                 <span className="text-sm font-bold">Manage Students</span>
               </button>
               <button
-                onClick={() => router.push('/admin/demo-bookings')}
+                onClick={() => router.push('/demo-booking')}
                 className="flex flex-col items-center gap-3 p-6 bg-white rounded-xl border border-slate-200 hover:border-primary/50 hover:bg-primary/5 transition-all group shadow-sm"
               >
                 <div className="size-12 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center group-hover:bg-amber-500 group-hover:text-white transition-all">

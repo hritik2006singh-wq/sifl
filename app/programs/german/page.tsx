@@ -4,7 +4,7 @@ export default function GermanProgram() {
     return (
         <ProgramView
             language="German"
-            duration="4 - 12 Months (Depending on Level)"
+            duration="4 - 12+ Months (Depending on Level)"
             levelBreakdown={["A1", "A2", "B1", "B2", "C1", "C2 (Goethe Standard)"]}
             curriculumOverview="Master German for academic, professional, and daily communication in Germany, Austria, and Switzerland. Tailored for healthcare and engineering professionals."
             teachingMethod="Immersive classroom interactions with interactive digital labs. Focus on Goethe-Institut examination patterns."

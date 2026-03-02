@@ -7,6 +7,14 @@ import { db, auth } from "@/lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
 import Image from "next/image";
 import { signOut } from "firebase/auth";
+import MobileBottomNav from "@/components/MobileBottomNav";
+
+const mobileNavItems = [
+  { label: "Overview", icon: "dashboard", path: "/admin", exact: true },
+  { label: "Students", icon: "group", path: "/admin/students" },
+  { label: "Bookings", icon: "event_available", path: "/demo-booking" },
+  { label: "Settings", icon: "settings", path: "/admin/settings" }
+];
 
 export default function AdminLayout({
   children,
@@ -18,6 +26,7 @@ export default function AdminLayout({
   const [dbUser, setDbUser] = useState<any>(null);
   const [showDropdown, setShowDropdown] = useState(false);
   const [pendingBookings, setPendingBookings] = useState(0);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const fetchLogo = async () => {
@@ -111,7 +120,117 @@ export default function AdminLayout({
         `,
         }}
       />
-      <div className="flex h-screen overflow-hidden pt-4">
+      <div className="flex h-[100dvh] overflow-hidden pt-4 max-md:pt-0">
+        {/* Mobile Overlay */}
+        {isMobileMenuOpen && (
+          <div
+            className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm lg:hidden"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+        )}
+
+        {/* Mobile Drawer */}
+        <div
+          className={`fixed top-0 left-0 h-full w-[80%] max-w-sm
+          bg-white shadow-2xl z-50
+          transform transition-transform duration-300 ease-out
+          lg:hidden flex flex-col
+          ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}
+          `}
+        >
+          <div className="p-6 flex justify-between items-center border-b border-slate-100">
+            <div className="flex items-center gap-3">
+              {logoUrl ? (
+                <img src={logoUrl} alt="Institute Logo" className="w-10 h-10 object-contain rounded-lg shadow-sm" />
+              ) : (
+                <Image src="/images/hero/logo.jpg" alt="Logo" width={40} height={40} className="rounded-md object-cover shadow-sm" />
+              )}
+              <div>
+                <h1 className="text-lg font-bold leading-none">SIFL</h1>
+                <p className="text-[10px] uppercase tracking-widest text-slate-400 font-semibold mt-1">
+                  Language Institute
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-xl"
+            >
+              <span className="material-symbols-outlined">close</span>
+            </button>
+          </div>
+          <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto custom-scrollbar">
+            <div className="pb-4">
+              <p className="px-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+                Main Menu
+              </p>
+              <Link
+                className={getLinkClass("/admin")}
+                href="/admin"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <span className={getIconClass("/admin")}>dashboard</span>
+                <span className="text-sm">Dashboard Overview</span>
+              </Link>
+              <Link
+                className={getLinkClass("/admin/students")}
+                href="/admin/students"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <span className={getIconClass("/admin/students")}>group</span>
+                <span className="text-sm">Students</span>
+              </Link>
+              <Link
+                className={getLinkClass("/demo-booking")}
+                href="/demo-booking"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <span className={getIconClass("/demo-booking")}>event_available</span>
+                <span className="text-sm">Demo Bookings</span>
+              </Link>
+              <Link
+                className={getLinkClass("/admin/teachers")}
+                href="/admin/teachers"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <span className={getIconClass("/admin/teachers")}>badge</span>
+                <span className="text-sm">Teachers</span>
+              </Link>
+              <Link
+                className={getLinkClass("/admin/manage-schedule")}
+                href="/admin/manage-schedule"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <span className={getIconClass("/admin/manage-schedule")}>calendar_month</span>
+                <span className="text-sm">Manage Schedule</span>
+              </Link>
+            </div>
+            <div className="pb-4">
+              <p className="px-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+                Academic
+              </p>
+              <Link
+                className={getLinkClass("/admin/materials")}
+                href="/admin/materials"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <span className={getIconClass("/admin/materials")}>library_books</span>
+                <span className="text-sm">Study Materials</span>
+              </Link>
+            </div>
+            <div className="pb-4 pt-4 border-t border-slate-100">
+              <Link
+                className={getLinkClass("/admin/settings")}
+                href="/admin/settings"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <span className={getIconClass("/admin/settings")}>settings</span>
+                <span className="text-sm">Settings</span>
+              </Link>
+            </div>
+          </nav>
+        </div>
+
         {/* Sidebar */}
         <aside className="w-64 flex-shrink-0 border-r border-slate-200 bg-white hidden lg:flex flex-col">
           <div className="p-6 flex items-center gap-3">
@@ -151,10 +270,10 @@ export default function AdminLayout({
                 <span className="text-sm">Students</span>
               </Link>
               <Link
-                className={getLinkClass("/admin/demo-bookings")}
-                href="/admin/demo-bookings"
+                className={getLinkClass("/demo-booking")}
+                href="/demo-booking"
               >
-                <span className={getIconClass("/admin/demo-bookings")}>
+                <span className={getIconClass("/demo-booking")}>
                   event_available
                 </span>
                 <span className="text-sm">Demo Bookings</span>
@@ -209,10 +328,13 @@ export default function AdminLayout({
         {/* Main Content Area */}
         <main className="flex-1 flex flex-col min-w-0 bg-gray-50 overflow-hidden">
           {/* Top Navbar */}
-          <header className="h-16 flex items-center justify-between px-8 border-b border-slate-200 glass-nav sticky top-0 z-10 w-full">
+          <header className="h-16 flex items-center justify-between px-8 border-b border-slate-200 glass-nav sticky top-0 z-10 w-full max-md:px-4 max-md:bg-white/70 max-md:backdrop-blur-md">
             <div className="flex items-center gap-4">
-              <button className="lg:hidden p-2 rounded-lg hover:bg-slate-100">
-                <span className="material-symbols-outlined">menu</span>
+              <button
+                onClick={() => setIsMobileMenuOpen(true)}
+                className="lg:hidden p-2 rounded-lg hover:bg-slate-100"
+              >
+                <span className="material-symbols-outlined text-[24px]">menu</span>
               </button>
               <h2 className="text-lg font-bold">Admin Portal</h2>
             </div>
@@ -268,10 +390,11 @@ export default function AdminLayout({
           </header>
 
           {/* Child Page Rendering */}
-          <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar relative">
+          <div className="flex-1 overflow-y-auto p-4 max-md:pb-24 md:p-8 custom-scrollbar relative">
             {children}
           </div>
         </main>
+        <MobileBottomNav items={mobileNavItems} />
       </div>
     </>
   );

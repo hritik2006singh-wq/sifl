@@ -242,7 +242,7 @@ export default function DemoBookingsClient() {
     return (
         <div>
             <h1 className="text-2xl font-bold mb-6">Demo Bookings</h1>
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="hidden md:block bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                 <table className="w-full text-left border-collapse">
                     <thead>
                         <tr className="bg-gray-50 border-b border-gray-200 text-sm text-gray-500">
@@ -300,10 +300,63 @@ export default function DemoBookingsClient() {
                 </table>
             </div>
 
+            {/* Mobile Cards */}
+            <div className="md:hidden flex flex-col space-y-4 mt-4 mb-8">
+                {bookings.map((booking) => (
+                    <div key={booking.id} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 space-y-3">
+                        <div className="flex justify-between items-start">
+                            <div>
+                                <h3 className="font-bold text-gray-900 text-base">{booking.name}</h3>
+                                <p className="text-sm text-gray-500">{booking.phone}</p>
+                            </div>
+                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold capitalize border ${booking.status === 'approved' ? 'bg-green-100 text-green-800 border-green-200' :
+                                    booking.status === 'pending' ? 'bg-amber-100 text-amber-800 border-amber-200' :
+                                        'bg-red-100 text-red-800 border-red-200'
+                                }`}>
+                                {booking.status}
+                            </span>
+                        </div>
+
+                        <div className="bg-gray-50 p-3 rounded-xl border border-gray-100 flex justify-between items-center">
+                            <div>
+                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Date & Time</p>
+                                <p className="text-sm font-bold text-gray-900">{booking.date} <span className="text-primary ml-1">{booking.timeSlot}</span></p>
+                            </div>
+                            <div className="text-right">
+                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Language</p>
+                                <p className="text-sm font-bold text-gray-900">{booking.language}</p>
+                            </div>
+                        </div>
+
+                        <div className="flex gap-2 pt-1">
+                            <button
+                                onClick={() => openRescheduleModal(booking)}
+                                className="flex-1 text-sm font-bold bg-blue-50 text-blue-700 py-2.5 rounded-xl border border-blue-100 hover:bg-blue-100 transition-colors"
+                            >
+                                Reschedule
+                            </button>
+                            {booking.status !== 'rejected' && (
+                                <button
+                                    onClick={() => handleReject(booking)}
+                                    className="flex-1 text-sm font-bold bg-red-50 text-red-700 py-2.5 rounded-xl border border-red-100 hover:bg-red-100 transition-colors"
+                                >
+                                    Reject
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                ))}
+                {bookings.length === 0 && (
+                    <div className="py-8 text-center text-gray-500 bg-gray-50 rounded-2xl border border-dashed">
+                        No bookings available.
+                    </div>
+                )}
+            </div>
+
             {/* Reschedule Modal */}
             {showRescheduleModal && selectedBooking && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-                    <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-xl space-y-4">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+                    <div className="bg-white rounded-2xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto shadow-xl space-y-4">
                         <h3 className="text-xl font-bold border-b pb-2">Reschedule Booking</h3>
                         <p className="text-sm text-gray-500">Rescheduling for: <span className="font-bold">{selectedBooking.name}</span></p>
 

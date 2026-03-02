@@ -48,11 +48,11 @@ export default function Page() {
   // Programs Slider
   // Programs Slider Mapping to New Silos
   const programs = [
-    { id: 'german', title: 'German', subtitle: 'A1 to C2 Levels', img: '/images/programs/german.jpg', route: '/online-courses/german' },
-    { id: 'english', title: 'English', subtitle: 'IELTS & Business', img: '/images/programs/english.jpg', route: '/online-courses/ielts' },
-    { id: 'french', title: 'French', subtitle: 'DELF Preparation', img: '/images/programs/french.jpg', route: '/online-courses/french' },
-    { id: 'japanese', title: 'Japanese', subtitle: 'JLPT N5-N1 Path', img: '/images/programs/japanese.jpg', route: '/online-courses/japanese' },
-    { id: 'spanish', title: 'Spanish', subtitle: 'DELE Certification', img: '/images/programs/spanish.jpg', route: '/online-courses/spanish' },
+    { id: 'german', title: 'German', subtitle: 'A1 to C2 Levels', img: '/images/programs/german.jpg', route: "/programs/german" },
+    { id: 'english', title: 'English', subtitle: 'IELTS & Business', img: '/images/programs/english.jpg', route: "/programs/ielts" },
+    { id: 'french', title: 'French', subtitle: 'DELF Preparation', img: '/images/programs/french.jpg', route: "/programs/french" },
+    { id: 'japanese', title: 'Japanese', subtitle: 'JLPT N5-N1 Path', img: '/images/programs/japanese.jpg', route: "/programs/japanese" },
+    { id: 'spanish', title: 'Spanish', subtitle: 'DELE Certification', img: '/images/programs/spanish.jpg', route: "/programs/spanish" },
   ];
   const progSlider = useAutoSlider(programs.length);
 
@@ -64,14 +64,14 @@ export default function Page() {
     { title: 'Global Outcome Focus', icon: 'public', desc: 'Designed specifically for professional migration and study abroad.', route: '/ysifl' },
     { title: 'Interactive Live Sessions', icon: 'record_voice_over', desc: 'Engaging real-time classes prioritizing spoken fluency.', route: '/ysifl' },
     { title: '100+ Students Placed Abroad 🌍', icon: 'flight_takeoff', desc: 'Join our growing alumni network thriving in international careers.', route: '/ysifl' },
-  ];
+   ];
 
   // Success Stories Slider
   const stories = [
-    { name: 'Ananya R.', loc: 'Germany • German C1', role: 'Software Engineer', img: '/brand/faculty/member-2.jpg' },
-    { name: 'James M.', loc: 'UK • IELTS 8.5', role: 'Oxford University', img: '/brand/faculty/member-3.jpg' },
-    { name: 'Kenji S.', loc: 'Japan • JLPT N2', role: 'UX Designer', img: '/brand/faculty/member-4.jpg' },
-    { name: 'Sarah L.', loc: 'Canada • French B2', role: 'Nurse', img: '/brand/faculty/member-5.jpg' },
+    { name: 'Ananya R.', loc: 'Germany • German C1', role: 'MBA in Germany', img: '/brand/success/success_5.jpeg' },
+    { name: 'Kanak M.', loc: 'Ireland • IELTS 8.5', role: 'Product Manager', img: '/brand/success/success_2.jpeg' },
+    { name: 'Karan S.', loc: 'Germany • German C1', role: 'Student in TU Berlin', img: '/brand/success/success_1.jpeg' },
+    { name: 'Sarah L.', loc: 'Germany• German B2', role: 'Software Engineer', img: '/brand/success/success_3.jpeg' },
   ];
   const storySlider = useAutoSlider(stories.length);
 
@@ -84,7 +84,7 @@ export default function Page() {
       <main className="overflow-hidden">
 
         {/* --- Language Programs Slider System --- */}
-        <section className="px-6 py-20 bg-white" id="programs">
+        <section className="px-6 py-16 md:py-20 bg-white" id="programs">
           <div className="mx-auto max-w-7xl">
             <div className="mb-12 flex flex-col items-center justify-between gap-6 md:flex-row md:items-end">
               <div>
@@ -95,7 +95,7 @@ export default function Page() {
                 </p>
               </div>
               <Link href="/online-courses" className="font-semibold text-primary hover:text-primary-hover whitespace-nowrap hidden md:block">
-                View All Courses →
+                View All Programs →
               </Link>
             </div>
 
@@ -125,14 +125,14 @@ export default function Page() {
                 </Link>
               ))}
             </div>
-            <Link href="/online-courses" className="md:hidden flex justify-center mt-4 font-bold text-primary">
+            <Link href="/programs" className="md:hidden flex justify-center mt-4 font-bold text-primary">
               View All Courses →
             </Link>
           </div>
         </section>
 
         {/* --- Why Choose SIFL Section --- */}
-        <section className="bg-slate-50 py-24" id="advantage">
+        <section className="bg-slate-50 py-16 md:py-24" id="advantage">
           <div className="mx-auto max-w-7xl px-6">
             <div className="flex flex-col lg:flex-row gap-12 lg:items-center mb-16">
               <div className="lg:w-1/2">
@@ -148,16 +148,16 @@ export default function Page() {
                   <span className="font-bold text-slate-800 tracking-tight">Over 100+ Students Now Studying Abroad</span>
                 </div>
               </div>
-              <div className="lg:w-1/2 rounded-3xl overflow-hidden shadow-2xl aspect-[4/3]" style={{ backgroundImage: `url('/brand/faculty/member-1.jpg')`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
+              <div className="lg:w-1/3 rounded-3xl overflow-hidden shadow-2xl aspect-[2/2]" style={{ backgroundImage: `url('/images/ui/whysifl.png')`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
             </div>
 
             {/* Grid Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="flex flex-row overflow-x-auto gap-6 hide-scrollbar snap-x snap-mandatory pb-8 -mx-6 px-6 md:mx-0 md:px-0 md:grid md:grid-cols-2 lg:grid-cols-3 md:overflow-visible md:snap-none md:pb-0">
               {advantages.map((adv, idx) => (
                 <Link
                   href={adv.route}
                   key={idx}
-                  className="group flex flex-col rounded-2xl bg-white p-8 shadow-sm border border-slate-100 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 block"
+                  className="group relative flex-shrink-0 w-[280px] md:w-auto snap-center flex flex-col rounded-2xl bg-white p-8 shadow-sm border border-slate-100 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 block"
                 >
                   <div className="size-14 rounded-2xl bg-emerald-50 text-primary flex items-center justify-center mb-6 transition-transform group-hover:scale-110 group-hover:bg-primary group-hover:text-white">
                     <span className="material-symbols-outlined text-[28px]">{adv.icon}</span>
@@ -174,7 +174,7 @@ export default function Page() {
         </section>
 
         {/* --- Success Stories --- */}
-        <section className="px-6 py-24 bg-white" id="success">
+        <section className="px-6 py-16 md:py-24 bg-white" id="success">
           <div className="mx-auto max-w-7xl">
             <div className="mb-12 text-center md:text-left flex flex-col md:flex-row justify-between items-end gap-6">
               <div>
@@ -214,7 +214,7 @@ export default function Page() {
         </section>
 
         {/* --- Journey to Fluency Mobile Accordion / Desktop Hover --- */}
-        <section className="px-6 py-24 bg-slate-900 text-white" id="journey">
+        <section className="px-6 py-16 md:py-24 bg-slate-900 text-white" id="journey">
           <div className="mx-auto max-w-7xl">
             <div className="mb-16 text-center">
               <h2 className="text-3xl font-black md:text-5xl">Journey to Fluency</h2>

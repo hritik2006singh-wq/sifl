@@ -96,10 +96,10 @@ export default function StudentProfilePage() {
             </div>
 
             <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-                <div className="p-8 md:p-12">
-                    <form onSubmit={handleSaveProfile} className="space-y-8">
+                <div className="p-6 md:p-12">
+                    <form onSubmit={handleSaveProfile} className="space-y-6 md:space-y-8 pb-28 md:pb-0">
                         {/* Profile Image Section */}
-                        <div className="flex flex-col md:flex-row items-start md:items-center gap-6 pb-8 border-b border-gray-100">
+                        <div className="flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-6 pb-6 md:pb-8 border-b border-gray-100 text-center md:text-left">
                             <div className="relative group">
                                 <div className="size-28 md:size-32 rounded-full overflow-hidden border-4 border-gray-50 shadow-inner bg-gray-100 flex items-center justify-center">
                                     {isUploading ? (
@@ -129,30 +129,30 @@ export default function StudentProfilePage() {
                         </div>
 
                         {/* Fields */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="space-y-1">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
+                            <div className="space-y-1.5 md:space-y-1">
                                 <label className="text-sm font-semibold text-gray-700">Full Name</label>
                                 <input
                                     type="text"
                                     required
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
-                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                                    className="w-full px-4 h-12 md:h-auto md:py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-base md:text-sm"
                                 />
                             </div>
 
-                            <div className="space-y-1">
+                            <div className="space-y-1.5 md:space-y-1">
                                 <label className="text-sm font-semibold text-gray-700">Email Address</label>
                                 <input
                                     type="email"
                                     disabled
                                     value={email}
-                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-100 text-gray-500 cursor-not-allowed outline-none"
+                                    className="w-full px-4 h-12 md:h-auto md:py-3 rounded-xl border border-gray-200 bg-gray-100 text-gray-500 cursor-not-allowed outline-none text-base md:text-sm"
                                 />
                                 <p className="text-xs text-gray-400 mt-1">Email cannot be changed directly.</p>
                             </div>
 
-                            <div className="space-y-1">
+                            <div className="space-y-1.5 md:space-y-1">
                                 <label className="text-sm font-semibold text-gray-700">Age</label>
                                 <input
                                     type="number"
@@ -160,18 +160,18 @@ export default function StudentProfilePage() {
                                     min={1}
                                     value={age}
                                     onChange={(e) => setAge(Number(e.target.value))}
-                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                                    className="w-full px-4 h-12 md:h-auto md:py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-base md:text-sm"
                                 />
                             </div>
                         </div>
 
-                        <div className="pt-6 border-t border-gray-100 flex justify-end">
+                        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-100 md:static md:bg-transparent md:border-none md:p-0 md:pt-6 flex justify-end z-40 pb-[max(1rem,env(safe-area-inset-bottom))] md:pb-0">
                             <button
                                 type="submit"
                                 disabled={isSaving}
-                                className="px-8 py-3 bg-primary text-white font-bold rounded-xl shadow-md hover:bg-primary/90 transition-all disabled:opacity-50"
+                                className="w-full md:w-auto px-8 py-3.5 md:py-3 bg-primary text-white font-bold rounded-xl shadow-md active:scale-95 md:hover:bg-primary/90 transition-all disabled:opacity-50 text-base md:text-sm"
                             >
-                                {isSaving ? "Saving Changes..." : "Save Changes"}
+                                {isSaving ? "Saving..." : "Save Changes"}
                             </button>
                         </div>
                     </form>
