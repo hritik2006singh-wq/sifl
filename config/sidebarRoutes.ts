@@ -1,21 +1,22 @@
 export const ADMIN_ROUTES = [
-    { name: "Dashboard", path: "/admin", icon: "dashboard" },
-    { name: "Demo Bookings", path: "/admin/schedule", icon: "calendar_month" },
-    { name: "Students", path: "/admin/students", icon: "school" },
-    { name: "Teachers", path: "/admin/teachers", icon: "co_present" },
-    { name: "Study Materials", path: "/admin/materials", icon: "library_books" },
+    { name: "Overview", icon: "dashboard", path: "/admin" },
+    { name: "Students", icon: "group", path: "/admin/students" },
+    { name: "Teachers", icon: "school", path: "/admin/teachers" },
+    { name: "Demo Bookings", icon: "event_available", path: "/admin/manage-schedule", requiresAction: true },
+    { name: "Study Materials", icon: "video_library", path: "/admin/materials" },
+    { name: "Blog Manager", icon: "post", path: "/admin/blogs" }
 ];
 
 export const TEACHER_ROUTES = [
-    { name: "Dashboard", path: "/teacher", icon: "dashboard" },
-    { name: "My Students", path: "/teacher/students", icon: "groups" },
-    { name: "Availability", path: "/teacher/availability", icon: "schedule" },
-    { name: "My Profile", path: "/teacher/profile", icon: "person" },
+    { name: "Overview", icon: "dashboard", path: "/teacher" },
+    { name: "My Students", icon: "group", path: "/teacher/students" },
+    { name: "Schedule", icon: "event_available", path: "/teacher/availability" },
+    { name: "Profile", icon: "person", path: "/teacher/profile" }
 ];
 
 export const STUDENT_ROUTES = [
-    { name: "Dashboard", path: "/student", icon: "dashboard" },
-    { name: "Assignments", path: "/student/assignments", icon: "assignment" },
-    { name: "Study Materials", path: "/student/materials", icon: "menu_book" },
-    { name: "My Profile", path: "/student/profile", icon: "person" },
+    { name: "Overview", icon: "home", path: "/student" },
+    { name: "My Materials", icon: "video_library", path: "/student/materials" },
+    { name: "Tasks & Tests", icon: "assignment", path: "/student/assignments" },
+    { name: "Profile", icon: "person", path: "/student/profile" }
 ];

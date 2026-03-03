@@ -1,76 +1,95 @@
-import Link from "next/link";
-import { Metadata } from "next";
-import { getPostBySlug, getAllPosts } from "@/lib/markdown";
-import { marked } from "marked";
-import BlogCTABlock from "@/components/BlogCTABlock";
+import { adminDb } from "@/lib/firebaseAdmin";
+import { Metadata } from 'next';
 import Image from "next/image";
+import Link from "next/link";
 import { notFound } from "next/navigation";
+import BlogCTABlock from "@/components/BlogCTABlock";
 import ShareButton from "@/components/ShareButton";
 
-export const revalidate = 3600;
-export const dynamic = "force-static";
-export const dynamicParams = true;
+export const revalidate = 60; // Refresh cache every minute
+export const dynamic = "force-dynamic";
 
 type Props = {
     params: { slug: string }
 };
 
-export async function generateStaticParams() {
-    const posts = getAllPosts(['slug']) ?? [];
-    return posts
-        .filter((p) => p && p.slug)
-        .map((post) => ({
-            slug: post.slug,
-        }));
-}
-
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-    if (!params || !params.slug) return {};
-    const post = getPostBySlug(params.slug, ['title', 'description', 'date', 'image']);
-    if (!post) return {};
+    const { slug } = params;
 
-    return {
-        title: post.title ? `${post.title} | SIFL Blog` : "SIFL Blog",
-        description: post.description ?? "Read this article on SIFL Blog",
-        alternates: {
-            canonical: `https://sifl.edu.in/blog/${params.slug}`
-        },
-        openGraph: {
-            title: post.title ?? "SIFL Blog",
-            description: post.description ?? "Read this article on SIFL Blog",
-            type: "article",
-            publishedTime: post.date ? new Date(post.date).toISOString() : undefined,
-            images: post.image ? [post.image] : [],
+    try {
+        if (!adminDb) return { title: 'SIFL Blog' };
+
+        const snapshot = await adminDb
+            .collection("blogs")
+            .where("slug", "==", slug)
+            .where("status", "==", "published")
+            .limit(1)
+            .get();
+
+        if (snapshot.empty) {
+            return { title: 'Not Found | SIFL Blog' };
         }
-    };
+
+        const blog = snapshot.docs[0].data();
+
+        return {
+            title: `${blog.metaTitle || blog.title} | SIFL Insights`,
+            description: blog.metaDescription || blog.excerpt || "Language learning insights from SIFL.",
+            keywords: blog.keywords || ["language learning", "study abroad", "SIFL"],
+            openGraph: {
+                title: blog.metaTitle || blog.title,
+                description: blog.metaDescription || blog.excerpt,
+                images: blog.coverImageUrl ? [blog.coverImageUrl] : ["/images/hero/logo.jpg"],
+                type: 'article',
+                publishedTime: blog.publishedAt ? new Date(blog.publishedAt.toDate()).toISOString() : undefined,
+            },
+            alternates: {
+                canonical: `https://sifl.edu.in/blog/${slug}`
+            }
+        };
+    } catch (e) {
+        return { title: 'SIFL Blog' };
+    }
 }
 
-export default async function BlogPost({ params }: Props) {
-    if (!params || !params.slug) {
+export default async function BlogPostPage({ params }: Props) {
+    const { slug } = params;
+
+    let blogData: any = null;
+
+    try {
+        if (!adminDb) { notFound(); return; }
+
+        const snapshot = await adminDb
+            .collection("blogs")
+            .where("slug", "==", slug)
+            .where("status", "==", "published")
+            .limit(1)
+            .get();
+
+        if (snapshot.empty) {
+            notFound();
+        }
+
+        blogData = { id: snapshot.docs[0].id, ...snapshot.docs[0].data() };
+
+    } catch (error) {
+        console.error("Error loading blog details:", error);
         notFound();
     }
 
-    const post = getPostBySlug(params.slug, ['title', 'description', 'date', 'image', 'author', 'content']);
-
-    if (!post || !post.title || !post.content) {
-        notFound();
-    }
-
-    const safeContent = post.content ?? "";
-    const contentHtml = safeContent
-        ? await marked.parse(safeContent)
-        : "<p>Content unavailable.</p>";
+    if (!blogData) notFound();
 
     const jsonLd = {
         '@context': 'https://schema.org',
         '@type': 'Article',
-        headline: post.title ?? "",
-        description: post.description ?? "",
-        image: post.image ? `https://sifl.edu.in${post.image}` : "",
-        datePublished: post.date ? new Date(post.date).toISOString() : "",
+        headline: blogData.title ?? "",
+        description: blogData.metaDescription || blogData.excerpt || "",
+        image: blogData.coverImageUrl || "",
+        datePublished: blogData.publishedAt ? new Date(blogData.publishedAt.toDate()).toISOString() : "",
         author: {
             '@type': 'Organization',
-            name: post.author || 'SIFL'
+            name: 'SIFL'
         },
         publisher: {
             '@type': 'Organization',
@@ -93,31 +112,45 @@ export default async function BlogPost({ params }: Props) {
 
                 <header className="mb-12">
                     <h1 className="text-3xl md:text-5xl font-black text-slate-900 leading-tight mb-6">
-                        {post.title ?? ""}
+                        {blogData.title}
                     </h1>
+
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-8">
                         <div className="flex items-center gap-4">
-                            <div className="size-12 rounded-full overflow-hidden relative">
+                            <div className="size-12 rounded-full overflow-hidden relative border border-slate-200">
                                 <Image src="/images/hero/logo.jpg" alt="SIFL" fill className="object-cover" />
                             </div>
                             <div>
-                                <p className="font-bold text-slate-900">{post.author ?? "SIFL Team"}</p>
-                                <p className="text-sm font-medium text-slate-500">{post.date ?? ""}</p>
+                                <p className="font-bold text-slate-900">SIFL Team</p>
+                                <p className="text-sm font-medium text-slate-500">
+                                    {blogData.publishedAt ? new Date(blogData.publishedAt.toDate()).toLocaleDateString() : "Just Now"}
+                                </p>
                             </div>
                         </div>
-                        <ShareButton title={post.title ?? "SIFL Blog"} />
+                        <ShareButton title={blogData.title} />
                     </div>
                 </header>
 
-                {post.image && (
-                    <div className="relative w-full aspect-[21/9] rounded-3xl overflow-hidden mb-12 shadow-md">
-                        <Image src={post.image} alt={post.title ?? "Blog Image"} fill className="object-cover" priority />
+                {blogData.coverImageUrl && (
+                    <div className="relative w-full aspect-[21/9] rounded-3xl overflow-hidden mb-12 shadow-md bg-slate-200">
+                        <Image src={blogData.coverImageUrl} alt={blogData.title} fill className="object-cover" priority />
                     </div>
                 )}
 
+                {blogData.excerpt && (
+                    <p className="text-xl md:text-2xl text-slate-600 leading-relaxed font-medium mb-12 italic border-l-4 border-emerald-500 pl-6">
+                        {blogData.excerpt}
+                    </p>
+                )}
+
                 <div
-                    className="prose prose-sm md:prose-lg leading-loose md:leading-relaxed prose-emerald max-w-none mb-16 md:mb-20"
-                    dangerouslySetInnerHTML={{ __html: contentHtml }}
+                    className="prose prose-sm md:prose-lg leading-loose md:leading-relaxed prose-emerald max-w-none mb-16 md:mb-20
+                               prose-headings:font-black prose-headings:tracking-tight 
+                               prose-p:text-slate-700
+                               prose-a:text-emerald-600 prose-a:font-semibold prose-a:no-underline hover:prose-a:text-emerald-700 hover:prose-a:underline
+                               prose-img:rounded-2xl prose-img:shadow-lg
+                               prose-strong:text-slate-900"
+                    dangerouslySetInnerHTML={{ __html: blogData.content }}
                 />
 
                 <BlogCTABlock />

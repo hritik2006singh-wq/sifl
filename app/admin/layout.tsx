@@ -9,6 +9,7 @@ import Image from "next/image";
 import { signOut } from "firebase/auth";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import { ADMIN_ROUTES } from "@/config/sidebarRoutes";
+import { BRANDING } from "@/config/branding";
 
 const mobileNavItems = [
   { label: "Overview", icon: "dashboard", path: "/admin", exact: true },
@@ -23,25 +24,12 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const [logoUrl, setLogoUrl] = useState("");
   const [dbUser, setDbUser] = useState<any>(null);
   const [showDropdown, setShowDropdown] = useState(false);
   const [pendingBookings, setPendingBookings] = useState(0);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    const fetchLogo = async () => {
-      try {
-        const snap = await getDoc(doc(db, "institute_settings", "global"));
-        if (snap.exists() && snap.data().logo_url) {
-          setLogoUrl(snap.data().logo_url);
-        }
-      } catch (err) {
-        console.error("Failed to fetch logo", err);
-      }
-    };
-    fetchLogo();
-
     const fetchPendingBookings = async () => {
       try {
         const { query, collection, where, onSnapshot } = await import("firebase/firestore");
@@ -141,11 +129,7 @@ export default function AdminLayout({
         >
           <div className="p-6 flex justify-between items-center border-b border-slate-100">
             <div className="flex items-center gap-3">
-              {logoUrl ? (
-                <img src={logoUrl} alt="Institute Logo" className="w-10 h-10 object-contain rounded-lg shadow-sm" />
-              ) : (
-                <Image src="/images/hero/logo.jpg" alt="Logo" width={40} height={40} className="rounded-md object-cover shadow-sm" />
-              )}
+              <Image src={BRANDING.dashboardLogo} alt="Logo" width={40} height={40} className="rounded-md object-cover shadow-sm" />
               <div>
                 <h1 className="text-lg font-bold leading-none">SIFL</h1>
                 <p className="text-[10px] uppercase tracking-widest text-slate-400 font-semibold mt-1">
@@ -193,11 +177,7 @@ export default function AdminLayout({
         {/* Sidebar */}
         <aside className="w-64 flex-shrink-0 border-r border-slate-200 bg-white hidden lg:flex flex-col">
           <div className="p-6 flex items-center gap-3">
-            {logoUrl ? (
-              <img src={logoUrl} alt="Institute Logo" className="w-10 h-10 object-contain rounded-lg shadow-sm" />
-            ) : (
-              <Image src="/images/hero/logo.jpg" alt="Logo" width={40} height={40} className="rounded-md object-cover shadow-sm" />
-            )}
+            <Image src={BRANDING.dashboardLogo} alt="Logo" width={40} height={40} className="rounded-md object-cover shadow-sm" />
             <div>
               <h1 className="text-lg font-bold leading-none">SIFL</h1>
               <p className="text-[10px] uppercase tracking-widest text-slate-400 font-semibold mt-1">

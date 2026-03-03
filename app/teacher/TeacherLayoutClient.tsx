@@ -3,9 +3,11 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import Image from "next/image";
 import { useTeacherGuard } from "@/hooks/useRoleGuard";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import { TEACHER_ROUTES } from "@/config/sidebarRoutes";
+import { BRANDING } from "@/config/branding";
 
 const mobileNavItems = [
     { label: "Overview", icon: "dashboard", path: "/teacher", exact: true },
@@ -48,9 +50,7 @@ export default function TeacherLayoutClient({ children }: { children: React.Reac
             >
                 <div className="p-6 flex justify-between items-center border-b border-slate-100">
                     <div className="flex items-center gap-3">
-                        <div className="size-10 rounded-lg bg-emerald-600 flex items-center justify-center text-white shadow-lg">
-                            <span className="material-symbols-outlined">school</span>
-                        </div>
+                        <Image src={BRANDING.dashboardLogo} alt="Logo" width={40} height={40} className="rounded-md object-cover shadow-sm" />
                         <div>
                             <h1 className="text-lg font-bold leading-none">SIFL Portal</h1>
                             <p className="text-[10px] uppercase tracking-widest text-emerald-600 font-semibold mt-1">Teacher</p>
@@ -75,9 +75,7 @@ export default function TeacherLayoutClient({ children }: { children: React.Reac
 
             <aside className="w-64 border-r border-gray-200 bg-white hidden lg:flex flex-col">
                 <div className="p-6 flex items-center gap-3">
-                    <div className="size-10 rounded-lg bg-emerald-600 flex items-center justify-center text-white shadow-lg">
-                        <span className="material-symbols-outlined">school</span>
-                    </div>
+                    <Image src={BRANDING.dashboardLogo} alt="Logo" width={40} height={40} className="rounded-md object-cover shadow-sm" />
                     <div>
                         <h1 className="text-lg font-bold leading-none">SIFL Portal</h1>
                         <p className="text-[10px] uppercase tracking-widest text-emerald-600 font-semibold mt-1">Teacher</p>

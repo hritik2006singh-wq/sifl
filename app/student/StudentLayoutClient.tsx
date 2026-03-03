@@ -6,9 +6,11 @@ import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { useStudentGuard } from "@/hooks/useRoleGuard";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import { STUDENT_ROUTES } from "@/config/sidebarRoutes";
+import { BRANDING } from "@/config/branding";
 
 const mobileNavItems = [
     { label: "Overview", icon: "home", path: "/student", exact: true },
@@ -48,9 +50,7 @@ export default function StudentLayoutClient({ children }: { children: React.Reac
             >
                 <div className="p-6 flex justify-between items-center border-b border-slate-100">
                     <div className="flex items-center gap-3">
-                        <div className="size-10 rounded-lg bg-primary flex items-center justify-center text-white shadow-lg shadow-primary/30">
-                            <span className="material-symbols-outlined">menu_book</span>
-                        </div>
+                        <Image src={BRANDING.dashboardLogo} alt="Logo" width={40} height={40} className="rounded-md object-cover shadow-sm" />
                         <div>
                             <h1 className="text-lg font-bold leading-none">SIFL Student Portal</h1>
                         </div>
@@ -99,9 +99,7 @@ export default function StudentLayoutClient({ children }: { children: React.Reac
 
             <aside className="w-64 border-r border-slate-200 bg-white hidden lg:flex flex-col">
                 <div className="p-6 flex items-center gap-3 border-b border-slate-100">
-                    <div className="size-10 rounded-lg bg-primary flex items-center justify-center text-white shadow-lg shadow-primary/30">
-                        <span className="material-symbols-outlined">menu_book</span>
-                    </div>
+                    <Image src={BRANDING.dashboardLogo} alt="Logo" width={40} height={40} className="rounded-md object-cover shadow-sm" />
                     <div>
                         <h1 className="text-lg font-bold leading-none">SIFL Student Portal</h1>
                     </div>

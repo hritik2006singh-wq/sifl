@@ -57,5 +57,10 @@ service cloud.firestore {
       allow read, write: if request.auth != null && 
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'teacher';
     }
+
+    match /blogs/{blogId} {
+      allow read: if resource.data.status == 'published' || isAdmin();
+      allow write: if isAdmin();
+    }
   }
 }
