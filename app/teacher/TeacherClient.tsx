@@ -119,7 +119,9 @@ export default function TeacherClient() {
                         )}
                     </div>
                     <div className="flex-1 min-w-0">
-                        <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight mb-2 truncate">Welcome, {user?.name || "Teacher"}!</h1>
+                        <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight mb-2 truncate">
+                            Welcome, {user?.name || user?.email || "Teacher"}!
+                        </h1>
                         <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 md:gap-3">
                             <span className="px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-xs md:text-sm font-semibold flex items-center gap-1.5 max-w-full">
                                 <span className="material-symbols-outlined text-[14px] md:text-[16px] shrink-0">mail</span>

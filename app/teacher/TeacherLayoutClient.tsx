@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTeacherGuard } from "@/hooks/useRoleGuard";
 import MobileBottomNav from "@/components/MobileBottomNav";
+import { TEACHER_ROUTES } from "@/config/sidebarRoutes";
 
 const mobileNavItems = [
     { label: "Overview", icon: "dashboard", path: "/teacher", exact: true },
@@ -63,22 +64,12 @@ export default function TeacherLayoutClient({ children }: { children: React.Reac
                     </button>
                 </div>
                 <nav className="flex-1 px-4 py-4 space-y-2 overflow-y-auto">
-                    <Link onClick={() => setIsMobileMenuOpen(false)} href="/teacher" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${isActive("/teacher") ? "bg-emerald-50 text-emerald-700" : "text-gray-700 hover:bg-emerald-50"}`}>
-                        <span className={`material-symbols-outlined text-[22px] ${isActive("/teacher") ? "text-emerald-600" : ""}`}>dashboard</span>
-                        <span className="text-sm font-medium">Overview</span>
-                    </Link>
-                    <Link onClick={() => setIsMobileMenuOpen(false)} href="/teacher/students" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${isActive("/teacher/students") ? "bg-emerald-50 text-emerald-700" : "text-gray-700 hover:bg-emerald-50"}`}>
-                        <span className={`material-symbols-outlined text-[22px] ${isActive("/teacher/students") ? "text-emerald-600" : ""}`}>group</span>
-                        <span className="text-sm font-medium">My Students</span>
-                    </Link>
-                    <Link onClick={() => setIsMobileMenuOpen(false)} href="/teacher/availability" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${isActive("/teacher/availability") ? "bg-emerald-50 text-emerald-700" : "text-gray-700 hover:bg-emerald-50"}`}>
-                        <span className={`material-symbols-outlined text-[22px] ${isActive("/teacher/availability") ? "text-emerald-600" : ""}`}>event_available</span>
-                        <span className="text-sm font-medium">Availability</span>
-                    </Link>
-                    <Link onClick={() => setIsMobileMenuOpen(false)} href="/teacher/profile" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${isActive("/teacher/profile") ? "bg-emerald-50 text-emerald-700" : "text-gray-700 hover:bg-emerald-50"}`}>
-                        <span className={`material-symbols-outlined text-[22px] ${isActive("/teacher/profile") ? "text-emerald-600" : ""}`}>person</span>
-                        <span className="text-sm font-medium">My Profile</span>
-                    </Link>
+                    {TEACHER_ROUTES.map(route => (
+                        <Link key={route.path} onClick={() => setIsMobileMenuOpen(false)} href={route.path} className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${isActive(route.path) ? "bg-emerald-50 text-emerald-700" : "text-gray-700 hover:bg-emerald-50"}`}>
+                            <span className={`material-symbols-outlined text-[22px] ${isActive(route.path) ? "text-emerald-600" : ""}`}>{route.icon}</span>
+                            <span className="text-sm font-medium">{route.name}</span>
+                        </Link>
+                    ))}
                 </nav>
             </div>
 
@@ -93,22 +84,12 @@ export default function TeacherLayoutClient({ children }: { children: React.Reac
                     </div>
                 </div>
                 <nav className="flex-1 px-4 py-4 space-y-2 overflow-y-auto">
-                    <Link href="/teacher" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${isActive("/teacher") ? "bg-emerald-50 text-emerald-700" : "text-gray-700 hover:bg-emerald-50"}`}>
-                        <span className={`material-symbols-outlined text-[22px] ${isActive("/teacher") ? "text-emerald-600" : ""}`}>dashboard</span>
-                        <span className="text-sm font-medium">Overview</span>
-                    </Link>
-                    <Link href="/teacher/students" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${isActive("/teacher/students") ? "bg-emerald-50 text-emerald-700" : "text-gray-700 hover:bg-emerald-50"}`}>
-                        <span className={`material-symbols-outlined text-[22px] ${isActive("/teacher/students") ? "text-emerald-600" : ""}`}>group</span>
-                        <span className="text-sm font-medium">My Students</span>
-                    </Link>
-                    <Link href="/teacher/availability" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${isActive("/teacher/availability") ? "bg-emerald-50 text-emerald-700" : "text-gray-700 hover:bg-emerald-50"}`}>
-                        <span className={`material-symbols-outlined text-[22px] ${isActive("/teacher/availability") ? "text-emerald-600" : ""}`}>event_available</span>
-                        <span className="text-sm font-medium">Availability</span>
-                    </Link>
-                    <Link href="/teacher/profile" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${isActive("/teacher/profile") ? "bg-emerald-50 text-emerald-700" : "text-gray-700 hover:bg-emerald-50"}`}>
-                        <span className={`material-symbols-outlined text-[22px] ${isActive("/teacher/profile") ? "text-emerald-600" : ""}`}>person</span>
-                        <span className="text-sm font-medium">My Profile</span>
-                    </Link>
+                    {TEACHER_ROUTES.map(route => (
+                        <Link key={route.path} href={route.path} className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${isActive(route.path) ? "bg-emerald-50 text-emerald-700" : "text-gray-700 hover:bg-emerald-50"}`}>
+                            <span className={`material-symbols-outlined text-[22px] ${isActive(route.path) ? "text-emerald-600" : ""}`}>{route.icon}</span>
+                            <span className="text-sm font-medium">{route.name}</span>
+                        </Link>
+                    ))}
                 </nav>
             </aside>
             <main className="flex-1 flex flex-col min-w-0">
@@ -120,7 +101,7 @@ export default function TeacherLayoutClient({ children }: { children: React.Reac
                         >
                             <span className="material-symbols-outlined text-[24px]">menu</span>
                         </button>
-                        <h2 className="text-lg font-bold">Instructor Portal</h2>
+                        <h2 className="text-lg font-bold">SIFL Portal</h2>
                     </div>
                     <Link href="/teacher/profile" className="size-9 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold overflow-hidden border border-emerald-200 hover:scale-105 transition">
                         {user?.profileImage ? (

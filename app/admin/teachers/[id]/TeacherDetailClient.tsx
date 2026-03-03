@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { db, auth } from "@/lib/firebase";
-import { collection, getDocs, doc, getDoc, query, where, setDoc } from "firebase/firestore";
+import { collection, getDocs, doc, getDoc, query, where, setDoc, updateDoc, writeBatch, serverTimestamp } from "firebase/firestore";
 import { sendPasswordResetEmail } from "firebase/auth";
 import Link from "next/link";
 import toast from "react-hot-toast";
@@ -19,6 +19,12 @@ export default function TeacherDetailClient({ id }: { id: string }) {
     const [modalOpen, setModalOpen] = useState(false);
     const [modalType, setModalType] = useState<"assign" | null>(null);
     const [selectedStudentsToAssign, setSelectedStudentsToAssign] = useState<Set<string>>(new Set());
+
+    // Lifecycle Modals
+    const [archiveBlockModal, setArchiveBlockModal] = useState(false);
+    const [reassignModalOpen, setReassignModalOpen] = useState(false);
+    const [activeTeachers, setActiveTeachers] = useState<any[]>([]);
+    const [selectedReassignTeacher, setSelectedReassignTeacher] = useState("");
 
     useEffect(() => {
         const fetchTeacherData = async () => {
@@ -107,6 +113,81 @@ export default function TeacherDetailClient({ id }: { id: string }) {
         }
     };
 
+    const handleLifecycleAction = async (newStatus: "active" | "suspended" | "archived") => {
+        if (newStatus === "archived") {
+            const q = query(collection(db, "users"), where("assignedTeacherId", "==", id), where("role", "==", "student"), where("accountStatus", "==", "active"));
+            const snap = await getDocs(q);
+            if (!snap.empty) {
+                setArchiveBlockModal(true);
+                return;
+            }
+        }
+
+        try {
+            await setDoc(doc(db, "users", id), {
+                accountStatus: newStatus,
+                accountStatusUpdatedAt: serverTimestamp(),
+                accountStatusUpdatedBy: auth.currentUser?.uid ?? null
+            }, { merge: true });
+
+            setTeacher({ ...teacher, accountStatus: newStatus });
+            toast.success(`Teacher status updated to ${newStatus}`);
+        } catch (error) {
+            console.error("Lifecycle error:", error);
+            toast.error("Failed to update account status");
+        }
+    };
+
+    const openReassignModal = async () => {
+        setArchiveBlockModal(false);
+        setReassignModalOpen(true);
+        try {
+            const q = query(collection(db, "users"), where("role", "==", "teacher"), where("accountStatus", "==", "active"));
+            const snap = await getDocs(q);
+            const teachersData = snap.docs.map(t => ({ id: t.id, ...t.data() })).filter(t => t.id !== id);
+            setActiveTeachers(teachersData);
+        } catch (e) {
+            console.error("Failed fetching active teachers", e);
+        }
+    };
+
+    const handleReassignAndArchive = async () => {
+        if (!selectedReassignTeacher) return toast.error("Select a teacher");
+        try {
+            const q = query(collection(db, "users"), where("assignedTeacherId", "==", id), where("role", "==", "student"), where("accountStatus", "==", "active"));
+            const snap = await getDocs(q);
+
+            const CHUNK_SIZE = 500;
+            const docs = snap.docs;
+
+            for (let i = 0; i < docs.length; i += CHUNK_SIZE) {
+                const chunk = docs.slice(i, i + CHUNK_SIZE);
+                const batch = writeBatch(db);
+                chunk.forEach(d => {
+                    batch.update(d.ref, { assignedTeacherId: selectedReassignTeacher });
+                });
+                await batch.commit();
+            }
+
+            toast.success(`${snap.size} students reassigned`);
+            setReassignModalOpen(false);
+
+            // Proceed to archive teacher
+            await setDoc(doc(db, "users", id), {
+                accountStatus: "archived",
+                accountStatusUpdatedAt: serverTimestamp(),
+                accountStatusUpdatedBy: auth.currentUser?.uid ?? null
+            }, { merge: true });
+
+            setTeacher({ ...teacher, accountStatus: "archived" });
+            toast.success(`Teacher archived`);
+
+        } catch (e) {
+            console.error("Reassign failed", e);
+            toast.error("Reassignment failed");
+        }
+    };
+
     if (authLoading || loading) {
         return <div className="p-6">Loading teacher data...</div>;
     }
@@ -125,8 +206,22 @@ export default function TeacherDetailClient({ id }: { id: string }) {
                     </Link>
                     <h1 className="text-2xl font-bold">Teacher Overview</h1>
                 </div>
-                <div className="px-4 py-1.5 rounded-full text-sm font-bold border bg-green-50 text-green-700 border-green-200">
-                    ACTIVE INSTRUCTOR
+                <div className="flex items-center gap-2">
+                    {teacher.accountStatus === "suspended" && (
+                        <div className="px-4 py-1.5 rounded-full text-sm font-bold border bg-yellow-50 text-yellow-700 border-yellow-200 uppercase tracking-wider">
+                            SUSPENDED
+                        </div>
+                    )}
+                    {teacher.accountStatus === "archived" && (
+                        <div className="px-4 py-1.5 rounded-full text-sm font-bold border bg-gray-100 text-gray-500 border-gray-200 uppercase tracking-wider">
+                            ARCHIVED
+                        </div>
+                    )}
+                    {(!teacher.accountStatus || teacher.accountStatus === "active") && (
+                        <div className="px-4 py-1.5 rounded-full text-sm font-bold border bg-green-50 text-green-700 border-green-200 uppercase tracking-wider">
+                            ACTIVE INSTRUCTOR
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -240,6 +335,60 @@ export default function TeacherDetailClient({ id }: { id: string }) {
                             </div>
                         )}
                     </div>
+
+                    {/* Account Control Lifecycle Panel */}
+                    <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                        <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                            <span className="material-symbols-outlined text-gray-700">admin_panel_settings</span>
+                            Account Control
+                        </h3>
+                        <p className="text-sm text-gray-500 mb-6">
+                            Manage this teacher's platform access lifecycle.
+                        </p>
+
+                        <div className="flex flex-wrap gap-3">
+                            {(!teacher.accountStatus || teacher.accountStatus === "active") && (
+                                <>
+                                    <button
+                                        onClick={() => handleLifecycleAction("suspended")}
+                                        className="px-5 py-2.5 bg-yellow-50 text-yellow-700 font-bold text-sm rounded-lg border border-yellow-200 hover:bg-yellow-100 transition-colors"
+                                    >
+                                        Suspend
+                                    </button>
+                                    <button
+                                        onClick={() => handleLifecycleAction("archived")}
+                                        className="px-5 py-2.5 bg-gray-100 text-gray-600 font-bold text-sm rounded-lg border border-gray-200 hover:bg-gray-200 transition-colors"
+                                    >
+                                        Archive
+                                    </button>
+                                </>
+                            )}
+                            {teacher.accountStatus === "suspended" && (
+                                <>
+                                    <button
+                                        onClick={() => handleLifecycleAction("active")}
+                                        className="px-5 py-2.5 bg-green-50 text-green-700 font-bold text-sm rounded-lg border border-green-200 hover:bg-green-100 transition-colors"
+                                    >
+                                        Restore
+                                    </button>
+                                    <button
+                                        onClick={() => handleLifecycleAction("archived")}
+                                        className="px-5 py-2.5 bg-gray-100 text-gray-600 font-bold text-sm rounded-lg border border-gray-200 hover:bg-gray-200 transition-colors"
+                                    >
+                                        Archive
+                                    </button>
+                                </>
+                            )}
+                            {teacher.accountStatus === "archived" && (
+                                <button
+                                    onClick={() => handleLifecycleAction("active")}
+                                    className="px-5 py-2.5 bg-green-50 text-green-700 font-bold text-sm rounded-lg border border-green-200 hover:bg-green-100 transition-colors"
+                                >
+                                    Restore
+                                </button>
+                            )}
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -283,6 +432,74 @@ export default function TeacherDetailClient({ id }: { id: string }) {
                                 </div>
                             </div>
                         )}
+                    </div>
+                </div>
+            )}
+
+            {/* Archive Block Modal */}
+            {archiveBlockModal && (
+                <div className="fixed inset-0 bg-gray-900/60 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
+                    <div className="bg-white w-full max-w-sm rounded-[2rem] shadow-2xl overflow-hidden flex flex-col p-6 pt-8 pb-6 text-center border-2 border-yellow-100">
+                        <div className="mx-auto w-16 h-16 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center mb-4">
+                            <span className="material-symbols-outlined text-4xl">group</span>
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-900 mb-2">Cannot Archive</h3>
+                        <p className="text-gray-500 text-sm leading-relaxed mb-6">
+                            This teacher has active assigned students. Reassign them before archiving.
+                        </p>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setArchiveBlockModal(false)}
+                                className="flex-1 py-3 px-4 rounded-xl font-bold border border-gray-200 text-gray-600 hover:bg-gray-50 transition-all"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={openReassignModal}
+                                className="flex-1 py-3 px-4 rounded-xl font-bold text-white bg-primary hover:bg-primary/90 shadow-sm transition-all"
+                            >
+                                Reassign Students
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Reassign Modal */}
+            {reassignModalOpen && (
+                <div className="fixed inset-0 bg-gray-900/60 z-[110] flex items-center justify-center p-4 backdrop-blur-sm">
+                    <div className="bg-white w-full max-w-sm rounded-[2rem] shadow-2xl overflow-hidden flex flex-col p-6 pt-8 pb-6 border border-gray-100">
+                        <h3 className="text-xl font-bold text-gray-900 mb-2 text-center">Reassign Students</h3>
+                        <p className="text-gray-500 text-sm leading-relaxed mb-5 text-center">
+                            Select an active teacher to reassign all students to.
+                        </p>
+                        <select
+                            value={selectedReassignTeacher}
+                            onChange={(e) => setSelectedReassignTeacher(e.target.value)}
+                            className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none mb-5 bg-white"
+                        >
+                            <option value="">Select teacher...</option>
+                            {activeTeachers.map((t) => (
+                                <option key={t.id} value={t.id}>
+                                    {t.name || t.email}
+                                </option>
+                            ))}
+                        </select>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => { setReassignModalOpen(false); setSelectedReassignTeacher(""); }}
+                                className="flex-1 py-3 px-4 rounded-xl font-bold border border-gray-200 text-gray-600 hover:bg-gray-50 transition-all"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleReassignAndArchive}
+                                disabled={!selectedReassignTeacher}
+                                className="flex-1 py-3 px-4 rounded-xl font-bold text-white bg-primary hover:bg-primary/90 shadow-sm transition-all disabled:opacity-50"
+                            >
+                                Confirm & Archive
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

@@ -3,7 +3,7 @@
 import { useTeacherGuard } from "@/hooks/useRoleGuard";
 import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
-import { doc, getDoc, collection, query, where, getDocs, updateDoc } from "firebase/firestore";
+import { doc, getDoc, collection, query, where, getDocs, updateDoc, setDoc, deleteDoc, serverTimestamp } from "firebase/firestore";
 import Link from "next/link";
 import toast from "react-hot-toast";
 
@@ -14,6 +14,11 @@ export default function TeacherStudentDetailPage({ params }: { params: { student
     const [loading, setLoading] = useState(true);
     const [notes, setNotes] = useState("");
     const [savingNotes, setSavingNotes] = useState(false);
+
+    // Attendance
+    const [currentMonthDate, setCurrentMonthDate] = useState(new Date());
+    const [attendanceDocs, setAttendanceDocs] = useState<any[]>([]);
+    const [attendanceLoading, setAttendanceLoading] = useState(false);
 
     useEffect(() => {
         const fetchStudentDetails = async () => {
@@ -60,6 +65,110 @@ export default function TeacherStudentDetailPage({ params }: { params: { student
             setSavingNotes(false);
         }
     };
+
+    // Attendance Logic
+    useEffect(() => {
+        if (!params.studentId) return;
+        const fetchAttendance = async () => {
+            setAttendanceLoading(true);
+            const start = new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth(), 1);
+            const end = new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth() + 1, 0);
+
+            const startStr = start.toLocaleDateString('en-CA');
+            const endStr = end.toLocaleDateString('en-CA');
+
+            try {
+                const attRef = collection(db, "attendance");
+                const q = query(
+                    attRef,
+                    where("studentId", "==", params.studentId),
+                    where("date", ">=", startStr),
+                    where("date", "<=", endStr)
+                );
+                const snap = await getDocs(q);
+                setAttendanceDocs(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+            } catch (e) {
+                console.error("Error fetching attendance", e);
+            } finally {
+                setAttendanceLoading(false);
+            }
+        };
+        fetchAttendance();
+    }, [params.studentId, currentMonthDate]);
+
+    const handlePrevMonth = () => setCurrentMonthDate(new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth() - 1, 1));
+    const handleNextMonth = () => setCurrentMonthDate(new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth() + 1, 1));
+
+    const toggleAttendance = async (dateStr: string) => {
+        if (student?.accountStatus && student.accountStatus !== "active") {
+            return toast.error("Cannot mark attendance for inactive student.");
+        }
+
+        const existing = attendanceDocs.find(d => d.date === dateStr);
+        const docId = `${params.studentId}_${dateStr}`;
+        const docRef = doc(db, "attendance", docId);
+
+        try {
+            if (!existing) {
+                const newData = {
+                    studentId: params.studentId,
+                    teacherId: user?.uid,
+                    date: dateStr,
+                    status: "present",
+                    markedBy: user?.uid,
+                    markedAt: serverTimestamp()
+                };
+                await setDoc(docRef, newData);
+                setAttendanceDocs([...attendanceDocs, { id: docId, ...newData }]);
+            } else if (existing.status === "present") {
+                await setDoc(docRef, { status: "absent", markedBy: user?.uid, markedAt: serverTimestamp() }, { merge: true });
+                setAttendanceDocs(attendanceDocs.map(d => d.id === docId ? { ...d, status: "absent" } : d));
+            } else {
+                await deleteDoc(docRef);
+                setAttendanceDocs(attendanceDocs.filter(d => d.id !== docId));
+            }
+        } catch (e) {
+            console.error(e);
+            toast.error("Failed to update attendance");
+        }
+    };
+
+    const renderCalendar = () => {
+        const daysInMonth = new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth() + 1, 0).getDate();
+        const firstDayOfMonth = new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth(), 1).getDay();
+        const days = [];
+        const monthPrefix = `${currentMonthDate.getFullYear()}-${String(currentMonthDate.getMonth() + 1).padStart(2, '0')}`;
+
+        for (let i = 0; i < firstDayOfMonth; i++) {
+            days.push(<div key={`pad-${i}`} className="aspect-square"></div>);
+        }
+
+        for (let day = 1; day <= daysInMonth; day++) {
+            const dateStr = `${monthPrefix}-${String(day).padStart(2, '0')}`;
+            const record = attendanceDocs.find(d => d.date === dateStr);
+
+            let bgClass = "bg-gray-50 text-gray-400 hover:bg-gray-100 border border-transparent";
+            if (record?.status === "present") bgClass = "bg-green-50 text-green-700 border-green-200 hover:bg-green-100 shadow-sm";
+            if (record?.status === "absent") bgClass = "bg-red-50 text-red-700 border-red-200 hover:bg-red-100 shadow-sm";
+
+            days.push(
+                <button
+                    key={day}
+                    onClick={() => toggleAttendance(dateStr)}
+                    className={`aspect-square flex items-center justify-center rounded-lg text-sm font-bold transition-all active:scale-95 ${bgClass}`}
+                    title={record ? `Click to change status (Currently: ${record.status})` : "Click to mark present"}
+                >
+                    {day}
+                </button>
+            );
+        }
+        return days;
+    };
+
+    const presentCount = attendanceDocs.filter(d => d.status === "present").length;
+    const absentCount = attendanceDocs.filter(d => d.status === "absent").length;
+    const daysInCurrentMonth = new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth() + 1, 0).getDate();
+    const noClassCount = daysInCurrentMonth - presentCount - absentCount;
 
     if (authLoading || loading) return <div className="p-8">Loading student details...</div>;
 
@@ -151,6 +260,73 @@ export default function TeacherStudentDetailPage({ params }: { params: { student
                             </div>
                             <div className="w-full bg-gray-200 rounded-full h-2.5">
                                 <div className="bg-primary h-2.5 rounded-full w-[60%]"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Attendance Calendar Module */}
+                    <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm mt-8">
+                        <div className="flex items-center justify-between mb-6">
+                            <h3 className="text-lg font-bold flex items-center gap-2">
+                                <span className="material-symbols-outlined text-primary">calendar_month</span>
+                                Attendance Tracker
+                            </h3>
+                            <div className="flex items-center gap-3">
+                                <button onClick={handlePrevMonth} className="p-1.5 rounded-md hover:bg-gray-100 text-gray-600 transition-colors">
+                                    <span className="material-symbols-outlined text-sm">chevron_left</span>
+                                </button>
+                                <span className="text-sm font-bold w-24 text-center">
+                                    {currentMonthDate.toLocaleDateString('default', { month: 'short', year: 'numeric' })}
+                                </span>
+                                <button onClick={handleNextMonth} className="p-1.5 rounded-md hover:bg-gray-100 text-gray-600 transition-colors">
+                                    <span className="material-symbols-outlined text-sm">chevron_right</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Aggregation Summary */}
+                        <div className="grid grid-cols-3 gap-3 mb-6">
+                            <div className="bg-green-50 border border-green-100 rounded-lg p-3 text-center">
+                                <div className="text-2xl font-black text-green-700">{presentCount}</div>
+                                <div className="text-[10px] font-bold text-green-600 uppercase tracking-widest mt-1">Present</div>
+                            </div>
+                            <div className="bg-red-50 border border-red-100 rounded-lg p-3 text-center">
+                                <div className="text-2xl font-black text-red-700">{absentCount}</div>
+                                <div className="text-[10px] font-bold text-red-600 uppercase tracking-widest mt-1">Absent</div>
+                            </div>
+                            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-center">
+                                <div className="text-2xl font-black text-gray-600">{noClassCount}</div>
+                                <div className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1">No Class</div>
+                            </div>
+                        </div>
+
+                        {attendanceLoading ? (
+                            <div className="py-12 text-center text-sm font-medium text-gray-500">Loading calendar...</div>
+                        ) : (
+                            <div>
+                                <div className="grid grid-cols-7 gap-2 mb-2">
+                                    {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(d => (
+                                        <div key={d} className="text-center text-[10px] font-black text-gray-400 uppercase tracking-wider">{d}</div>
+                                    ))}
+                                </div>
+                                <div className="grid grid-cols-7 gap-2">
+                                    {renderCalendar()}
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="mt-6 flex items-center justify-center gap-6 border-t border-gray-100 pt-5">
+                            <div className="flex items-center gap-2">
+                                <div className="size-3 rounded-full bg-green-500"></div>
+                                <span className="text-xs font-semibold text-gray-600">Present</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <div className="size-3 rounded-full bg-red-500"></div>
+                                <span className="text-xs font-semibold text-gray-600">Absent</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <div className="size-3 rounded-full bg-gray-200"></div>
+                                <span className="text-xs font-semibold text-gray-600">No Class</span>
                             </div>
                         </div>
                     </div>

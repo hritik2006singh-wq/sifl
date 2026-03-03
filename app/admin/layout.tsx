@@ -8,6 +8,7 @@ import { doc, getDoc } from "firebase/firestore";
 import Image from "next/image";
 import { signOut } from "firebase/auth";
 import MobileBottomNav from "@/components/MobileBottomNav";
+import { ADMIN_ROUTES } from "@/config/sidebarRoutes";
 
 const mobileNavItems = [
   { label: "Overview", icon: "dashboard", path: "/admin", exact: true },
@@ -164,59 +165,17 @@ export default function AdminLayout({
               <p className="px-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
                 Main Menu
               </p>
-              <Link
-                className={getLinkClass("/admin")}
-                href="/admin"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                <span className={getIconClass("/admin")}>dashboard</span>
-                <span className="text-sm">Dashboard Overview</span>
-              </Link>
-              <Link
-                className={getLinkClass("/admin/students")}
-                href="/admin/students"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                <span className={getIconClass("/admin/students")}>group</span>
-                <span className="text-sm">Students</span>
-              </Link>
-              <Link
-                className={getLinkClass("/demo-booking")}
-                href="/demo-booking"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                <span className={getIconClass("/demo-booking")}>event_available</span>
-                <span className="text-sm">Demo Bookings</span>
-              </Link>
-              <Link
-                className={getLinkClass("/admin/teachers")}
-                href="/admin/teachers"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                <span className={getIconClass("/admin/teachers")}>badge</span>
-                <span className="text-sm">Teachers</span>
-              </Link>
-              <Link
-                className={getLinkClass("/admin/manage-schedule")}
-                href="/admin/manage-schedule"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                <span className={getIconClass("/admin/manage-schedule")}>calendar_month</span>
-                <span className="text-sm">Manage Schedule</span>
-              </Link>
-            </div>
-            <div className="pb-4">
-              <p className="px-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
-                Academic
-              </p>
-              <Link
-                className={getLinkClass("/admin/materials")}
-                href="/admin/materials"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                <span className={getIconClass("/admin/materials")}>library_books</span>
-                <span className="text-sm">Study Materials</span>
-              </Link>
+              {ADMIN_ROUTES.map((route) => (
+                <Link
+                  key={route.path}
+                  className={getLinkClass(route.path)}
+                  href={route.path}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <span className={getIconClass(route.path)}>{route.icon}</span>
+                  <span className="text-sm">{route.name}</span>
+                </Link>
+              ))}
             </div>
             <div className="pb-4 pt-4 border-t border-slate-100">
               <Link
@@ -251,65 +210,18 @@ export default function AdminLayout({
               <p className="px-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
                 Main Menu
               </p>
-              <Link
-                className={getLinkClass("/admin")}
-                href="/admin"
-              >
-                <span className={getIconClass("/admin")}>
-                  dashboard
-                </span>
-                <span className="text-sm">Dashboard Overview</span>
-              </Link>
-              <Link
-                className={getLinkClass("/admin/students")}
-                href="/admin/students"
-              >
-                <span className={getIconClass("/admin/students")}>
-                  group
-                </span>
-                <span className="text-sm">Students</span>
-              </Link>
-              <Link
-                className={getLinkClass("/demo-booking")}
-                href="/demo-booking"
-              >
-                <span className={getIconClass("/demo-booking")}>
-                  event_available
-                </span>
-                <span className="text-sm">Demo Bookings</span>
-              </Link>
-              <Link
-                className={getLinkClass("/admin/teachers")}
-                href="/admin/teachers"
-              >
-                <span className={getIconClass("/admin/teachers")}>
-                  badge
-                </span>
-                <span className="text-sm">Teachers</span>
-              </Link>
-              <Link
-                className={getLinkClass("/admin/manage-schedule")}
-                href="/admin/manage-schedule"
-              >
-                <span className={getIconClass("/admin/manage-schedule")}>
-                  calendar_month
-                </span>
-                <span className="text-sm">Manage Schedule</span>
-              </Link>
-            </div>
-            <div className="pb-4">
-              <p className="px-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
-                Academic
-              </p>
-              <Link
-                className={getLinkClass("/admin/materials")}
-                href="/admin/materials"
-              >
-                <span className={getIconClass("/admin/materials")}>
-                  library_books
-                </span>
-                <span className="text-sm">Study Materials</span>
-              </Link>
+              {ADMIN_ROUTES.map((route) => (
+                <Link
+                  key={route.path}
+                  className={getLinkClass(route.path)}
+                  href={route.path}
+                >
+                  <span className={getIconClass(route.path)}>
+                    {route.icon}
+                  </span>
+                  <span className="text-sm">{route.name}</span>
+                </Link>
+              ))}
             </div>
             <div className="pb-4 pt-4 border-t border-slate-100">
               <Link

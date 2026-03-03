@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
 import { collection, query, where, getDocs, doc, runTransaction, getDoc } from "firebase/firestore";
-import toast from "react-hot-toast";
+import CustomModal from "@/components/CustomModal";
 
 type WeeklyTemplate = {
     [day: string]: { enabled: boolean; start: string; end: string };
@@ -22,6 +22,15 @@ export default function SchedulePage() {
     const [loading, setLoading] = useState(false);
     const [availableSlots, setAvailableSlots] = useState<{ time: string; status: string }[]>([]);
     const [dateStatus, setDateStatus] = useState<string>("");
+
+    // Modal State
+    const [modalState, setModalState] = useState<{
+        show: boolean;
+        type: "success" | "error";
+        message: string;
+        title?: string;
+    }>({ show: false, type: "success", message: "" });
+    const closeModal = () => setModalState({ ...modalState, show: false });
 
     // Fixed teacherId for this form, acting as the generic demo handler
     const TEACHER_ID = "admin_general";
@@ -126,15 +135,15 @@ export default function SchedulePage() {
         e.preventDefault();
 
         if (!formData.student_name || !formData.email || !formData.phone_number || !formData.date || !formData.time_slot) {
-            return toast.error("Please fill all required fields.");
+            return setModalState({ show: true, type: "error", message: "Please fill all required fields.", title: "Missing Fields" });
         }
 
         if (!validatePhone(formData.phone_number)) {
-            return toast.error("Phone number must be exactly 10 digits.");
+            return setModalState({ show: true, type: "error", message: "Phone number must be exactly 10 digits.", title: "Invalid Phone" });
         }
 
         if (!validateEmail(formData.email)) {
-            return toast.error("Please enter a valid email address.");
+            return setModalState({ show: true, type: "error", message: "Please enter a valid email address.", title: "Invalid Email" });
         }
 
         setLoading(true);
@@ -174,7 +183,7 @@ export default function SchedulePage() {
                 }, { merge: true });
             });
 
-            toast.success("Success! Your demo booking is confirmed.");
+            setModalState({ show: true, type: "success", message: "Demo class booked successfully!", title: "Confirmed!" });
             setFormData({ student_name: "", email: "", phone_number: "", language: "English", date: "", time_slot: "" });
 
             // Re-mount / trigger update hack visually by resetting available state for the chosen date
@@ -183,9 +192,9 @@ export default function SchedulePage() {
         } catch (error: any) {
             console.error("Booking submission error:", error);
             if (error.message.includes("Slot is no longer available")) {
-                toast.error("Sorry, that slot was just booked by someone else.");
+                setModalState({ show: true, type: "error", message: "Sorry, that slot was just booked by someone else.", title: "Slot Taken" });
             } else {
-                toast.error("An error occurred. Please try again.");
+                setModalState({ show: true, type: "error", message: "An error occurred. Please try again.", title: "System Error" });
             }
         } finally {
             setLoading(false);
@@ -194,6 +203,16 @@ export default function SchedulePage() {
 
     return (
         <div className="min-h-screen py-32 flex items-center justify-center bg-gray-50 px-4">
+            {modalState.show && (
+                <CustomModal
+                    type={modalState.type}
+                    message={modalState.message}
+                    title={modalState.title}
+                    onClose={closeModal}
+                    autoCloseMs={modalState.type === "success" ? 4000 : 0}
+                />
+            )}
+
             <div className="w-full max-w-2xl bg-white rounded-3xl shadow-xl p-8 border border-gray-100">
                 <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight text-center mb-2">
                     Book a Free Demo
@@ -204,11 +223,11 @@ export default function SchedulePage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-                            <input required type="text" value={formData.student_name} onChange={e => setFormData({ ...formData, student_name: e.target.value })} className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-primary/20 outline-none" />
+                            <input required type="text" value={formData.student_name} onChange={e => setFormData({ ...formData, student_name: e.target.value })} className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-primary/20 outline-none" disabled={loading} />
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                            <input required type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-primary/20 outline-none" />
+                            <input required type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-primary/20 outline-none" disabled={loading} />
                         </div>
                         <div className="md:col-span-2">
                             <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number (10 digits)</label>
@@ -224,11 +243,12 @@ export default function SchedulePage() {
                                 }}
                                 placeholder="e.g. 9876543210"
                                 className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-primary/20 outline-none"
+                                disabled={loading}
                             />
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Language</label>
-                            <select required value={formData.language} onChange={e => setFormData({ ...formData, language: e.target.value })} className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-primary/20 outline-none bg-white">
+                            <select required value={formData.language} onChange={e => setFormData({ ...formData, language: e.target.value })} className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-primary/20 outline-none bg-white" disabled={loading}>
                                 <option>English</option>
                                 <option>German</option>
                                 <option>Korean</option>
@@ -238,7 +258,7 @@ export default function SchedulePage() {
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Preferred Date</label>
-                            <input required type="date" min={new Date().toISOString().split('T')[0]} value={formData.date} onChange={e => setFormData({ ...formData, date: e.target.value })} className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-primary/20 outline-none" />
+                            <input required type="date" min={new Date().toISOString().split('T')[0]} value={formData.date} onChange={e => setFormData({ ...formData, date: e.target.value })} className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-primary/20 outline-none" disabled={loading} />
                         </div>
                     </div>
 
@@ -260,13 +280,13 @@ export default function SchedulePage() {
                                             <button
                                                 key={slot.time}
                                                 type="button"
-                                                disabled={isBooked}
+                                                disabled={isBooked || loading}
                                                 onClick={() => setFormData({ ...formData, time_slot: slot.time })}
                                                 className={`py-2 rounded-xl text-sm font-semibold transition-all border ${isBooked
-                                                        ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed opacity-50"
-                                                        : isSelected
-                                                            ? "bg-primary text-white border-primary shadow-md transform scale-105"
-                                                            : "bg-white text-gray-700 border-gray-200 hover:border-primary/50 hover:bg-primary/5 cursor-pointer"
+                                                    ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed opacity-50"
+                                                    : isSelected
+                                                        ? "bg-primary text-white border-primary shadow-md transform scale-105"
+                                                        : "bg-white text-gray-700 border-gray-200 hover:border-primary/50 hover:bg-primary/5 cursor-pointer"
                                                     }`}
                                             >
                                                 {slot.time}

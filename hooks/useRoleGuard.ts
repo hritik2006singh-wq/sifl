@@ -37,6 +37,18 @@ export function useRoleGuard(requiredRole: "admin" | "teacher" | "student") {
 
                 const userData = userSnap.data();
 
+                // Global Account Status Guard
+                const accountStatus = userData.accountStatus ?? "active";
+                if (accountStatus !== "active") {
+                    await auth.signOut();
+                    if (accountStatus === "suspended") {
+                        router.push("/login?error=" + encodeURIComponent("Your account has been suspended. Contact administration."));
+                    } else {
+                        router.push("/login?error=" + encodeURIComponent("Your account has been archived. Contact administration."));
+                    }
+                    return;
+                }
+
                 if (userData.role !== requiredRole) {
                     // Role mismatch, boot to root or appropriate dashboard
                     if (userData.role === "admin") router.push("/admin");

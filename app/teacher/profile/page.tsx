@@ -86,26 +86,34 @@ export default function TeacherProfilePage() {
 
         setIsUploading(true);
         try {
-            const formData = new FormData();
-            formData.append("file", file);
-
-            const res = await fetch("/api/upload", {
+            const presignRes = await fetch("/api/generate-upload-url", {
                 method: "POST",
-                body: formData
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ filename: file.name, contentType: file.type })
             });
 
-            if (!res.ok) throw new Error("Upload failed");
+            if (!presignRes.ok) throw new Error("Failed to initialize upload");
 
-            const data = await res.json();
-            if (data.url) {
-                setProfileImage(data.url);
+            const presignData = await presignRes.json();
+            if (!presignData.success) throw new Error(presignData.error || "Failed to generate upload URL");
+
+            const uploadRes = await fetch(presignData.uploadUrl, {
+                method: "PUT",
+                headers: { "Content-Type": file.type },
+                body: file
+            });
+
+            if (!uploadRes.ok) throw new Error("Failed to upload image securely");
+
+            if (presignData.publicUrl) {
+                setProfileImage(presignData.publicUrl);
                 toast.success("Image uploaded!");
                 if (user) {
-                    await updateDoc(doc(db, "users", user.uid), { profileImage: data.url });
+                    await updateDoc(doc(db, "users", user.uid), { profileImage: presignData.publicUrl });
                     await refreshUser();
                 }
             } else {
-                throw new Error(data.error || "Upload failed");
+                throw new Error("Upload mapping failed");
             }
         } catch (error: any) {
             console.error(error);

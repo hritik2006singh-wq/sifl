@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, use } from "react";
 import { auth, db } from "@/lib/firebase";
 import { collection, addDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
+import CustomModal from "@/components/CustomModal";
 
 export default function StudentTestPage({ params }: { params: Promise<{ id: string }> }) {
     const resolvedParams = use(params);
@@ -13,6 +14,7 @@ export default function StudentTestPage({ params }: { params: Promise<{ id: stri
     const [suspiciousCount, setSuspiciousCount] = useState(0);
     const [submitting, setSubmitting] = useState(false);
     const [testStarted, setTestStarted] = useState(false);
+    const [modalInfo, setModalInfo] = useState<{ type: "success" | "error", message: string, title?: string } | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
 
     const router = useRouter();
@@ -21,7 +23,11 @@ export default function StudentTestPage({ params }: { params: Promise<{ id: stri
         const handleVisibilityChange = () => {
             if (document.visibilityState === 'hidden' && testStarted) {
                 setSuspiciousCount(c => c + 1);
-                alert("WARNING: Leaving the test tab is prohibited. This incident has been recorded as suspicious activity.");
+                setModalInfo({
+                    type: "error",
+                    title: "Security Warning",
+                    message: "WARNING: Leaving the test tab is prohibited. This incident has been recorded as suspicious activity."
+                });
             }
         };
 
@@ -44,7 +50,11 @@ export default function StudentTestPage({ params }: { params: Promise<{ id: stri
                 await containerRef.current.requestFullscreen();
                 setTestStarted(true);
             } catch (err) {
-                alert("Failed to enter fullscreen mode. Please ensure your browser allows fullscreen.");
+                setModalInfo({
+                    type: "error",
+                    title: "Fullscreen Required",
+                    message: "Failed to enter fullscreen mode. Please ensure your browser allows fullscreen."
+                });
             }
         }
     };
@@ -65,7 +75,11 @@ export default function StudentTestPage({ params }: { params: Promise<{ id: stri
                 console.error("Error submitting test", err);
             }
         } else {
-            alert("Error: You are not logged in.");
+            setModalInfo({
+                type: "error",
+                message: "Error: You are not logged in."
+            });
+            return;
         }
 
         if (document.fullscreenElement) {
@@ -73,8 +87,18 @@ export default function StudentTestPage({ params }: { params: Promise<{ id: stri
         }
 
         setSubmitting(false);
-        alert("Test submitted successfully!");
-        router.push("/student/assignments");
+        setModalInfo({
+            type: "success",
+            title: "Test Complete",
+            message: "Test submitted successfully!"
+        });
+    };
+
+    const handleModalClose = () => {
+        if (modalInfo?.type === "success") {
+            router.push("/student/assignments");
+        }
+        setModalInfo(null);
     };
 
     return (
@@ -137,6 +161,15 @@ export default function StudentTestPage({ params }: { params: Promise<{ id: stri
                     </div>
                 )}
             </div>
+
+            {modalInfo && (
+                <CustomModal
+                    type={modalInfo.type}
+                    title={modalInfo.title}
+                    message={modalInfo.message}
+                    onClose={handleModalClose}
+                />
+            )}
         </div>
     );
 }

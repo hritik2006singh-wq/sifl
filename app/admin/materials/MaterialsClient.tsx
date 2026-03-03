@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { db, auth } from "@/lib/firebase";
+import { db } from "@/lib/firebase";
 import {
   collection,
   getDocs,
@@ -12,372 +12,556 @@ import {
   doc,
   serverTimestamp
 } from "firebase/firestore";
-import toast from "react-hot-toast";
 import { useAdminGuard } from "@/hooks/useRoleGuard";
+import CustomModal from "@/components/CustomModal";
+
+const levelMap: Record<string, string[]> = {
+  German: ["A1", "A2", "B1", "B2", "C1", "C2"],
+  Japanese: ["N5", "N4", "N3", "N2", "N1"],
+  English: ["Beginner", "Intermediate", "Advanced"],
+  French: ["A1", "A2", "B1", "B2", "C1", "C2"],
+  Spanish: ["A1", "A2", "B1", "B2", "C1", "C2"]
+};
 
 export default function MaterialsClient() {
   const { user, loading: authLoading } = useAdminGuard();
   const [materials, setMaterials] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [showModal, setShowModal] = useState(false);
-  const [uploading, setUploading] = useState(false);
+  // Modal State
+  const [modalState, setModalState] = useState<{
+    show: boolean;
+    type: "success" | "error";
+    message: string;
+    title?: string;
+  }>({ show: false, type: "success", message: "" });
 
+  const [uploading, setUploading] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  // Upload Progress State
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadSpeed, setUploadSpeed] = useState("0 MB/s");
+  const [uploadEta, setUploadEta] = useState("Calculating...");
+  const xhrRef = useRef<XMLHttpRequest | null>(null);
+
+  // Preview Modal
+  const [previewMaterial, setPreviewMaterial] = useState<any>(null);
+
+  // Selected State
+  const [selectedLanguage, setSelectedLanguage] = useState("");
+  const [selectedLevel, setSelectedLevel] = useState("");
   const [title, setTitle] = useState("");
-  const [language, setLanguage] = useState("");
-  const [level, setLevel] = useState("");
+
   const [fileHandle, setFileHandle] = useState<File | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showUploadModal, setShowUploadModal] = useState(false);
 
-  const handleDrag = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
-    } else if (e.type === "dragleave") {
-      setDragActive(false);
+  const closeModal = () => setModalState({ ...modalState, show: false });
+
+  // 🔹 Fetch Global Materials
+  useEffect(() => {
+    fetchMaterials();
+  }, [selectedLanguage, selectedLevel]);
+
+  const fetchMaterials = async () => {
+    setLoading(true);
+    try {
+      let q = query(collection(db, "materials"), orderBy("createdAt", "desc"));
+      const snapshot = await getDocs(q);
+
+      // Perform client-side filtering since firestore requires complex composite indexing for multiple wheres + orderby
+      let filtered = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+
+      if (selectedLanguage) {
+        filtered = filtered.filter((m: any) => m.language === selectedLanguage);
+      }
+      if (selectedLevel) {
+        filtered = filtered.filter((m: any) => m.level === selectedLevel);
+      }
+
+      setMaterials(filtered);
+    } catch (err) {
+      console.error(err);
+      setModalState({ show: true, type: "error", message: "Failed to load materials.", title: "Error" });
+    } finally {
+      setLoading(false);
     }
   };
 
+  // Hierarchy Handlers
+  const handleLangChange = (lang: string) => {
+    setSelectedLanguage(lang);
+    setSelectedLevel(""); // Reset level on language change
+  };
+
+  // File Drag & Drop
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault(); e.stopPropagation();
+    setDragActive(e.type === "dragenter" || e.type === "dragover");
+  };
+
   const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+    e.preventDefault(); e.stopPropagation();
     setDragActive(false);
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       setFileHandle(e.dataTransfer.files[0]);
     }
   };
 
-  // 🔹 Fetch Materials
-  useEffect(() => {
-    const fetchMaterials = async () => {
-      try {
-        const q = query(collection(db, "studyMaterials"), orderBy("createdAt", "desc"));
-        const snapshot = await getDocs(q);
-
-        const data = snapshot.docs.map((docSnap) => ({
-          id: docSnap.id,
-          ...docSnap.data(),
-        }));
-
-        setMaterials(data);
-      } catch (err) {
-        console.error(err);
-        toast.error("Failed to fetch materials");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (user) fetchMaterials();
-  }, [user]);
-
-  // 🔹 Upload Handler (R2)
+  // 🔹 Upload Handler via XHR & Presigned URL
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!fileHandle || !title || !language || !level) {
-      return toast.error("Please fill all fields");
+    if (!fileHandle || !title || !selectedLanguage || !selectedLevel) {
+      return setModalState({ show: true, type: "error", message: "Please complete all required fields.", title: "Missing Fields" });
+    }
+
+    const MAX_MB = 1500; // Increased abstractly since direct upload scales higher
+    if (fileHandle.size > MAX_MB * 1024 * 1024) {
+      return setModalState({ show: true, type: "error", message: `File exceeds ${MAX_MB}MB limit.`, title: "File Too Large" });
+    }
+
+    const validMime = ["video/mp4", "application/pdf"];
+    if (!validMime.includes(fileHandle.type)) {
+      return setModalState({ show: true, type: "error", message: "Only MP4 videos and PDF documents are allowed.", title: "Invalid File" });
     }
 
     try {
       setUploading(true);
+      setUploadProgress(0);
+      setUploadSpeed("0 MB/s");
+      setUploadEta("Calculating...");
 
-      const formData = new FormData();
-      formData.append("file", fileHandle);
-
-      const response = await fetch("/api/upload", {
+      // 1. Get Signed URL
+      const presignRes = await fetch("/api/generate-upload-url", {
         method: "POST",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          filename: fileHandle.name,
+          contentType: fileHandle.type,
+          language: selectedLanguage,
+          level: selectedLevel
+        })
       });
+      const presignData = await presignRes.json();
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Upload failed");
+      if (!presignRes.ok || !presignData.success) {
+        throw new Error(presignData.error || "Failed to generate security upload URL");
       }
 
-      const fileURL = data.url;
+      // 2. Direct XMLHttpRequest Upload
+      await new Promise<void>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhrRef.current = xhr;
+        const startTime = Date.now();
 
-      const isVideo =
-        fileHandle.type.includes("video") ||
-        fileHandle.name.toLowerCase().endsWith(".mp4");
+        xhr.upload.onprogress = (event) => {
+          if (event.lengthComputable) {
+            const percentComplete = Math.round((event.loaded / event.total) * 100);
+            setUploadProgress(percentComplete);
 
-      const materialType = isVideo ? "video" : "pdf";
+            const timeElapsed = (Date.now() - startTime) / 1000;
+            if (timeElapsed > 0) {
+              const speedBps = event.loaded / timeElapsed;
+              const speedMbps = (speedBps / (1024 * 1024)).toFixed(2);
+              setUploadSpeed(`${speedMbps} MB/s`);
 
-      const docRef = await addDoc(collection(db, "studyMaterials"), {
-        title,
-        language,
-        level,
-        type: materialType,
-        fileURL,
-        uploadedBy: auth.currentUser?.uid,
-        createdAt: serverTimestamp(),
+              const remainingBytes = event.total - event.loaded;
+              const etaSeconds = remainingBytes / speedBps;
+
+              if (etaSeconds > 60) {
+                setUploadEta(`${Math.ceil(etaSeconds / 60)} mins left`);
+              } else {
+                setUploadEta(`${Math.ceil(etaSeconds)} secs left`);
+              }
+            }
+          }
+        };
+
+        xhr.onload = async () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              // 3. Save directly to Firestore after confirming upload
+              const fileType = fileHandle.type.includes("video") ? "video" : "pdf";
+              await addDoc(collection(db, "materials"), {
+                title,
+                language: selectedLanguage,
+                level: selectedLevel,
+                fileUrl: presignData.publicUrl,
+                objectKey: presignData.key,
+                fileType,
+                fileSize: fileHandle.size,
+                createdAt: serverTimestamp(),
+              });
+
+              setModalState({ show: true, type: "success", message: "Material uploaded securely.", title: "Success" });
+              setShowUploadModal(false);
+              setTitle("");
+              setFileHandle(null);
+              fetchMaterials();
+              resolve();
+            } catch (err) {
+              reject(err);
+            }
+          } else {
+            reject(new Error("Failed to upload file to storage bucket."));
+          }
+        };
+
+        xhr.onerror = () => reject(new Error("Network error during direct upload."));
+        xhr.onabort = () => reject(new Error("Upload cancelled."));
+
+        xhr.open("PUT", presignData.uploadUrl, true);
+        xhr.setRequestHeader("Content-Type", fileHandle.type);
+        xhr.send(fileHandle);
       });
 
-      setMaterials((prev) => [
-        {
-          id: docRef.id,
-          title,
-          language,
-          level,
-          type: materialType,
-          fileURL,
-        },
-        ...prev,
-      ]);
-
-      toast.success("Material uploaded successfully");
-
+    } catch (err: any) {
+      if (err.message !== "Upload cancelled.") {
+        console.error(err);
+        setModalState({ show: true, type: "error", message: err.message || "An unexpected error occurred during upload.", title: "Upload Failed" });
+      } else {
+        setModalState({ show: true, type: "error", message: "Upload was manually cancelled.", title: "Upload Paused" });
+      }
+    } finally {
       setUploading(false);
-      setShowModal(false);
-
-      setTitle("");
-      setLanguage("");
-      setLevel("");
-      setFileHandle(null);
-    } catch (err) {
-      console.error(err);
-      toast.error("Upload failed");
-      setUploading(false);
+      xhrRef.current = null;
     }
   };
 
-  // 🔹 Delete (Firestore only for now)
-  const handleDelete = async (id: string) => {
-    if (!confirm("Delete this material?")) return;
+  const handleCancelUpload = () => {
+    if (xhrRef.current) {
+      xhrRef.current.abort();
+    }
+  };
 
+  // 🔹 Delete
+  const handleDelete = async (material: any) => {
     try {
-      await deleteDoc(doc(db, "studyMaterials", id));
-      setMaterials((prev) => prev.filter((m) => m.id !== id));
-      toast.success("Deleted successfully");
-    } catch (err) {
+      setDeletingId(material.id);
+
+      // 1. Delete R2 File
+      if (material.objectKey) {
+        const response = await fetch("/api/delete-file", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ objectKey: material.objectKey, key: material.objectKey })
+        });
+        const resData = await response.json();
+
+        if (!response.ok || !resData.success) {
+          throw new Error(resData.error || "Failed to delete storage file.");
+        }
+      }
+
+      // 2. Delete Firestore Document natively
+      await deleteDoc(doc(db, "materials", material.id));
+      setMaterials((prev) => prev.filter((m) => m.id !== material.id));
+
+    } catch (err: any) {
       console.error(err);
-      toast.error("Delete failed");
+      setModalState({ show: true, type: "error", message: err.message || "Failed to properly clean up the file.", title: "Delete Error" });
+    } finally {
+      setDeletingId(null);
     }
   };
 
-  if (authLoading || loading) {
-    return <div className="p-6">Loading materials...</div>;
-  }
+  if (authLoading) return <div className="p-6 text-center text-gray-500 mt-12">Loading Admin Interface...</div>;
+
+  const availableLevelsForFilter = selectedLanguage ? levelMap[selectedLanguage] || [] : [];
+  const availableLevelsForUpload = selectedLanguage ? levelMap[selectedLanguage] || [] : [];
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Study Materials</h1>
-        <button
-          onClick={() => setShowModal(true)}
-          className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition shadow-sm"
-        >
-          Upload Material
+    <div className="space-y-6">
+      {modalState.show && (
+        <CustomModal
+          type={modalState.type}
+          message={modalState.message}
+          title={modalState.title}
+          onClose={closeModal}
+          autoCloseMs={modalState.type === "success" ? 3000 : 0}
+        />
+      )}
+
+      {/* FULLSCREEN PREVIEW MODAL */}
+      {previewMaterial && (
+        <div className="fixed inset-0 bg-black/95 z-[100] flex flex-col items-center justify-center backdrop-blur-md">
+          <div className="absolute top-4 right-6 flex gap-4">
+            <button
+              onClick={() => setPreviewMaterial(null)}
+              className="bg-white/10 hover:bg-white/30 text-white rounded-full size-12 flex items-center justify-center transition-all backdrop-blur-md border border-white/20 active:scale-95"
+            >
+              <span className="material-symbols-outlined text-2xl">close</span>
+            </button>
+          </div>
+
+          <div className="w-full h-full max-w-6xl max-h-[90vh] flex flex-col mt-12 p-4">
+            <div className="text-white mb-4">
+              <h3 className="text-2xl font-bold">{previewMaterial.title}</h3>
+              <p className="text-white/60 text-sm font-semibold tracking-wider uppercase">{previewMaterial.fileType} • {(previewMaterial.fileSize / (1024 * 1024)).toFixed(2)} MB</p>
+            </div>
+            <div className="flex-1 bg-black/50 rounded-2xl overflow-hidden shadow-2xl border border-white/10">
+              {previewMaterial.fileType === "video" ? (
+                <video controls controlsList="nodownload" className="w-full h-full object-contain">
+                  <source src={previewMaterial.fileUrl} type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
+              ) : (
+                <iframe src={`${previewMaterial.fileUrl}#toolbar=0`} className="w-full h-full border-none bg-white object-contain" />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
+        <div>
+          <h1 className="text-3xl font-black tracking-tight text-gray-900">Study Materials</h1>
+          <p className="text-gray-500 font-medium">Upload via direct XHR to unified flat storage architecture.</p>
+        </div>
+
+        <button onClick={() => setShowUploadModal(true)} className="bg-primary text-white px-6 py-3 rounded-xl font-bold shadow-md hover:bg-primary/90 flex items-center justify-center gap-2 transition-all active:scale-95">
+          <span className="material-symbols-outlined text-[20px]">cloud_upload</span> Upload File
         </button>
       </div>
 
-      <div className="hidden md:block bg-white rounded-xl shadow-md border overflow-hidden">
-        <table className="w-full text-left">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="p-4 font-semibold text-gray-700">Title</th>
-              <th className="p-4 font-semibold text-gray-700">Language</th>
-              <th className="p-4 font-semibold text-gray-700">Level</th>
-              <th className="p-4 font-semibold text-gray-700 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {materials.map((m) => (
-              <tr key={m.id} className="border-t hover:bg-gray-50 hover:scale-[1.01] transition duration-200">
-                <td className="p-4">{m.title}</td>
-                <td className="p-4">{m.language}</td>
-                <td className="p-4">{m.level}</td>
-                <td className="p-4 text-right space-x-4">
-                  {m.fileURL && (
-                    <a
-                      href={m.fileURL}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary hover:underline font-medium"
-                    >
-                      View
-                    </a>
-                  )}
-                  {user?.role === "admin" && (
-                    <button
-                      onClick={() => handleDelete(m.id)}
-                      className="text-red-500 hover:text-red-700 font-medium transition"
-                    >
-                      Delete
-                    </button>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      {/* Structure Selectors / Filter */}
+      <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col md:flex-row gap-4 items-end">
+        <div className="flex-1 w-full">
+          <label className="block text-sm font-bold text-gray-700 mb-2">Filter Language</label>
+          <select className="w-full border p-3 rounded-xl bg-gray-50 outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium" value={selectedLanguage} onChange={e => handleLangChange(e.target.value)}>
+            <option value="">All Languages</option>
+            {Object.keys(levelMap).map(lang => <option key={lang} value={lang}>{lang}</option>)}
+          </select>
+        </div>
+        <div className="flex-1 w-full">
+          <label className="block text-sm font-bold text-gray-700 mb-2">Filter Level</label>
+          <select className="w-full border p-3 rounded-xl bg-gray-50 outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium disabled:opacity-50" value={selectedLevel} disabled={!selectedLanguage} onChange={e => setSelectedLevel(e.target.value)}>
+            <option value="">All Levels</option>
+            {availableLevelsForFilter.map(lvl => <option key={lvl} value={lvl}>{lvl}</option>)}
+          </select>
+        </div>
+        <button
+          onClick={() => { setSelectedLanguage(""); setSelectedLevel(""); }}
+          className="px-6 py-3 bg-gray-100 text-gray-600 font-bold rounded-xl hover:bg-gray-200 transition-colors w-full md:w-auto"
+        >
+          Reset
+        </button>
       </div>
 
-      {/* Mobile Cards */}
-      <div className="md:hidden flex flex-col space-y-4 mb-8">
-        {materials.map((m) => (
-          <div key={m.id} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col space-y-3">
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex-1 min-w-0">
-                <h3 className="font-bold text-gray-900 text-base leading-tight break-words">{m.title}</h3>
-              </div>
-              {m.type === "video" ? (
-                <span className="material-symbols-outlined text-blue-500 bg-blue-50 p-2 rounded-xl shrink-0">video_file</span>
-              ) : (
-                <span className="material-symbols-outlined text-red-500 bg-red-50 p-2 rounded-xl shrink-0">picture_as_pdf</span>
-              )}
-            </div>
+      {/* Materials Area */}
+      <div className="bg-white rounded-3xl border border-gray-100 p-8 shadow-sm">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-black tracking-tight">Library Documents</h2>
+        </div>
 
-            <div className="grid grid-cols-2 gap-2 bg-gray-50 p-3 rounded-xl border border-gray-100 mt-2">
-              <div>
-                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">Language</p>
-                <p className="text-sm font-semibold text-gray-900">{m.language}</p>
-              </div>
-              <div>
-                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">Level</p>
-                <p className="text-sm font-semibold text-gray-900">{m.level}</p>
-              </div>
-            </div>
+        {loading && (
+          <div className="py-12 flex flex-col items-center justify-center gap-4 text-primary">
+            <div className="animate-spin size-8 border-4 border-primary border-t-transparent rounded-full"></div>
+            <p className="font-bold">Syncing Database...</p>
+          </div>
+        )}
 
-            <div className="flex gap-2 pt-2">
-              {m.fileURL && (
-                <a
-                  href={m.fileURL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex-1 text-center text-sm font-bold bg-primary/10 text-primary py-2.5 rounded-xl border border-primary/20 hover:bg-primary/20 transition-colors"
-                >
-                  View
-                </a>
-              )}
-              {user?.role === "admin" && (
-                <button
-                  onClick={() => handleDelete(m.id)}
-                  className="flex-[0.5] text-center px-2 text-sm font-bold bg-red-50 text-red-700 py-2.5 rounded-xl border border-red-100 hover:bg-red-100 transition-colors"
-                >
-                  Delete
-                </button>
-              )}
-            </div>
+        {!loading && materials.length === 0 ? (
+          <div className="py-16 text-center border-2 border-dashed border-gray-200 rounded-3xl bg-gray-50 text-gray-500">
+            <span className="material-symbols-outlined text-4xl mb-2 text-gray-400">folder_open</span>
+            <p className="font-bold text-gray-900">No Content Found</p>
+            <p className="text-sm">Change filters or upload new material.</p>
           </div>
-        ))}
-        {materials.length === 0 && (
-          <div className="py-8 text-center text-gray-500 bg-gray-50 rounded-2xl border border-dashed">
-            No materials found.
-          </div>
+        ) : !loading && (
+          <ul className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {materials.map(m => (
+              <li key={m.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-5 border border-gray-100 rounded-2xl hover:border-primary/20 hover:shadow-md transition-all group bg-white cursor-pointer" onClick={() => setPreviewMaterial(m)}>
+                <div className="flex items-start sm:items-center gap-4 mb-4 sm:mb-0">
+                  {m.fileType === "video" ? (
+                    <div className="p-3 bg-blue-50 text-blue-600 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                      <span className="material-symbols-outlined text-3xl">play_circle</span>
+                    </div>
+                  ) : (
+                    <div className="p-3 bg-red-50 text-red-600 rounded-xl group-hover:bg-red-600 group-hover:text-white transition-colors">
+                      <span className="material-symbols-outlined text-3xl">picture_as_pdf</span>
+                    </div>
+                  )}
+
+                  <div className="min-w-0">
+                    <p className="font-bold text-gray-900 truncate mb-1 pr-4 group-hover:text-primary transition-colors">{m.title}</p>
+                    <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-500">
+                      <span className="bg-gray-100 px-2 py-1 rounded-md">{m.language || "Unknown"}</span>
+                      <span className="bg-gray-100 px-2 py-1 rounded-md">{m.level || "Unknown"}</span>
+                      <span className="text-gray-400 shrink-0">• {(m.fileSize / (1024 * 1024)).toFixed(1)}MB</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    disabled={deletingId === m.id}
+                    onClick={(e) => { e.stopPropagation(); handleDelete(m); }}
+                    className="h-10 px-4 flex items-center justify-center bg-red-50 hover:bg-red-100 text-red-600 font-bold rounded-xl transition-colors disabled:opacity-50"
+                  >
+                    {deletingId === m.id ? (
+                      <span className="material-symbols-outlined text-[18px] animate-spin">sync</span>
+                    ) : (
+                      <span className="material-symbols-outlined text-[18px]">delete</span>
+                    )}
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
         )}
       </div>
 
-      {showModal && (
-        <div className="fixed inset-0 bg-gray-900/60 z-50 flex items-end md:items-center justify-center p-0 md:p-4 backdrop-blur-sm overflow-hidden w-full">
-          <div className="bg-white w-full max-w-md shadow-2xl overflow-hidden rounded-t-[2rem] md:rounded-3xl mt-20 md:my-8 h-[calc(100vh-5rem)] md:h-auto flex flex-col animate-slide-up md:animate-none">
-            <div className="px-6 py-5 md:py-6 border-b border-gray-100 flex justify-between items-center bg-gray-50 md:bg-white shrink-0">
-              <h2 className="text-xl font-bold text-gray-800 m-0">Upload Material</h2>
-              <button type="button" onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600 bg-white size-8 flex items-center justify-center rounded-full shadow-sm md:shadow-none md:bg-transparent md:size-auto">
+
+      {/* UPLOAD MODAL */}
+      {showUploadModal && (
+        <div className="fixed inset-0 bg-gray-900/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="bg-white w-full max-w-lg shadow-2xl overflow-hidden rounded-3xl animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
+            <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50 shrink-0">
+              <h2 className="text-xl font-bold text-gray-800 m-0 flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary">cloud_upload</span>
+                Upload Material
+              </h2>
+              <button
+                type="button"
+                onClick={() => { if (!uploading) setShowUploadModal(false) }}
+                disabled={uploading}
+                className="text-gray-400 hover:text-gray-600 size-8 flex items-center justify-center rounded-full disabled:opacity-20 border bg-white"
+              >
                 <span className="material-symbols-outlined">close</span>
               </button>
             </div>
 
-            <form onSubmit={handleUpload} className="p-6 flex-1 overflow-y-auto space-y-4 pb-32 md:pb-6">
-              <input
-                type="text"
-                placeholder="Title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="w-full border rounded-lg px-3 py-2 border-gray-300 focus:ring-primary focus:border-primary transition"
-              />
-
-              <select
-                value={language}
-                onChange={(e) => {
-                  setLanguage(e.target.value);
-                  setLevel("");
-                }}
-                className="w-full border rounded-lg px-3 py-2 border-gray-300 focus:ring-primary focus:border-primary transition"
-              >
-                <option value="" disabled>Select Language</option>
-                <option value="German">German</option>
-                <option value="English">English</option>
-                <option value="Japanese">Japanese</option>
-                <option value="Spanish">Spanish</option>
-                <option value="French">French</option>
-              </select>
-
-              <select
-                value={level}
-                onChange={(e) => setLevel(e.target.value)}
-                className="w-full border rounded-lg px-3 py-2 border-gray-300 focus:ring-primary focus:border-primary transition"
-                disabled={!language}
-              >
-                <option value="" disabled>Select Level</option>
-                {language === "Japanese" ? (
-                  <>
-                    <option value="N5">N5</option>
-                    <option value="N4">N4</option>
-                    <option value="N3">N3</option>
-                    <option value="N2">N2</option>
-                    <option value="N1">N1</option>
-                  </>
-                ) : (
-                  <>
-                    <option value="A1">A1</option>
-                    <option value="A2">A2</option>
-                    <option value="B1">B1</option>
-                    <option value="B2">B2</option>
-                    <option value="C1">C1</option>
-                    <option value="C2">C2</option>
-                  </>
-                )}
-              </select>
-
-              <div
-                className={`border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center transition-all bg-gray-50/50 cursor-pointer ${dragActive ? 'border-primary bg-primary/5' : 'border-gray-300 hover:border-primary/50'}`}
-                onDragEnter={handleDrag}
-                onDragLeave={handleDrag}
-                onDragOver={handleDrag}
-                onDrop={handleDrop}
-                onClick={() => fileInputRef.current?.click()}
-              >
-                <input
-                  type="file"
-                  className="hidden"
-                  ref={fileInputRef}
-                  accept=".pdf,video/mp4,video/*"
-                  onChange={(e) =>
-                    setFileHandle(e.target.files ? e.target.files[0] : null)
-                  }
-                />
-                <div className="size-12 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center mb-3">
-                  <span className="material-symbols-outlined text-2xl">cloud_upload</span>
+            <form onSubmit={handleUpload} className="p-6 space-y-5 overflow-y-auto">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">Content Title</label>
+                  <input
+                    type="text" required placeholder="Naming your file clearly..."
+                    value={title} onChange={(e) => setTitle(e.target.value)} disabled={uploading}
+                    className="w-full border rounded-xl px-4 py-3 border-gray-300 focus:ring-2 focus:ring-primary/20 outline-none transition"
+                  />
                 </div>
-                {fileHandle ? (
-                  <p className="font-bold text-gray-900 text-sm text-center break-all">{fileHandle.name}</p>
-                ) : (
-                  <>
-                    <p className="text-sm font-bold text-gray-900">Drag & Drop your file here</p>
-                    <p className="text-xs text-gray-500 mt-1">or click to browse</p>
-                  </>
-                )}
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-1">Language</label>
+                    <select
+                      required className="w-full border rounded-xl px-4 py-3 border-gray-300 focus:ring-2 focus:ring-primary/20 outline-none transition bg-white"
+                      value={selectedLanguage} onChange={(e) => { setSelectedLanguage(e.target.value); setSelectedLevel(""); }} disabled={uploading}
+                    >
+                      <option value="">Choose Map</option>
+                      {Object.keys(levelMap).map(lang => <option key={lang} value={lang}>{lang}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-1">Target Level</label>
+                    <select
+                      required className="w-full border rounded-xl px-4 py-3 border-gray-300 focus:ring-2 focus:ring-primary/20 outline-none transition bg-white disabled:bg-gray-50"
+                      value={selectedLevel} onChange={(e) => setSelectedLevel(e.target.value)} disabled={uploading || !selectedLanguage}
+                    >
+                      <option value="">Target Floor</option>
+                      {availableLevelsForUpload.map(lvl => <option key={lvl} value={lvl}>{lvl}</option>)}
+                    </select>
+                  </div>
+                </div>
               </div>
 
-              <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-100 md:static md:bg-transparent md:border-none md:p-0 md:pt-4 flex justify-end gap-3 z-40 pb-[max(1rem,env(safe-area-inset-bottom))] md:pb-0">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="flex-1 md:flex-none px-6 py-3.5 md:py-2 text-base md:text-sm text-gray-600 hover:text-gray-900 font-bold md:font-medium transition border border-gray-200 md:border-transparent rounded-xl md:rounded-lg active:scale-95 md:active:scale-100"
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Attached Source Document</label>
+                <div
+                  className={`border-2 border-dashed rounded-2xl p-6 flex flex-col items-center justify-center transition-all bg-gray-50/50 cursor-pointer ${dragActive ? 'border-primary bg-primary/5' : 'border-gray-200 hover:border-primary/40'} ${uploading ? 'opacity-50 pointer-events-none' : ''}`}
+                  onDragEnter={handleDrag}
+                  onDragLeave={handleDrag}
+                  onDragOver={handleDrag}
+                  onDrop={handleDrop}
+                  onClick={() => fileInputRef.current?.click()}
                 >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={uploading}
-                  className="flex-1 md:flex-none bg-primary hover:bg-primary/90 text-white px-8 py-3.5 md:py-2 rounded-xl md:rounded-lg text-base md:text-sm font-bold md:font-medium transition shadow-sm active:scale-95 md:active:scale-100"
-                >
-                  {uploading ? "Uploading..." : "Upload"}
-                </button>
+                  <input type="file" required={!fileHandle} className="hidden" ref={fileInputRef} accept="application/pdf,video/mp4" onChange={(e) => setFileHandle(e.target.files ? e.target.files[0] : null)} disabled={uploading} />
+
+                  {fileHandle ? (
+                    <div className="flex flex-col items-center justify-center w-full">
+                      <div className="flex items-center gap-4 w-full justify-center">
+                        <div className={`p-4 rounded-xl ${fileHandle.type.includes('video') ? 'bg-blue-100 text-blue-600' : 'bg-red-100 text-red-600'}`}>
+                          <span className="material-symbols-outlined text-3xl">{fileHandle.type.includes('video') ? 'videocam' : 'picture_as_pdf'}</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold text-gray-900 truncate">{fileHandle.name}</p>
+                          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-0.5">{(fileHandle.size / (1024 * 1024)).toFixed(2)} MB</p>
+                        </div>
+                        <button type="button" onClick={(e) => { e.stopPropagation(); setFileHandle(null) }} className="p-2 text-gray-400 hover:text-red-500 rounded-full hover:bg-red-50 transition-colors">
+                          <span className="material-symbols-outlined text-xl">delete</span>
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="size-14 rounded-full bg-white border shadow-sm text-gray-400 flex items-center justify-center mb-3">
+                        <span className="material-symbols-outlined text-2xl">attach_file</span>
+                      </div>
+                      <p className="text-sm font-bold text-gray-900 mb-1">Click or drag Drop PDF/MP4 here</p>
+                      <p className="text-xs font-medium text-gray-500">Unlimited size directly bound to Cloudflare R2.</p>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* PROGRESS OVERLAY WHEN UPLOADING */}
+              {uploading && (
+                <div className="bg-gray-50 p-4 border rounded-2xl animate-in fade-in zoom-in-95 duration-300">
+                  <div className="flex justify-between items-end mb-2">
+                    <span className="text-sm font-black text-primary flex items-center gap-1">
+                      <span className="material-symbols-outlined text-[16px] animate-bounce">sync_alt</span>
+                      Uploading directly to Storage...
+                    </span>
+                    <span className="text-xl font-black text-gray-900">{uploadProgress}%</span>
+                  </div>
+                  <div className="h-3 w-full bg-gray-200 rounded-full overflow-hidden shadow-inner mb-3">
+                    <div
+                      className="h-full bg-primary transition-all duration-300 ease-out flex items-center justify-end pr-2 relative overflow-hidden"
+                      style={{ width: `${uploadProgress}%` }}
+                    >
+                      <div className="absolute inset-0 bg-white/20 w-full animate-[progress_1s_linear_infinite]" style={{ backgroundImage: 'linear-gradient(45deg, rgba(255,255,255,0.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.15) 75%, transparent 75%, transparent)', backgroundSize: '1rem 1rem' }}></div>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center text-xs font-bold text-gray-500 uppercase tracking-widest">
+                    <span><span className="material-symbols-outlined text-[12px] inline-block align-middle mr-1">speed</span>{uploadSpeed}</span>
+                    <span><span className="material-symbols-outlined text-[12px] inline-block align-middle mr-1">timer</span>{uploadEta}</span>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex justify-end gap-3 pt-4 border-t">
+                {uploading ? (
+                  <button
+                    type="button"
+                    onClick={handleCancelUpload}
+                    className="px-6 py-3 text-sm text-red-600 font-bold bg-red-50 rounded-xl hover:bg-red-100 flex-1 transition-colors flex justify-center items-center gap-2 active:scale-95"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">cancel</span>
+                    Cancel Upload
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      disabled={uploading}
+                      onClick={() => setShowUploadModal(false)}
+                      className="px-6 py-3 text-sm text-gray-600 font-bold bg-gray-100 rounded-xl hover:bg-gray-200 flex-1 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={uploading}
+                      className="bg-primary hover:bg-primary/90 text-white px-8 py-3 rounded-xl text-sm font-bold flex-1 transition-all flex justify-center items-center gap-2 active:scale-95"
+                    >
+                      Publish Now
+                    </button>
+                  </>
+                )}
               </div>
             </form>
           </div>

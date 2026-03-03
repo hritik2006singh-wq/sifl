@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, Suspense, useEffect } from "react";
+import { useState, Suspense } from "react";
 import { auth, db } from "@/lib/firebase";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -34,14 +34,31 @@ function LoginContent() {
             const userDoc = await getDoc(doc(db, "users", user.uid));
 
             if (!userDoc.exists()) {
-                setError("User role not found.");
+                await signOut(auth);
+                setError("User profile not found.");
                 setLoading(false);
                 return;
             }
 
-            const role = userDoc.data().role;
+            const data = userDoc.data();
+            const role = data.role;
+            const accountStatus = data.accountStatus ?? "active";
 
-            // Stop loading BEFORE navigation
+            // Block suspended / archived accounts
+            if (accountStatus === "suspended") {
+                await signOut(auth);
+                setError("Your account has been temporarily suspended. Contact administration.");
+                setLoading(false);
+                return;
+            }
+
+            if (accountStatus === "archived") {
+                await signOut(auth);
+                setError("Your account is archived. Contact administration.");
+                setLoading(false);
+                return;
+            }
+
             setLoading(false);
 
             if (role === "admin") {

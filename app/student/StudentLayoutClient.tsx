@@ -8,6 +8,7 @@ import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { useStudentGuard } from "@/hooks/useRoleGuard";
 import MobileBottomNav from "@/components/MobileBottomNav";
+import { STUDENT_ROUTES } from "@/config/sidebarRoutes";
 
 const mobileNavItems = [
     { label: "Overview", icon: "home", path: "/student", exact: true },
@@ -19,6 +20,7 @@ const mobileNavItems = [
 export default function StudentLayoutClient({ children }: { children: React.ReactNode }) {
     const { user, loading } = useStudentGuard();
     const pathname = usePathname();
+    const router = useRouter();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     if (loading) return <div className="p-8">Loading your profile...</div>;
@@ -50,8 +52,7 @@ export default function StudentLayoutClient({ children }: { children: React.Reac
                             <span className="material-symbols-outlined">menu_book</span>
                         </div>
                         <div>
-                            <h1 className="text-lg font-bold leading-none">My Learning</h1>
-                            <p className="text-[10px] uppercase tracking-widest text-primary font-semibold mt-1">Student Portal</p>
+                            <h1 className="text-lg font-bold leading-none">SIFL Student Portal</h1>
                         </div>
                     </div>
                     <button
@@ -83,22 +84,16 @@ export default function StudentLayoutClient({ children }: { children: React.Reac
                 </div>
 
                 <nav className="flex-1 px-4 py-2 space-y-1 overflow-y-auto">
-                    <Link onClick={() => setIsMobileMenuOpen(false)} href="/student" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group ${pathname === "/student" ? "bg-primary text-white shadow-md" : "text-gray-700 hover:bg-primary/10"}`}>
-                        <span className={`material-symbols-outlined text-[20px] ${pathname === "/student" ? "text-white" : "text-gray-400 group-hover:text-primary"}`}>home</span>
-                        <span className="text-sm font-medium">Overview</span>
-                    </Link>
-                    <Link onClick={() => setIsMobileMenuOpen(false)} href="/student/materials" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group ${pathname.startsWith("/student/materials") ? "bg-primary text-white shadow-md" : "text-gray-700 hover:bg-primary/10"}`}>
-                        <span className={`material-symbols-outlined text-[20px] ${pathname.startsWith("/student/materials") ? "text-white" : "text-gray-400 group-hover:text-primary"}`}>video_library</span>
-                        <span className="text-sm font-medium">My Materials</span>
-                    </Link>
-                    <Link onClick={() => setIsMobileMenuOpen(false)} href="/student/assignments" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group ${pathname.startsWith("/student/assignments") ? "bg-primary text-white shadow-md" : "text-gray-700 hover:bg-primary/10"}`}>
-                        <span className={`material-symbols-outlined text-[20px] ${pathname.startsWith("/student/assignments") ? "text-white" : "text-gray-400 group-hover:text-primary"}`}>assignment</span>
-                        <span className="text-sm font-medium">Assignments & Tests</span>
-                    </Link>
-                    <Link onClick={() => setIsMobileMenuOpen(false)} href="/student/profile" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group ${pathname === "/student/profile" ? "bg-primary text-white shadow-md" : "text-gray-700 hover:bg-primary/10"}`}>
-                        <span className={`material-symbols-outlined text-[20px] ${pathname === "/student/profile" ? "text-white" : "text-gray-400 group-hover:text-primary"}`}>person</span>
-                        <span className="text-sm font-medium">My Profile</span>
-                    </Link>
+                    {STUDENT_ROUTES.map(route => {
+                        const isExact = route.path === "/student";
+                        const isActive = isExact ? pathname === route.path : pathname.startsWith(route.path);
+                        return (
+                            <Link key={route.path} onClick={() => setIsMobileMenuOpen(false)} href={route.path} className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group ${isActive ? "bg-primary text-white shadow-md" : "text-gray-700 hover:bg-primary/10"}`}>
+                                <span className={`material-symbols-outlined text-[20px] ${isActive ? "text-white" : "text-gray-400 group-hover:text-primary"}`}>{route.icon}</span>
+                                <span className="text-sm font-medium">{route.name}</span>
+                            </Link>
+                        );
+                    })}
                 </nav>
             </div>
 
@@ -108,8 +103,7 @@ export default function StudentLayoutClient({ children }: { children: React.Reac
                         <span className="material-symbols-outlined">menu_book</span>
                     </div>
                     <div>
-                        <h1 className="text-lg font-bold leading-none">My Learning</h1>
-                        <p className="text-[10px] uppercase tracking-widest text-primary font-semibold mt-1">Student Portal</p>
+                        <h1 className="text-lg font-bold leading-none">SIFL Student Portal</h1>
                     </div>
                 </div>
 
@@ -134,22 +128,16 @@ export default function StudentLayoutClient({ children }: { children: React.Reac
                 </div>
 
                 <nav className="flex-1 px-4 py-2 space-y-1 overflow-y-auto">
-                    <Link href="/student" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group ${pathname === "/student" ? "bg-primary text-white shadow-md" : "text-gray-700 hover:bg-primary/10"}`}>
-                        <span className={`material-symbols-outlined text-[20px] ${pathname === "/student" ? "text-white" : "text-gray-400 group-hover:text-primary"}`}>home</span>
-                        <span className="text-sm font-medium">Overview</span>
-                    </Link>
-                    <Link href="/student/materials" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group ${pathname.startsWith("/student/materials") ? "bg-primary text-white shadow-md" : "text-gray-700 hover:bg-primary/10"}`}>
-                        <span className={`material-symbols-outlined text-[20px] ${pathname.startsWith("/student/materials") ? "text-white" : "text-gray-400 group-hover:text-primary"}`}>video_library</span>
-                        <span className="text-sm font-medium">My Materials</span>
-                    </Link>
-                    <Link href="/student/assignments" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group ${pathname.startsWith("/student/assignments") ? "bg-primary text-white shadow-md" : "text-gray-700 hover:bg-primary/10"}`}>
-                        <span className={`material-symbols-outlined text-[20px] ${pathname.startsWith("/student/assignments") ? "text-white" : "text-gray-400 group-hover:text-primary"}`}>assignment</span>
-                        <span className="text-sm font-medium">Assignments & Tests</span>
-                    </Link>
-                    <Link href="/student/profile" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group ${pathname === "/student/profile" ? "bg-primary text-white shadow-md" : "text-gray-700 hover:bg-primary/10"}`}>
-                        <span className={`material-symbols-outlined text-[20px] ${pathname === "/student/profile" ? "text-white" : "text-gray-400 group-hover:text-primary"}`}>person</span>
-                        <span className="text-sm font-medium">My Profile</span>
-                    </Link>
+                    {STUDENT_ROUTES.map(route => {
+                        const isExact = route.path === "/student";
+                        const isActive = isExact ? pathname === route.path : pathname.startsWith(route.path);
+                        return (
+                            <Link key={route.path} href={route.path} className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group ${isActive ? "bg-primary text-white shadow-md" : "text-gray-700 hover:bg-primary/10"}`}>
+                                <span className={`material-symbols-outlined text-[20px] ${isActive ? "text-white" : "text-gray-400 group-hover:text-primary"}`}>{route.icon}</span>
+                                <span className="text-sm font-medium">{route.name}</span>
+                            </Link>
+                        );
+                    })}
                 </nav>
             </aside>
 

@@ -3,7 +3,7 @@
 export default function WhatsAppFAB() {
     return (
         <a
-            href="https://wa.me/your_number_here"
+            href="https://wa.me/9136513535"
             target="_blank"
             rel="noopener noreferrer"
             className="fixed bottom-6 right-6 z-50 flex items-center justify-center size-14 bg-green-500 text-white rounded-full shadow-lg hover:shadow-green-500/30 hover:-translate-y-1 transition-all active:scale-95 border-2 border-white"

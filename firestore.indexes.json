@@ -1,0 +1,93 @@
+{
+    "indexes": [
+        {
+            "collectionGroup": "users",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "role",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "accountStatus",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "users",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "role",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "accountStatus",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "created_at",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "users",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "assignedTeacherId",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "accountStatus",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "users",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "currentLevel",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "language",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "attendance",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "studentId",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "date",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "attendance",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "teacherId",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "date",
+                    "order": "ASCENDING"
+                }
+            ]
+        }
+    ],
+    "fieldOverrides": []
+}

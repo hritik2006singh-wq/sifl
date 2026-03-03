@@ -1,89 +1,61 @@
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    function isAuthenticated() {
-      return request.auth != null;
-    }
-
+    // Function to check if a user is an admin
     function isAdmin() {
-      // Use exists() before get() prevent permission evaluation errors when user document is not present yet.
-      return isAuthenticated() && 
-             exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+      return request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
-    function isTeacher() {
-      return isAuthenticated() && 
-             exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "teacher";
+    match /users/{userId} {
+      // Admin: Full access
+      allow read, write: if isAdmin();
+      
+      // Student: Can read/write their own document only
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+
+      // Teacher: Can read student documents assigned to them
+      allow read: if request.auth != null && 
+        resource.data.role == 'student' && 
+        resource.data.assignedTeacherId == request.auth.uid;
     }
 
-    // 1️⃣ Global Admin Access (Safest way for multi-admin apps)
-    // Applying this at the root means we don't need redundant isAdmin() checks everywhere.
-    match /{document=**} {
+    match /classes/{classId} {
+      allow read, write: if isAdmin();
+      // Teacher: Can read their own classes
+      allow read: if request.auth != null && resource.data.teacherId == request.auth.uid;
+      // Student: Can read classes they are in
+      allow read: if request.auth != null && request.auth.uid in resource.data.studentIds;
+    }
+
+    match /assignments/{assignmentId} {
+      allow read, write: if isAdmin();
+      allow read: if request.auth != null; // Refine based on actual assignment structure
+    }
+
+    match /demo_bookings/{bookingId} {
+      // Anyone can create a demo booking
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
+    }
+    
+    match /materials/{document=**} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+    
+    match /user_status_logs/{document=**} {
       allow read, write: if isAdmin();
     }
 
-    // 2️⃣ Users Collection
-    match /users/{userId} {
-      allow read, update: if request.auth.uid == userId;
-    }
-
-    match /teachers/{teacherId} {
-      allow read: if request.auth != null;
-      allow update: if request.auth.token.role == "admin" 
-                    || request.auth.uid == teacherId;
-    }
-
-    match /students/{studentId} {
-      allow read: if request.auth != null;
-      allow update: if request.auth.token.role == "admin";
-    }
-
-    // 3️⃣ Study Materials
-    match /studyMaterials/{materialId} {
-      // Student can read items they uploaded OR things generally available (if system needs strict access rules, use student_material_access docs).
-      // Teachers read all materials.
-      allow read: if isAuthenticated();
-      // Students/Teachers can upload.
-      allow create: if isAuthenticated() && request.auth.uid == request.resource.data.uploadedBy;
-      // Uploader can update/delete their own
-      allow update, delete: if isAuthenticated() && request.auth.uid == resource.data.uploadedBy;
-    }
-
-    // 4️⃣ Demo Bookings (Public facing form triggers creation, Admin handles everything else)
-    match /demoBookings/{bookingId} {
-      allow create: if true; // Public demo booking form
-      allow read, update, delete: if false; // Only Admin (covered by global wildcard)
-    }
-
-    // 5️⃣ Availability Collection
-    match /availability/{teacherId} {
-      // Public / Students can read teacher's availability to book
-      allow read: if true;
-      // Teachers write their own availability
-      allow write: if isAuthenticated() && request.auth.uid == teacherId;
-    }
-
-    // 6️⃣ Slots Collection (Atomic booking system)
-    match /slots/{slotId} {
-      allow read: if true;
-      allow create: if true && request.resource.data.status == "pending"; // Lazily create via booking form
-      allow update: if true && resource.data.status == "available" && request.resource.data.status == "pending"; // Lock mechanism
-      allow delete: if false; // Admin only
-    }
-
-    // 7️⃣ Classes (The main Schedule Engine)
-    match /classes/{classId} {
-      allow read: if isAuthenticated(); // Students & teachers can read their classes
-      allow write: if isTeacher(); // Teachers can schedule or update classes
-    }
-
-    // 8️⃣ student_material_access (Linking materials)
-    match /student_material_access/{accessId} {
-      allow read: if isAuthenticated();
-      allow write: if isTeacher(); // Teachers can grant access
+    match /attendance/{docId} {
+      allow read, write: if isAdmin();
+      allow read: if request.auth != null && resource.data.studentId == request.auth.uid;
+      // Teachers read/write if they are the teacher assigned
+      allow read, write: if request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'teacher';
     }
   }
 }
