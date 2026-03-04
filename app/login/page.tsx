@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, Suspense } from "react";
-import { auth, db } from "@/lib/firebase-client";
+import { auth } from "@/lib/firebase-client";
 import { signInWithEmailAndPassword, signOut } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { ensureUserProfile } from "@/lib/user-service";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
@@ -22,38 +22,66 @@ function LoginContent() {
         setLoading(true);
         setError("");
 
+        let user;
+
+        // 1️⃣ STEP: Authentication
         try {
             const userCredential = await signInWithEmailAndPassword(
                 auth,
                 email,
                 password
             );
+            user = userCredential.user;
+        } catch (authError: any) {
+            console.error("Authentication failed:", authError);
 
-            const user = userCredential.user;
-
-            // Use centralized utility for auto-recovery and verification
-            const { ensureUserProfile } = await import("@/lib/user-service");
-            const data = await ensureUserProfile(user);
-
-            const role = data.role;
-            const accountStatus = data.accountStatus || data.status || "active";
-
-            // Block suspended / archived accounts
-            if (accountStatus === "suspended") {
-                await signOut(auth);
-                setError("Your account has been temporarily suspended. Contact administration.");
-                setLoading(false);
-                return;
-            }
-
-            if (accountStatus === "archived") {
-                await signOut(auth);
-                setError("Your account is archived. Contact administration.");
-                setLoading(false);
-                return;
+            if (authError.code === "auth/user-not-found") {
+                setError("User does not exist.");
+            } else if (authError.code === "auth/wrong-password") {
+                setError("Incorrect password.");
+            } else if (authError.code === "auth/invalid-email") {
+                setError("Invalid email format.");
+            } else if (authError.code === "auth/too-many-requests") {
+                setError("Too many attempts. Try again later.");
+            } else {
+                setError("Authentication failed. Please try again.");
             }
 
             setLoading(false);
+            return;
+        }
+
+        // 2️⃣ STEP: Firestore Profile Verification
+        let profile;
+        try {
+            // This ensures a profile exists and recovers if missing
+            profile = await ensureUserProfile(user);
+
+            // Account Status Guard: Prevent login if suspended or archived
+            const status = profile.status || profile.accountStatus || "active";
+            if (status !== "active") {
+                await signOut(auth);
+                if (status === "suspended") {
+                    setError("Your account has been temporarily suspended.");
+                } else if (status === "archived") {
+                    setError("Your account is archived. Contact administration.");
+                } else {
+                    setError(`Account status: ${status}. Access denied.`);
+                }
+                setLoading(false);
+                return;
+            }
+        } catch (profileError: any) {
+            console.error("Profile verification failed:", profileError);
+            setError("Critical profile error. Contact administration.");
+            await signOut(auth);
+            setLoading(false);
+            return;
+        }
+
+        // 3️⃣ STEP: Role-Based Routing
+        try {
+            const role = profile.role || "student";
 
             if (role === "admin") {
                 router.push("/admin");
@@ -62,9 +90,9 @@ function LoginContent() {
             } else {
                 router.push("/student");
             }
-
-        } catch (err: any) {
-            setError("Invalid email or password. Please try again.");
+        } catch (routingError) {
+            console.error("Routing error:", routingError);
+            setError("Failed to redirect to your dashboard.");
             setLoading(false);
         }
     };

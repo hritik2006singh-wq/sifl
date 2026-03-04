@@ -1,16 +1,21 @@
-/**
- * Firebase CLIENT SDK
- * ✅ Safe to import in any "use client" file or browser context
- * ❌ Never import firebase-admin here
- */
+"use client";
+
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { getStorage } from "firebase/storage";
 
-// During build time on Vercel/Local, NEXT_PUBLIC_ vars might be missing.
-// Firebase SDK throws if apiKey is missing or clearly invalid.
-// We use a dummy key to prevent build-time crashes during static generation.
+// Next.js requires direct access to process.env.NEXT_PUBLIC_* for static replacement during build.
+// Dynamic indexing like process.env[name] evaluates to undefined on the client.
+function requireEnv(name: string, value: string | undefined) {
+    if (!value) {
+        throw new Error(`Missing environment variable: ${name}`);
+    }
+    return value;
+}
+
+console.log("Firebase key:", process.env.NEXT_PUBLIC_FIREBASE_API_KEY);
+
 const firebaseConfig = {
     apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY!,
     authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN!,
@@ -20,9 +25,12 @@ const firebaseConfig = {
     appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID!,
 };
 
-// Prevent duplicate initialization during hot reload
-// If an app is already initialized, use it. Otherwise, init with config.
-const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+if (!firebaseConfig.apiKey) {
+    throw new Error("Firebase API key missing. Check .env.local");
+}
+
+// Ensure Firebase is only initialized once
+const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
 export const db = getFirestore(app);
 export const auth = getAuth(app);

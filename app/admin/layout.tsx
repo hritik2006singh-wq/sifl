@@ -174,7 +174,7 @@ export default function AdminLayout({
         {/* Sidebar */}
         <aside className="w-64 flex-shrink-0 border-r border-slate-200 bg-white hidden lg:flex flex-col">
           <div className="p-6 flex items-center gap-3">
-            <Image src={BRANDING.dashboardLogo} alt="Logo" width={40} height={40} className="rounded-md object-cover shadow-sm" />
+            <Image src="/images/hero/logo.jpg" alt="Logo" width={40} height={40} className="rounded-md object-cover shadow-sm" />
             <div>
               <h1 className="text-lg font-bold leading-none">SIFL</h1>
               <p className="text-[10px] uppercase tracking-widest text-slate-400 font-semibold mt-1">

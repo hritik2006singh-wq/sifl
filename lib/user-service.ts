@@ -7,16 +7,14 @@ export interface UserProfile {
     email: string;
     role: "admin" | "teacher" | "student";
     status: "active" | "suspended" | "archived";
-    accountStatus: "active" | "suspended" | "archived";
-    createdAt: any;
+    createdAt: string;
     name?: string;
     [key: string]: any;
 }
 
 /**
- * Ensures a user profile exists in Firestore.
- * If missing, it creates one with default values using Auth data.
- * If it already exists, it checks if critical fields are present.
+ * Ensures a user profile exists in Firestore and returns the normalized profile.
+ * If missing, it creates a default one with role "student".
  */
 export async function ensureUserProfile(user: User, initialData?: Partial<UserProfile>): Promise<UserProfile> {
     const userDocRef = doc(db, "users", user.uid);
@@ -25,37 +23,46 @@ export async function ensureUserProfile(user: User, initialData?: Partial<UserPr
     if (userSnap.exists()) {
         const currentData = userSnap.data() as any;
 
-        // Requirement: If a profile already exists, do not overwrite it unless fields are missing.
-        const missingFields: any = {};
-        if (!currentData.email && user.email) missingFields.email = user.email;
-        if (!currentData.role) missingFields.role = initialData?.role || "student";
-
-        // Map both status and accountStatus to be safe and consistent with project patterns
+        // Normalize the structure: ensuring role, status/accountStatus, and createdAt are present
         const currentStatus = currentData.accountStatus || currentData.status || "active";
-        if (!currentData.status) missingFields.status = currentStatus;
-        if (!currentData.accountStatus) missingFields.accountStatus = currentStatus;
 
-        if (!currentData.createdAt) missingFields.createdAt = initialData?.createdAt || new Date().toISOString();
+        const normalizedProfile: UserProfile = {
+            uid: user.uid,
+            email: currentData.email || user.email || "",
+            role: currentData.role || "student",
+            status: currentStatus,
+            createdAt: currentData.createdAt || new Date().toISOString(),
+            ...currentData
+        };
 
-        if (Object.keys(missingFields).length > 0) {
-            await setDoc(userDocRef, missingFields, { merge: true });
-            return { ...currentData, ...missingFields, uid: user.uid };
+        // If any critical field was missing (role or status), we update it in Firestore
+        if (!currentData.role || (!currentData.status && !currentData.accountStatus)) {
+            await setDoc(userDocRef, {
+                role: normalizedProfile.role,
+                status: normalizedProfile.status,
+                accountStatus: normalizedProfile.status
+            }, { merge: true });
         }
 
-        return { ...currentData, uid: user.uid, status: currentStatus, accountStatus: currentStatus };
+        return normalizedProfile;
     } else {
-        const defaultStatus = initialData?.accountStatus || initialData?.status || "active";
-        const newProfile: any = {
+        // Create a new Firestore document if it does not exist
+        const defaultStatus = initialData?.status || "active";
+        const newProfile: UserProfile = {
             uid: user.uid,
             email: user.email || initialData?.email || "",
             role: initialData?.role || "student",
             status: defaultStatus,
-            accountStatus: defaultStatus,
             createdAt: initialData?.createdAt || new Date().toISOString(),
             ...initialData
         };
 
-        await setDoc(userDocRef, newProfile);
+        // Write the document with both status and accountStatus for legacy compatibility
+        await setDoc(userDocRef, {
+            ...newProfile,
+            accountStatus: defaultStatus
+        });
+
         return newProfile;
     }
 }
