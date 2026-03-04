@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { db } from "@/lib/firebase-admin";
+import { db } from "@/lib/firebase-admin-admin";
 import { collection, getDocs, query, orderBy, limit, doc, runTransaction, getDoc, where } from "firebase/firestore";
 import { useAdminGuard } from "@/hooks/useRoleGuard";
 import toast from "react-hot-toast";

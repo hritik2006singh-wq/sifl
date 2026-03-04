@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { db } from "@/lib/firebase-admin";
+import { db } from "@/lib/firebase-admin-admin";
 import { collection, query, where, getDocs, doc, runTransaction, getDoc } from "firebase/firestore";
 import CustomModal from "@/components/CustomModal";
 

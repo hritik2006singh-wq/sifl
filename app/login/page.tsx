@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, Suspense } from "react";
-import { auth, db } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase-admin";
 import { signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { useRouter, useSearchParams } from "next/navigation";

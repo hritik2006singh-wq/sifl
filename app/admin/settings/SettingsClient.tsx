@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { db } from "@/lib/firebase-admin";
+import { db } from "@/lib/firebase-admin-admin";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { useAdminGuard } from "@/hooks/useRoleGuard";
 import { updatePassword } from "firebase/auth";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { storage } from "@/lib/firebase";
+import { storage } from "@/lib/firebase-admin";
 
 export default function SettingsClient() {
     const { user, loading: authLoading } = useAdminGuard();

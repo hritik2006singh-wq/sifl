@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { db } from "@/lib/firebase-admin";
+import { db } from "@/lib/firebase-admin-admin";
 import { collection, query, orderBy, limit, getDocs, doc, deleteDoc, updateDoc } from "firebase/firestore";
 import Link from "next/link";
 import toast from "react-hot-toast";

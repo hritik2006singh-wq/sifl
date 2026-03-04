@@ -1,4 +1,4 @@
-import { adminDb } from "@/lib/firebaseAdmin";
+import { adminDb } from "@/lib/firebase-adminAdmin";
 import { Metadata } from 'next';
 import Image from "next/image";
 import Link from "next/link";

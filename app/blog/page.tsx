@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Metadata } from "next";
-import { adminDb } from "@/lib/firebaseAdmin";
+import { adminDb } from "@/lib/firebase-adminAdmin";
 import Image from "next/image";
 
 export const revalidate = 60;

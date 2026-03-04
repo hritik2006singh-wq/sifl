@@ -2,7 +2,7 @@
 
 import { useTeacherGuard } from "@/hooks/useRoleGuard";
 import { useState, useEffect } from "react";
-import { db } from "@/lib/firebase-admin";
+import { db } from "@/lib/firebase-admin-admin";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import Link from "next/link";
 

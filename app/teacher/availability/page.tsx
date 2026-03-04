@@ -3,7 +3,7 @@
 import { useTeacherGuard } from "@/hooks/useRoleGuard";
 import { useState, useEffect } from "react";
 import { doc, getDoc, setDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase-admin";
+import { db } from "@/lib/firebase-admin-admin";
 import toast from "react-hot-toast";
 
 type DayConfig = { enabled: boolean; start: string; end: string };

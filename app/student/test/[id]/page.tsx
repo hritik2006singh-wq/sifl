@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef, use } from "react";
-import { auth, db } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase-admin";
 import { collection, addDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import CustomModal from "@/components/CustomModal";
