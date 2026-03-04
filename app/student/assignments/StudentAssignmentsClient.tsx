@@ -2,7 +2,7 @@
 
 import { useStudentGuard } from "@/hooks/useRoleGuard";
 import { useState, useEffect } from "react";
-import { db } from "@/lib/firebase-admin-admin";
+import { db } from "@/lib/firebase-client";
 import { collection, query, where, getDocs } from "firebase/firestore";
 
 export default function StudentAssignmentsClient() {

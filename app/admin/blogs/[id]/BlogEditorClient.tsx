@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { db, auth } from "@/lib/firebase-admin";
+import { db, auth } from "@/lib/firebase-client";
 import { collection, doc, getDoc, setDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";

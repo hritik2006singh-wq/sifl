@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Metadata } from "next";
-import { adminDb } from "@/lib/firebase-adminAdmin";
+import { adminDb } from "@/lib/firebase-admin";
 import Image from "next/image";
 
 export const revalidate = 60;
@@ -18,6 +18,7 @@ export default async function BlogIndexPage() {
     let blogs: any[] = [];
 
     try {
+        if (!adminDb) throw new Error("Admin DB not initialized");
         const snapshot = await adminDb
             .collection("blogs")
             .where("status", "==", "published")

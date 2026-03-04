@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { db } from "@/lib/firebase-admin-admin";
+import { db, firebaseConfig } from "@/lib/firebase-client";
 import {
     collection,
     getDocs,
@@ -116,7 +116,6 @@ export default function StudentsClient() {
         try {
             const { initializeApp, getApps } = await import("firebase/app");
             const { getAuth, createUserWithEmailAndPassword } = await import("firebase/auth");
-            const { firebaseConfig } = await import("@/lib/firebase-admin");
             const secondaryApp = getApps().find(app => app.name === "Secondary") || initializeApp(firebaseConfig, "Secondary");
             const secondaryAuth = getAuth(secondaryApp);
 

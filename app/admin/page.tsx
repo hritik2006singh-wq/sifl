@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { db } from "@/lib/firebase-admin-admin";
+import { db } from "@/lib/firebase-client";
 import { useRouter } from "next/navigation";
 import { collection, query, where, getDocs, getCountFromServer } from "firebase/firestore";
 import { useAdminGuard } from "@/hooks/useRoleGuard";

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { db } from "@/lib/firebase-admin-admin";
+import { db } from "@/lib/firebase-client";
 import { collection, query, where, getDocs, doc, getDoc } from "firebase/firestore";
 import { useTeacherGuard } from "@/hooks/useRoleGuard";
 import Link from "next/link";
