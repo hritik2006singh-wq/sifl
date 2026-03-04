@@ -375,3 +375,8 @@ export default function AdminDashboardPage() {
     </>
   );
 }
+const auth = getAuth()
+
+auth.currentUser?.getIdTokenResult().then((token) => {
+  console.log("TOKEN CLAIMS:", token.claims)
+})

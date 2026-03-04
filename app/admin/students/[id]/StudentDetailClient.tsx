@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { db, auth } from "@/lib/firebase-client";
-import { collection, getDocs, doc, getDoc, query, where, setDoc, serverTimestamp, deleteDoc } from "firebase/firestore";
+import { collection, getDocs, doc, getDoc, query, where, setDoc, updateDoc, serverTimestamp, deleteDoc } from "firebase/firestore";
 import { sendPasswordResetEmail } from "firebase/auth";
 import Link from "next/link";
 import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 import { useAdminGuard } from "@/hooks/useRoleGuard";
 
 const levelMap: Record<string, string[]> = {
@@ -16,8 +17,17 @@ const levelMap: Record<string, string[]> = {
     Spanish: ["A1", "A2", "B1", "B2", "C1", "C2"]
 };
 
+function slugify(name: string) {
+    return name
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, "-")
+        .replace(/[^\w-]+/g, "");
+}
+
 export default function StudentDetailClient({ id }: { id: string }) {
     const { user, loading: authLoading } = useAdminGuard();
+    const router = useRouter();
     const [modalOpen, setModalOpen] = useState(false);
     const [modalType, setModalType] = useState<"edit" | "test" | null>(null);
     const [testTitle, setTestTitle] = useState("");
@@ -47,11 +57,21 @@ export default function StudentDetailClient({ id }: { id: string }) {
     useEffect(() => {
         const fetchStudentData = async () => {
             try {
-                const studentDoc = await getDoc(doc(db, "users", id));
+                let studentDoc: any = await getDoc(doc(db, "users", id));
                 if (!studentDoc.exists()) {
-                    setStudent(null);
-                    setLoading(false);
-                    return;
+                    const q = query(
+                        collection(db, "users"),
+                        where("slug", "==", id),
+                        where("role", "==", "student")
+                    );
+                    const snap = await getDocs(q);
+                    if (!snap.empty) {
+                        studentDoc = snap.docs[0];
+                    } else {
+                        toast.error("Student not found");
+                        router.push("/admin/students");
+                        return;
+                    }
                 }
 
                 const studentData: any = { id: studentDoc.id, ...studentDoc.data() };
@@ -126,7 +146,19 @@ export default function StudentDetailClient({ id }: { id: string }) {
 
     const handleUpdateProfile = async () => {
         try {
-            const docRef = doc(db, "users", id);
+            // 1. Safe claim verification & logging
+            const idTokenResult = await auth.currentUser?.getIdTokenResult();
+            console.log("TOKEN CLAIMS:", idTokenResult?.claims);
+
+            if (!idTokenResult?.claims.admin) {
+                console.error("ADMIN CLAIM MISSING! Firestore writes will fail.");
+                toast.error("Permission Denied: Missing Admin Claim");
+                return;
+            }
+
+            // 2. Correct document path: students/{studentId}
+            const actualId = student?.id || id;
+            const docRef = doc(db, "students", actualId);
 
             // Only update updatedAt if currentLevel changed
             const isLevelBumped = editForm.currentLevel !== student?.currentLevel;
@@ -144,13 +176,19 @@ export default function StudentDetailClient({ id }: { id: string }) {
                 payload.updatedAt = serverTimestamp();
             }
 
+            if (!student?.slug && student?.name) {
+                payload.slug = `${slugify(student.name)}-${actualId.slice(0, 4)}`;
+            }
+
+            // 3. Use updateDoc (or setDoc with merge if doc might not exist yet)
+            // As per architecture, student details belong in the 'students' collection
             await setDoc(docRef, payload, { merge: true });
 
             if (editForm.teacher_email) {
                 const q = query(collection(db, "users"), where("email", "==", editForm.teacher_email), where("role", "==", "teacher"));
                 const qSnap = await getDocs(q);
                 if (!qSnap.empty) {
-                    await setDoc(docRef, { assignedTeacherId: qSnap.docs[0].id }, { merge: true });
+                    await updateDoc(docRef, { assignedTeacherId: qSnap.docs[0].id });
                 }
             }
 
@@ -161,7 +199,7 @@ export default function StudentDetailClient({ id }: { id: string }) {
             toast.success("Profile updated successfully!");
         } catch (error) {
             console.error("Error updating profile:", error);
-            toast.error("Failed to update profile");
+            toast.error("Failed to update profile: Insufficient Permissions");
         }
     };
 
@@ -200,14 +238,15 @@ export default function StudentDetailClient({ id }: { id: string }) {
 
     const toggleAttendance = async (dateStr: string) => {
         const existing = attendanceDocs.find(d => d.date === dateStr);
-        const docId = `${id}_${dateStr}`;
+        const actualId = student?.id || id;
+        const docId = `${actualId}_${dateStr}`;
         const docRef = doc(db, "attendance", docId);
 
         try {
             if (!existing) {
                 // No Class -> Present
                 const newData = {
-                    studentId: id,
+                    studentId: actualId,
                     teacherId: student?.assignedTeacherId || "unassigned",
                     date: dateStr,
                     status: "present",
@@ -287,7 +326,7 @@ export default function StudentDetailClient({ id }: { id: string }) {
             await setDoc(doc(collection(db, "tests")), {
                 title: testTitle,
                 materialId: selectedMaterial,
-                studentId: id,
+                studentId: student?.id || id,
                 teacherId: student?.assignedTeacherId || "",
                 createdAt: new Date().toISOString(),
             });
@@ -301,7 +340,8 @@ export default function StudentDetailClient({ id }: { id: string }) {
 
     const handleLifecycleAction = async (newStatus: "active" | "suspended" | "archived") => {
         try {
-            await setDoc(doc(db, "users", id), {
+            const actualId = student?.id || id;
+            await setDoc(doc(db, "users", actualId), {
                 accountStatus: newStatus,
                 accountStatusUpdatedAt: serverTimestamp(),
                 accountStatusUpdatedBy: auth.currentUser?.uid ?? null
@@ -320,7 +360,7 @@ export default function StudentDetailClient({ id }: { id: string }) {
     }
 
     if (!student) {
-        return <div className="p-6">Student not found.</div>;
+        return null;
     }
 
     const availableLevels = editForm.language ? levelMap[editForm.language] || [] : [];

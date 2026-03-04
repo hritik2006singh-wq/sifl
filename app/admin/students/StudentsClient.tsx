@@ -23,6 +23,14 @@ import toast from "react-hot-toast";
 
 type AccountStatus = "active" | "suspended" | "archived";
 
+function slugify(name: string) {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/[^\w-]+/g, "");
+}
+
 const levelMap: Record<string, string[]> = {
   German: ["A1", "A2", "B1", "B2", "C1", "C2"],
   Japanese: ["N5", "N4", "N3", "N2", "N1"],
@@ -190,6 +198,7 @@ export default function StudentsClient() {
         language: newLanguage,
         currentLevel: newLevel,
         hasFullAccess,
+        slug: `${slugify(newEmail.split('@')[0])}-${user.uid.slice(0, 4)}`,
         updatedAt: serverTimestamp(),
         created_at: new Date().toISOString(),
       };
@@ -358,7 +367,7 @@ export default function StudentsClient() {
                   className="border-b border-gray-50 hover:bg-gray-50/80 transition-colors"
                 >
                   <td className="py-4 px-4 text-sm font-bold text-gray-900">
-                    <Link href={`/admin/students/${student.id}`} className="hover:text-primary transition-colors flex items-center gap-2">
+                    <Link href={`/admin/students/${student.slug || student.id}`} className="hover:text-primary transition-colors flex items-center gap-2">
                       <div className="size-8 bg-purple-50 text-primary rounded-full flex items-center justify-center shrink-0">
                         {student.email.charAt(0).toUpperCase()}
                       </div>
@@ -404,7 +413,7 @@ export default function StudentsClient() {
                   <td className="py-4 px-4 text-right">
                     <div className="flex items-center justify-end gap-2">
                       <Link
-                        href={`/admin/students/${student.id}`}
+                        href={`/admin/students/${student.slug || student.id}`}
                         className="text-sm text-primary font-bold hover:underline"
                       >
                         Manage

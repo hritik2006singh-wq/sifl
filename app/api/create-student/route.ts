@@ -2,6 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { adminAuth, adminDb } from '@/lib/firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
 
+function slugify(name: string) {
+    return name
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, "-")
+        .replace(/[^\w-]+/g, "");
+}
+
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
@@ -51,6 +59,7 @@ export async function POST(req: NextRequest) {
             status: 'active',
             accountStatus: 'active', // For consistency with other parts of the app
             profileImage: '',
+            slug: `${slugify(name)}-${userRecord.uid.slice(0, 4)}`,
             createdAt: FieldValue.serverTimestamp(),
         };
 

@@ -283,7 +283,6 @@ export default function AdminLayout({
             {children}
           </div>
         </main>
-        <MobileBottomNav items={mobileNavItems} />
       </div>
     </>
   );

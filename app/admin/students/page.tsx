@@ -19,6 +19,14 @@ import ClassSchedulerModal from "@/components/ClassSchedulerModal";
 
 const LEVELS = ["Beginner (A1)", "Elementary (A2)", "Intermediate (B1)", "Upper Intermediate (B2)", "Advanced (C1)", "Mastery (C2)"];
 const LANGUAGE_TRACKS = ["English", "German", "French", "Spanish", "Japanese", "Other"];
+
+function slugify(name: string) {
+    return name
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, "-")
+        .replace(/[^\w-]+/g, "");
+}
 const GENDERS = ["Male", "Female", "Other", "Prefer not to say"];
 
 export default function StudentsClient() {
@@ -158,6 +166,7 @@ export default function StudentsClient() {
                 is_paid: newStatus === "paid",
                 status: "active",
                 profileImage: "",
+                slug: `${slugify(newName)}-${result.uid.slice(0, 4)}`,
                 createdAt: new Date().toISOString()
             };
 
@@ -234,7 +243,7 @@ export default function StudentsClient() {
                                             <p className="font-bold text-gray-900">{student.name || "N/A"}</p>
                                             <p className="text-xs text-gray-500">
                                                 <Link
-                                                    href={`/admin/students/${student.id}`}
+                                                    href={`/admin/students/${student.slug || student.id}`}
                                                     className="hover:text-primary hover:underline"
                                                 >
                                                     {student.email}
@@ -274,7 +283,7 @@ export default function StudentsClient() {
                                         Schedule Class
                                     </button>
                                     <Link
-                                        href={`/admin/students/${student.id}`}
+                                        href={`/admin/students/${student.slug || student.id}`}
                                         className="text-sm text-primary font-bold hover:underline"
                                     >
                                         Manage CRM
@@ -339,7 +348,7 @@ export default function StudentsClient() {
                                 Schedule
                             </button>
                             <Link
-                                href={`/admin/students/${student.id}`}
+                                href={`/admin/students/${student.slug || student.id}`}
                                 className="flex-1 text-center text-sm font-bold bg-primary/10 text-primary py-2.5 rounded-xl border border-primary/20 hover:bg-primary/20 transition-colors"
                             >
                                 Manage
