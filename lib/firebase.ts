@@ -1,18 +1,14 @@
-import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
-import { getStorage } from "firebase/storage";
-export const firebaseConfig = {
-  apiKey: "AIzaSyCRzHWUfUiR9DgmikNcnRjYlYh3jzN4fZk",
-  authDomain: "sifl-lms.firebaseapp.com",
-  projectId: "sifl-lms",
-  storageBucket: "sifl-lms.firebasestorage.app",
-  messagingSenderId: "680100271021",
-  appId: "1:680100271021:web:681b222546b2528dcac724",
-};
+import { initializeApp, cert, getApps } from "firebase-admin/app";
+import { getFirestore } from "firebase-admin/firestore";
 
-const app = initializeApp(firebaseConfig);
+if (!getApps().length) {
+  initializeApp({
+    credential: cert({
+      projectId: process.env.FIREBASE_PROJECT_ID!,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL!,
+      privateKey: process.env.FIREBASE_PRIVATE_KEY!.replace(/\\n/g, "\n"),
+    }),
+  });
+}
 
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const storage = getStorage(app);
+export const adminDb = getFirestore();
