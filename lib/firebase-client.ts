@@ -12,12 +12,12 @@ import { getStorage } from "firebase/storage";
 // Firebase SDK throws if apiKey is missing or clearly invalid.
 // We use a dummy key to prevent build-time crashes during static generation.
 const firebaseConfig = {
-    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "AIzaSyCRzHWUfUiR9DgmikNcnRjYlYh3jzN4fZk",
-    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "sifl-lms.firebaseapp.com",
-    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "sifl-lms",
-    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "sifl-lms.firebasestorage.app",
-    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "680100271021",
-    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:680100271021:web:681b222546b2528dcac724",
+    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY!,
+    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN!,
+    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID!,
+    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET!,
+    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID!,
+    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID!,
 };
 
 // Prevent duplicate initialization during hot reload
