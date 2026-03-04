@@ -3,7 +3,7 @@
 import { useTeacherGuard } from "@/hooks/useRoleGuard";
 import { useState, useRef, useEffect } from "react";
 import { doc, updateDoc, collection, query, where, getDocs } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { db } from "@/lib/firebase-admin";
 import toast from "react-hot-toast";
 
 export default function TeacherProfilePage() {

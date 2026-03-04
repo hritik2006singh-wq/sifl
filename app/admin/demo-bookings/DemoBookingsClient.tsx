@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { db } from "@/lib/firebase";
+import { db } from "@/lib/firebase-admin";
 import { collection, getDocs, query, orderBy, limit, doc, runTransaction, getDoc, where } from "firebase/firestore";
 import { useAdminGuard } from "@/hooks/useRoleGuard";
 import toast from "react-hot-toast";
@@ -310,8 +310,8 @@ export default function DemoBookingsClient() {
                                 <p className="text-sm text-gray-500">{booking.phone}</p>
                             </div>
                             <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold capitalize border ${booking.status === 'approved' ? 'bg-green-100 text-green-800 border-green-200' :
-                                    booking.status === 'pending' ? 'bg-amber-100 text-amber-800 border-amber-200' :
-                                        'bg-red-100 text-red-800 border-red-200'
+                                booking.status === 'pending' ? 'bg-amber-100 text-amber-800 border-amber-200' :
+                                    'bg-red-100 text-red-800 border-red-200'
                                 }`}>
                                 {booking.status}
                             </span>

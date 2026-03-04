@@ -3,7 +3,7 @@
 import { useStudentGuard } from "@/hooks/useRoleGuard";
 import { useState, useRef, useEffect } from "react";
 import { doc, updateDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { db } from "@/lib/firebase-admin";
 import toast from "react-hot-toast";
 
 export default function StudentProfilePage() {

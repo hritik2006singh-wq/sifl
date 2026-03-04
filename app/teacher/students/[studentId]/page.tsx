@@ -2,7 +2,7 @@
 
 import { useTeacherGuard } from "@/hooks/useRoleGuard";
 import { useState, useEffect } from "react";
-import { db } from "@/lib/firebase";
+import { db } from "@/lib/firebase-admin";
 import { doc, getDoc, collection, query, where, getDocs, updateDoc, setDoc, deleteDoc, serverTimestamp } from "firebase/firestore";
 import Link from "next/link";
 import toast from "react-hot-toast";

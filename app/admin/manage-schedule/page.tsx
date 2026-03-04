@@ -2,7 +2,7 @@
 
 import { useAdminGuard } from "@/hooks/useRoleGuard";
 import { useState, useEffect } from "react";
-import { db } from "@/lib/firebase";
+import { db } from "@/lib/firebase-admin";
 import { doc, getDoc, setDoc, collection, query, where, getDocs } from "firebase/firestore";
 import toast from "react-hot-toast";
 

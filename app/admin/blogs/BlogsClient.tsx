@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { db } from "@/lib/firebase";
+import { db } from "@/lib/firebase-admin";
 import { collection, query, orderBy, limit, getDocs, doc, deleteDoc, updateDoc } from "firebase/firestore";
 import Link from "next/link";
 import toast from "react-hot-toast";
@@ -138,8 +138,8 @@ export default function BlogsClient() {
                                             <button
                                                 onClick={() => toggleStatus(blog.id, blog.status)}
                                                 className={`px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase transition ${blog.status === "published"
-                                                        ? "bg-green-100 text-green-700 hover:bg-green-200"
-                                                        : "bg-amber-100 text-amber-700 hover:bg-amber-200"
+                                                    ? "bg-green-100 text-green-700 hover:bg-green-200"
+                                                    : "bg-amber-100 text-amber-700 hover:bg-amber-200"
                                                     }`}
                                             >
                                                 {blog.status}
