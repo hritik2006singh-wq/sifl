@@ -31,18 +31,12 @@ function LoginContent() {
 
             const user = userCredential.user;
 
-            const userDoc = await getDoc(doc(db, "users", user.uid));
+            // Use centralized utility for auto-recovery and verification
+            const { ensureUserProfile } = await import("@/lib/user-service");
+            const data = await ensureUserProfile(user);
 
-            if (!userDoc.exists()) {
-                await signOut(auth);
-                setError("User profile not found.");
-                setLoading(false);
-                return;
-            }
-
-            const data = userDoc.data();
             const role = data.role;
-            const accountStatus = data.accountStatus ?? "active";
+            const accountStatus = data.accountStatus || data.status || "active";
 
             // Block suspended / archived accounts
             if (accountStatus === "suspended") {

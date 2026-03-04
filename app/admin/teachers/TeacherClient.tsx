@@ -294,7 +294,8 @@ export default function TeachersClient() {
                 profileImage: ""
             };
 
-            await setDoc(doc(db, "users", newUser.uid), userData);
+            const { ensureUserProfile } = await import("@/lib/user-service");
+            await ensureUserProfile(newUser, userData as any);
 
             setTeachers((prev) => [
                 ...prev,

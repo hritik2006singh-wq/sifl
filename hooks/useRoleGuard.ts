@@ -24,18 +24,15 @@ export function useRoleGuard(requiredRole: "admin" | "teacher" | "student") {
             }
 
             try {
-                // Fetch user document
-                const userDocRef = doc(db, "users", currentUser.uid);
-                const userSnap = await getDoc(userDocRef);
+                // Use centralized utility to ensure profile exists
+                const { ensureUserProfile } = await import("@/lib/user-service");
+                const userData = await ensureUserProfile(currentUser);
 
-                if (!userSnap.exists()) {
-                    // User doc doesn't exist? Eject.
+                if (!userData) {
                     await auth.signOut();
                     router.push("/login");
                     return;
                 }
-
-                const userData = userSnap.data();
 
                 // Global Account Status Guard
                 const accountStatus = userData.accountStatus ?? "active";
@@ -59,7 +56,7 @@ export function useRoleGuard(requiredRole: "admin" | "teacher" | "student") {
                 }
 
                 // Authorized!
-                setUser({ uid: currentUser.uid, ...userData });
+                setUser(userData);
             } catch (error) {
                 console.error("Error in role guard:", error);
                 router.push("/");

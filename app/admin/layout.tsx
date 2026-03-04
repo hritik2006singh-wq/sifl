@@ -48,12 +48,9 @@ export default function AdminLayout({
 
     const unsubscribeAuth = auth.onAuthStateChanged(async (user) => {
       if (user) {
-        const userDoc = await getDoc(doc(db, "users", user.uid));
-        if (userDoc.exists()) {
-          setDbUser({ id: userDoc.id, ...userDoc.data() });
-        } else {
-          setDbUser({ name: user.displayName, email: user.email, profileImage: user.photoURL });
-        }
+        const { ensureUserProfile } = await import("@/lib/user-service");
+        const userData = await ensureUserProfile(user);
+        setDbUser({ id: user.uid, ...userData });
       } else {
         setDbUser(null);
       }

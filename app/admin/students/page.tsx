@@ -149,7 +149,8 @@ export default function StudentsClient() {
                 createdAt: new Date().toISOString()
             };
 
-            await setDoc(doc(db, "users", newUser.uid), userData);
+            const { ensureUserProfile } = await import("@/lib/user-service");
+            await ensureUserProfile(newUser, userData as any);
 
             setStudents((prev) => [
                 { id: newUser.uid, ...userData },
