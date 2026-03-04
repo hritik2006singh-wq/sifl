@@ -71,6 +71,14 @@ export default function TeachersClient() {
     const [newLanguage, setNewLanguage] = useState("English");
     const [newSpecializations, setNewSpecializations] = useState<string[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+    const showToast = (type: 'success' | 'error', message: string) => {
+        setNotification({ type, message });
+        setTimeout(() => setNotification(null), 3000);
+    };
+
+
 
     const router = useRouter();
 
@@ -260,54 +268,54 @@ export default function TeachersClient() {
     const handleAddTeacher = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
-
         try {
-            const { initializeApp, getApps } = await import("firebase/app");
-            const { getAuth, createUserWithEmailAndPassword } = await import("firebase/auth");
+            const addressString = typeof newAddress === 'string'
+                ? newAddress
+                : `${newAddress.street}, ${newAddress.city}, ${newAddress.state}, ${newAddress.country}`;
 
-            const secondaryApp = getApps().find(app => app.name === "Secondary") || initializeApp(firebaseConfig, "Secondary");
-            const secondaryAuth = getAuth(secondaryApp);
+            const response = await fetch('/api/create-staff', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: newEmail,
+                    password: newPassword,
+                    role: newRole || 'teacher',
+                    name: newName,
+                    phone: newPhone,
+                    address: addressString,
+                    primaryLanguage: newLanguage,
+                    specializations: newSpecializations,
+                }),
+            });
 
-            const userCredential = await createUserWithEmailAndPassword(
-                secondaryAuth,
-                newEmail,
-                newPassword
-            );
+            const result = await response.json();
 
-            await secondaryAuth.signOut();
+            if (!response.ok || !result.success) {
+                throw new Error(result.error || 'Failed to create staff member');
+            }
 
-            const newUser = userCredential.user;
-
-            const userData = {
-                email: newEmail,
-                name: newName,
-                phone: newPhone,
-                address: newAddress,
-                role: newRole,
-                languagesTaught: newLanguage,
-                specializations: newSpecializations,
-                accountStatus: "active" as AccountStatus,
-                accountStatusReason: null,
-                accountStatusUpdatedAt: serverTimestamp(),
-                accountStatusUpdatedBy: auth.currentUser?.uid ?? null,
-                createdAt: new Date().toISOString(),
-                profileImage: ""
-            };
-
-            const { ensureUserProfile } = await import("@/lib/user-service");
-            await ensureUserProfile(newUser, userData as any);
+            // SUCCESS - show green toast
+            showToast('success', 'Account created successfully!');
 
             setTeachers((prev) => [
                 ...prev,
                 {
-                    id: newUser.uid,
-                    ...userData,
+                    id: result.uid,
+                    email: newEmail,
+                    name: newName,
+                    phone: newPhone,
+                    address: addressString,
+                    role: newRole,
+                    languagesTaught: newLanguage,
+                    specializations: newSpecializations,
+                    status: 'active',
                     studentCount: 0,
                     classesCount: 0
-                },
+                }
             ]);
 
             setShowAddModal(false);
+            // Reset form
             setNewEmail("");
             setNewPassword("");
             setNewName("");
@@ -316,13 +324,15 @@ export default function TeachersClient() {
             setNewRole("teacher");
             setNewLanguage("English");
             setNewSpecializations([]);
-            toast.success(`${newRole === 'admin' ? 'Admin' : 'Teacher'} created successfully`);
-        } catch (err: any) {
-            toast.error("Error creating user: " + err.message);
+
+        } catch (error: any) {
+            // FAILURE - show red toast
+            showToast('error', 'Oops! Something went wrong. ' + (error.message || ''));
         } finally {
             setIsSubmitting(false);
         }
     };
+
 
     if (loading) return <div className="p-6 text-center text-gray-500">Loading staff data...</div>;
 
@@ -710,6 +720,15 @@ export default function TeachersClient() {
                     </div>
                 </div>
             )}
+
+            {notification && (
+                <div className={`fixed top-6 right-6 z-[9999] px-6 py-4 rounded-xl shadow-xl 
+                    text-white font-semibold text-sm transition-all duration-300
+                    ${notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'}`}>
+                    {notification.type === 'success' ? '✅' : '❌'} {notification.message}
+                </div>
+            )}
         </div>
+
     );
 }

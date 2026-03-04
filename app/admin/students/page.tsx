@@ -110,27 +110,39 @@ export default function StudentsClient() {
 
     const handleAddStudent = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!newName || !newEmail || !newDob) return toast.error("Please fill all required core fields");
+        if (!newName || !newEmail || !newPassword) return toast.error("Email, Password and Name are required");
 
         setIsSubmitting(true);
         try {
-            const { initializeApp, getApps } = await import("firebase/app");
-            const { getAuth, createUserWithEmailAndPassword } = await import("firebase/auth");
-            const secondaryApp = getApps().find(app => app.name === "Secondary") || initializeApp(firebaseConfig, "Secondary");
-            const secondaryAuth = getAuth(secondaryApp);
+            const response = await fetch('/api/create-student', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: newEmail,
+                    password: newPassword,
+                    name: newName,
+                    phone: newPhone,
+                    dateOfBirth: newDob,
+                    gender: newGender,
+                    address: newAddress,
+                    emergencyContact: newEmergencyContact,
+                    language: newLanguageTrack,
+                    level: newLevel,
+                    assignedTeacher: newTeacherId,
+                    billingStatus: newStatus
+                }),
+            });
 
-            const userCredential = await createUserWithEmailAndPassword(
-                secondaryAuth,
-                newEmail,
-                newPassword
-            );
+            const result = await response.json();
 
-            await secondaryAuth.signOut();
+            if (!response.ok || !result.success) {
+                throw new Error(result.error || 'Failed to create student');
+            }
 
-            const newUser = userCredential.user;
+            // Reload or update list
             const ageCalculated = calculateAge(newDob);
-
-            const userData = {
+            const newStudent = {
+                id: result.uid,
                 name: newName,
                 email: newEmail,
                 dob: newDob,
@@ -149,23 +161,17 @@ export default function StudentsClient() {
                 createdAt: new Date().toISOString()
             };
 
-            const { ensureUserProfile } = await import("@/lib/user-service");
-            await ensureUserProfile(newUser, userData as any);
-
-            setStudents((prev) => [
-                { id: newUser.uid, ...userData },
-                ...prev,
-            ]);
-
+            setStudents((prev) => [newStudent, ...prev]);
             setShowAddModal(false);
             resetForm();
-            toast.success("Student CRM profile created successfully");
+            toast.success("Student registered successfully!");
         } catch (err: any) {
             toast.error("Error creating student: " + err.message);
         } finally {
             setIsSubmitting(false);
         }
     };
+
 
     const resetForm = () => {
         setNewEmail("");
