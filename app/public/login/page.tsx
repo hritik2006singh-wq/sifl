@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, Suspense } from "react";
-import { auth, db } from "@/lib/firebase-client";
+import { auth } from "@/lib/firebase-client";
 import { signInWithEmailAndPassword, signOut } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { UserService } from "@/services/user.service";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
@@ -31,31 +31,35 @@ function LoginContent() {
 
       const user = userCredential.user;
 
-      // Use centralized utility for auto-recovery and verification
-      const { ensureUserProfile } = await import("@/lib/user-service");
-      const data = await ensureUserProfile(user);
+      const profile = await UserService.getUserProfile(user.uid);
 
-      const role = data.role;
-      const accountStatus = data.accountStatus || data.status || "active";
+      if (!profile) {
+        await signOut(auth);
+        setError("Account not found. Contact administration.");
+        setLoading(false);
+        return;
+      }
 
-      if (accountStatus === "suspended") {
+      const status = profile.status ?? "active";
+
+      if (status === "suspended") {
         await signOut(auth);
         setError("Your account has been temporarily suspended. Contact administration.");
         setLoading(false);
         return;
       }
 
-      if (accountStatus === "archived") {
+      if (status !== "active") {
         await signOut(auth);
-        setError("Your account is archived. Contact administration.");
+        setError("Account access denied. Contact administration.");
         setLoading(false);
         return;
       }
 
       setLoading(false);
 
+      const role = profile.role ?? "student";
       if (role === "admin") {
-        console.log("Redirecting to admin");
         router.push("/admin");
       } else if (role === "teacher") {
         router.push("/teacher");

@@ -17,6 +17,8 @@ export default function StudentSlugClient({ slug }: { slug: string }) {
     const [loadingData, setLoadingData] = useState(true);
     const [name, setName] = useState("");
     const [age, setAge] = useState<number | "">("");
+    const [languageTrack, setLanguageTrack] = useState("");
+    const [level, setLevel] = useState("");
     const [profileImage, setProfileImage] = useState("");
     const [isSaving, setIsSaving] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
@@ -34,8 +36,8 @@ export default function StudentSlugClient({ slug }: { slug: string }) {
                 if (docSnap.exists() && docSnap.data().role === "student") {
                     loadedUser = { id: docSnap.id, ...docSnap.data() };
                 } else {
-                    // 2. Try Slug
-                    const q = query(collection(db, "users"), where("slug", "==", slug), where("role", "==", "student"));
+                    // 2. Try Slug/Username
+                    const q = query(collection(db, "users"), where("username", "==", slug), where("role", "==", "student"));
                     const querySnap = await getDocs(q);
                     if (!querySnap.empty) {
                         loadedUser = { id: querySnap.docs[0].id, ...querySnap.docs[0].data() };
@@ -54,6 +56,8 @@ export default function StudentSlugClient({ slug }: { slug: string }) {
                     setProfileUser(loadedUser);
                     setName(loadedUser.name || "");
                     setAge(loadedUser.age || "");
+                    setLanguageTrack(loadedUser.languageTrack || loadedUser.language || "");
+                    setLevel(loadedUser.level || loadedUser.currentLevel || "");
                     setProfileImage(loadedUser.profilePhotoUrl || loadedUser.profileImage || "");
                 } else {
                     toast.error("Profile not found.");
@@ -79,8 +83,8 @@ export default function StudentSlugClient({ slug }: { slug: string }) {
         setIsSaving(true);
         try {
             const userRef = doc(db, "users", profileUser.id);
-            await updateDoc(userRef, { name, age: Number(age), profileImage });
-            toast.success("Profile saved successfully!");
+            await updateDoc(userRef, { name, age: Number(age), profileImage, languageTrack, level });
+            toast.success("Profile updated");
             if (refreshUser) await refreshUser();
         } catch (error) {
             console.error("Error saving profile", error);
@@ -156,6 +160,14 @@ export default function StudentSlugClient({ slug }: { slug: string }) {
                             <div className="space-y-1">
                                 <label className="text-sm font-semibold text-gray-700">Age</label>
                                 <input type="number" disabled={!isOwner} required value={age} onChange={(e) => setAge(Number(e.target.value))} className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 disabled:bg-gray-100 outline-none" />
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-sm font-semibold text-gray-700">Language Track</label>
+                                <input type="text" disabled={!isOwner} value={languageTrack} onChange={(e) => setLanguageTrack(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 disabled:bg-gray-100 outline-none" />
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-sm font-semibold text-gray-700">Level</label>
+                                <input type="text" disabled={!isOwner} value={level} onChange={(e) => setLevel(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 disabled:bg-gray-100 outline-none" />
                             </div>
                         </div>
 

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { db, auth } from "@/lib/firebase-client";
-import { collection, doc, getDoc, setDoc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { collection, doc, getDoc, setDoc, updateDoc, serverTimestamp, addDoc } from "firebase/firestore";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import toast from "react-hot-toast";
@@ -11,7 +11,7 @@ export default function BlogEditorClient() {
     const router = useRouter();
     const params = useParams();
     const isEditing = params?.id !== "create";
-    const blogId = isEditing ? (params?.id as string) : doc(collection(db, "blogs")).id;
+    const blogId = isEditing ? (params?.id as string) : "";
 
     const [loading, setLoading] = useState(isEditing);
     const [saving, setSaving] = useState(false);
@@ -146,9 +146,28 @@ export default function BlogEditorClient() {
                 payload.publishedAt = serverTimestamp();
             }
 
-            await setDoc(doc(db, "blogs", blogId), payload, { merge: true });
-            toast.success(isEditing ? "Blog updated successfully." : "Blog created successfully!");
-            router.push("/admin/blogs");
+            if (isEditing) {
+                await setDoc(doc(db, "blogs", blogId), payload, { merge: true });
+                toast.success("Blog updated successfully.");
+                router.push("/admin/blogs");
+            } else {
+                await addDoc(collection(db, "blogs"), payload);
+                toast.success("Blog created successfully!");
+                setForm({
+                    title: "",
+                    slug: "",
+                    excerpt: "",
+                    content: "",
+                    metaTitle: "",
+                    metaDescription: "",
+                    keywords: "",
+                    status: "draft",
+                    coverImageUrl: "",
+                    coverImagePath: ""
+                });
+                setImageFile(null);
+                setPreviewUrl("");
+            }
 
         } catch (error: any) {
             console.error("Save Error:", error);

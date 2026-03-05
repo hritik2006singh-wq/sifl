@@ -18,6 +18,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAdminGuard } from "@/hooks/useRoleGuard";
 import toast from "react-hot-toast";
+import { safeCollectionFetch } from "@/lib/firestore-safe";
 
 type AccountStatus = "active" | "suspended" | "archived";
 
@@ -83,44 +84,44 @@ export default function TeachersClient() {
     const router = useRouter();
 
     const fetchTeachers = async () => {
-        try {
-            const q = query(
-                collection(db, "users"),
-                where("role", "in", ["teacher", "admin"])
-            );
+        // Fetch teachers/admins — returns [] if permission denied
+        const staffList = await safeCollectionFetch(
+            "users",
+            where("role", "in", ["teacher", "admin"])
+        );
 
-            const snapshot = await getDocs(q);
-
-            const data = await Promise.all(snapshot.docs.map(async (teacherDoc) => {
+        // For each staff member, fetch their classes — individually safe
+        const data = await Promise.all(
+            staffList.map(async (teacherDoc: any) => {
                 const tId = teacherDoc.id;
-                const tData = teacherDoc.data();
+                const classesData = await safeCollectionFetch(
+                    "classes",
+                    where("teacherId", "==", tId)
+                );
 
-                const classesQuery = query(collection(db, "classes"), where("teacherId", "==", tId));
-                const classesSnap = await getDocs(classesQuery);
-                const classesData = classesSnap.docs.map(c => c.data());
-
-                const studentSet = new Set();
-                classesData.forEach(c => {
+                const studentSet = new Set<string>();
+                classesData.forEach((c: any) => {
                     if (c.studentIds && Array.isArray(c.studentIds)) {
                         c.studentIds.forEach((sid: string) => studentSet.add(sid));
                     }
                 });
 
                 return {
-                    id: tId,
-                    ...tData,
+                    ...teacherDoc,
                     studentCount: studentSet.size,
-                    classesCount: classesData.length
+                    classesCount: classesData.length,
                 };
-            }));
+            })
+        );
 
-            setTeachers(data);
-            setActiveTeachers(data.filter((t: any) => (t.accountStatus ?? "active") === "active" && t.role === "teacher"));
-        } catch (err) {
-            console.error("Error fetching teachers", err);
-        } finally {
-            setLoading(false);
-        }
+        setTeachers(data);
+        setActiveTeachers(
+            data.filter(
+                (t: any) =>
+                    (t.accountStatus ?? "active") === "active" && t.role === "teacher"
+            )
+        );
+        setLoading(false);
     };
 
     useEffect(() => {

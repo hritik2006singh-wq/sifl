@@ -1,82 +1,68 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { adminAuth, adminDb } from '@/lib/firebase-admin';
-import { FieldValue } from 'firebase-admin/firestore';
-
-function slugify(name: string) {
-    return name
-        .toLowerCase()
-        .trim()
-        .replace(/\s+/g, "-")
-        .replace(/[^\w-]+/g, "");
-}
+import { NextRequest, NextResponse } from "next/server";
+import { adminDb } from "@/lib/firebase-admin";
+import { CreateStudentRequest } from "@/types/student";
 
 export async function POST(req: NextRequest) {
     try {
-        const body = await req.json();
-        const {
-            email,
-            password,
-            name,
-            phone,
-            dateOfBirth,
-            gender,
+        // 1. Validate body
+        const body = (await req.json()) as Partial<CreateStudentRequest>;
+
+        // Strict validation
+        if (
+            !body.name ||
+            !body.email ||
+            !body.studentId ||
+            !body.dob ||
+            !body.gender ||
+            !body.language ||
+            !body.level ||
+            !body.status
+        ) {
+            return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+        }
+
+        // Default object structures
+        const address = body.address ?? { street: "", city: "", state: "", country: "" };
+        const emergencyContact = body.emergencyContact ?? { name: "", relation: "", phone: "" };
+        const teacherId = body.teacherId ?? "";
+        const phone = body.phone ?? "";
+
+        // 2. Generate UUID
+        const id = crypto.randomUUID();
+
+        // 3. Prepare data mappings
+        const userData = {
+            name: body.name,
+            email: body.email,
+            dob: body.dob,
+            gender: body.gender,
+            phone: phone,
             address,
             emergencyContact,
-            language,
-            level,
-            assignedTeacher,
-            billingStatus
-        } = body;
-
-        if (!email || !password || !name) {
-            return NextResponse.json(
-                { success: false, error: 'Missing required fields (email, password, name)' },
-                { status: 400 }
-            );
-        }
-
-        // 1. Create Firebase Auth user
-        const userRecord = await adminAuth.createUser({
-            email,
-            password,
-            displayName: name,
-        });
-
-        // 2. Prepare user document data
-        const userData = {
-            email,
-            name,
-            phone: phone || '',
-            dob: dateOfBirth || '',
-            gender: gender || 'Other',
-            address: address || { street: "", city: "", state: "", country: "" },
-            emergencyContact: emergencyContact || { name: "", phone: "", relation: "" },
-            languageTrack: language || 'English',
-            level: level || 'Beginner (A1)',
-            assignedTeacherId: assignedTeacher || null,
-            is_paid: billingStatus === 'paid',
-            role: 'student',
-            status: 'active',
-            accountStatus: 'active', // For consistency with other parts of the app
-            profileImage: '',
-            slug: `${slugify(name)}-${userRecord.uid.slice(0, 4)}`,
-            createdAt: FieldValue.serverTimestamp(),
         };
 
-        // 3. Create document in Firestore
-        if (adminDb) {
-            await adminDb.collection('users').doc(userRecord.uid).set(userData);
-        } else {
-            throw new Error('Firestore Admin not initialized');
+        const studentData = {
+            studentId: body.studentId, // Custom ID field requested
+            language: body.language,
+            level: body.level,
+            teacherId,
+            status: body.status,
+            createdAt: new Date().toISOString(),
+        };
+
+        // 4. Firestore Write Logic (Wrap in try/catch)
+        // adminDb from Firebase Admin is the robust way to handle backend writes freely
+        if (!adminDb) {
+            throw new Error("Firestore Admin SDK not initialized");
         }
 
-        return NextResponse.json({ success: true, uid: userRecord.uid });
+        await adminDb.collection("users").doc(id).set(userData);
+        await adminDb.collection("students").doc(id).set(studentData);
 
+        // 5. Response Handling
+        return NextResponse.json({ success: true, id });
     } catch (error: any) {
-        console.error('Create student error:', error);
-        return NextResponse.json(
-            { success: false, error: error.message || 'Failed to create student' },
-            { status: 400 }
-        );
+        console.error("Failed to execute create-student pipeline:", error);
+        return NextResponse.json({ error: error.message || "Invalid data" }, { status: 400 });
     }
 }

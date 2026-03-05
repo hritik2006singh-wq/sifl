@@ -2,7 +2,8 @@ export const ADMIN_ROUTES = [
     { name: "Overview", icon: "dashboard", path: "/admin" },
     { name: "Students", icon: "group", path: "/admin/students" },
     { name: "Teachers", icon: "school", path: "/admin/teachers" },
-    { name: "Demo Bookings", icon: "event_available", path: "/admin/manage-schedule", requiresAction: true },
+    { name: "Demo Bookings", icon: "event_available", path: "/admin/demo-bookings", requiresAction: true },
+    { name: "Manage Schedule", icon: "schedule", path: "/admin/manage-schedule" },
     { name: "Study Materials", icon: "video_library", path: "/admin/materials" },
     { name: "Blog Manager", icon: "post", path: "/admin/blogs" }
 ];

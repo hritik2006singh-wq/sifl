@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { db } from "@/lib/firebase-client";
-import { collection, getDocs, query, orderBy, limit, doc, runTransaction, getDoc, where } from "firebase/firestore";
+import { doc, runTransaction, getDoc, collection, query, where, getDocs } from "firebase/firestore";
+import { BookingService } from "@/services/booking.service";
 import { useAdminGuard } from "@/hooks/useRoleGuard";
 import toast from "react-hot-toast";
 
@@ -26,16 +27,9 @@ export default function DemoBookingsClient() {
 
     const fetchBookings = async () => {
         try {
-            const bookingsRef = collection(db, "demoBookings");
-            const q = query(bookingsRef, orderBy("createdAt", "desc"), limit(20));
-            const snapshot = await getDocs(q);
-
-            const data = snapshot.docs.map(docSnap => ({
-                id: docSnap.id,
-                ...docSnap.data()
-            }));
-
-            setBookings(data);
+            const data = await BookingService.getAllBookings();
+            // map bookingId to id for UI compatibility
+            setBookings(data.map(b => ({ ...b, id: b.bookingId })));
         } catch (err) {
             console.error("Error fetching bookings:", err);
         } finally {
@@ -51,26 +45,20 @@ export default function DemoBookingsClient() {
 
     const handleReject = async (booking: any) => {
         try {
-            await runTransaction(db, async (transaction) => {
-                const bookingRef = doc(db, "demoBookings", booking.id);
-                // The slotId format we created was: teacherId_date_timeSlot
-                // Wait, what if old booking doesn't have teacherId? Fallback to admin_general.
+            await BookingService.updateBookingStatus(booking.id, "rejected");
+            // also free the slot if it exists
+            try {
                 const tId = booking.teacherId || "admin_general";
                 const slotId = `${tId}_${booking.date}_${booking.timeSlot}`;
                 const slotRef = doc(db, "slots", slotId);
-
-                const bookingDoc = await transaction.get(bookingRef);
-                const slotDoc = await transaction.get(slotRef);
-
-                if (!bookingDoc.exists()) throw new Error("Document missing");
-
-                transaction.update(bookingRef, { status: "rejected" });
-
+                const slotDoc = await getDoc(slotRef);
                 if (slotDoc.exists()) {
-                    transaction.update(slotRef, { status: "available", bookingId: null });
+                    const { updateDoc } = await import("firebase/firestore");
+                    await updateDoc(slotRef, { status: "available", bookingId: null });
                 }
-            });
-
+            } catch {
+                // slot cleanup is best-effort
+            }
             toast.success("Booking rejected.");
             setBookings(prev => prev.map(b => b.id === booking.id ? { ...b, status: "rejected" } : b));
         } catch (error) {

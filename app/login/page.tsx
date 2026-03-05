@@ -3,7 +3,7 @@
 import { useState, Suspense } from "react";
 import { auth } from "@/lib/firebase-client";
 import { signInWithEmailAndPassword, signOut } from "firebase/auth";
-import { ensureUserProfile } from "@/lib/user-service";
+import { UserService } from "@/services/user.service";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
@@ -24,7 +24,7 @@ function LoginContent() {
 
         let user;
 
-        // 1️⃣ STEP: Authentication
+        // 1️⃣ STEP: Firebase Authentication
         try {
             const userCredential = await signInWithEmailAndPassword(
                 auth,
@@ -39,6 +39,8 @@ function LoginContent() {
                 setError("User does not exist.");
             } else if (authError.code === "auth/wrong-password") {
                 setError("Incorrect password.");
+            } else if (authError.code === "auth/invalid-credential") {
+                setError("Invalid email or password.");
             } else if (authError.code === "auth/invalid-email") {
                 setError("Invalid email format.");
             } else if (authError.code === "auth/too-many-requests") {
@@ -51,20 +53,25 @@ function LoginContent() {
             return;
         }
 
-        // 2️⃣ STEP: Firestore Profile Verification
+        // 2️⃣ STEP: Fetch profile from users/{uid}
         let profile;
         try {
-            // This ensures a profile exists and recovers if missing
-            profile = await ensureUserProfile(user);
+            profile = await UserService.getUserProfile(user.uid);
 
-            // Account Status Guard: Prevent login if suspended or archived
-            const status = profile.status || profile.accountStatus || "active";
+            if (!profile) {
+                // User exists in Auth but has no Firestore profile
+                await signOut(auth);
+                setError("Account profile not found. Contact administration.");
+                setLoading(false);
+                return;
+            }
+
+            // Status Guard: Block suspended accounts
+            const status = profile.status ?? "active";
             if (status !== "active") {
                 await signOut(auth);
                 if (status === "suspended") {
                     setError("Your account has been temporarily suspended.");
-                } else if (status === "archived") {
-                    setError("Your account is archived. Contact administration.");
                 } else {
                     setError(`Account status: ${status}. Access denied.`);
                 }
@@ -72,29 +79,23 @@ function LoginContent() {
                 return;
             }
         } catch (profileError: any) {
-            console.error("Profile verification failed:", profileError);
-            setError("Critical profile error. Contact administration.");
+            console.error("Profile fetch failed:", profileError);
+            setError("Failed to load account profile. Please try again.");
             await signOut(auth);
             setLoading(false);
             return;
         }
 
         // 3️⃣ STEP: Role-Based Routing
-        try {
-            const role = profile.role || "student";
-            document.cookie = `user_role=${role}; path=/; max-age=2592000; SameSite=Strict`;
+        const role = profile.role ?? "student";
+        document.cookie = `user_role=${role}; path=/; max-age=2592000; SameSite=Strict`;
 
-            if (role === "admin") {
-                router.push("/admin");
-            } else if (role === "teacher") {
-                router.push("/teacher");
-            } else {
-                router.push("/student");
-            }
-        } catch (routingError) {
-            console.error("Routing error:", routingError);
-            setError("Failed to redirect to your dashboard.");
-            setLoading(false);
+        if (role === "admin") {
+            router.push("/admin");
+        } else if (role === "teacher") {
+            router.push("/teacher");
+        } else {
+            router.push("/student");
         }
     };
 

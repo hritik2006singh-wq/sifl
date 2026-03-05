@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { db, auth } from "@/lib/firebase-client";
-import { doc, getDoc } from "firebase/firestore";
+import { UserService } from "@/services/user.service";
 import Image from "next/image";
 import { signOut } from "firebase/auth";
 import MobileBottomNav from "@/components/MobileBottomNav";
@@ -48,9 +48,13 @@ export default function AdminLayout({
 
     const unsubscribeAuth = auth.onAuthStateChanged(async (user) => {
       if (user) {
-        const { ensureUserProfile } = await import("@/lib/user-service");
-        const userData = await ensureUserProfile(user);
-        setDbUser({ id: user.uid, ...userData });
+        try {
+          const profile = await UserService.getUserProfile(user.uid);
+          setDbUser(profile ? { id: user.uid, ...profile } : null);
+        } catch (err) {
+          console.error("Failed to load admin profile:", err);
+          setDbUser(null);
+        }
       } else {
         setDbUser(null);
       }

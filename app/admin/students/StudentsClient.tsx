@@ -5,19 +5,17 @@ import { db, auth } from "@/lib/firebase-client";
 import {
   collection,
   getDocs,
+  getDoc,
   doc,
   updateDoc,
-  setDoc,
   addDoc,
   query,
-  where,
   orderBy,
   limit,
   startAfter,
   startAt,
   serverTimestamp
 } from "firebase/firestore";
-import { createUserWithEmailAndPassword } from "firebase/auth";
 import Link from "next/link";
 import toast from "react-hot-toast";
 
@@ -31,15 +29,28 @@ function slugify(name: string) {
     .replace(/[^\w-]+/g, "");
 }
 
+/** Compute current age from a date-of-birth string e.g. "1998-05-14" */
+function computeAge(dob: string | null | undefined): number | null {
+  if (!dob) return null;
+  const birth = new Date(dob);
+  if (isNaN(birth.getTime())) return null;
+  const today = new Date();
+  let age = today.getFullYear() - birth.getFullYear();
+  const hasBirthdayPassed =
+    today.getMonth() > birth.getMonth() ||
+    (today.getMonth() === birth.getMonth() && today.getDate() >= birth.getDate());
+  if (!hasBirthdayPassed) age--;
+  return age;
+}
+
 const levelMap: Record<string, string[]> = {
   German: ["A1", "A2", "B1", "B2", "C1", "C2"],
   Japanese: ["N5", "N4", "N3", "N2", "N1"],
   English: ["Beginner", "Intermediate", "Advanced"],
   French: ["A1", "A2", "B1", "B2", "C1", "C2"],
-  Spanish: ["A1", "A2", "B1", "B2", "C1", "C2"]
+  Spanish: ["A1", "A2", "B1", "B2", "C1", "C2"],
 };
 
-// Status badge component
 function StatusBadge({ status }: { status: AccountStatus }) {
   if (status === "suspended") {
     return (
@@ -78,71 +89,113 @@ export default function StudentsClient() {
   // New Student Form
   const [newEmail, setNewEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [newUsername, setNewUsername] = useState("");
   const [newLanguage, setNewLanguage] = useState("");
   const [newLevel, setNewLevel] = useState("");
   const [isPaid, setIsPaid] = useState(false);
   const [hasFullAccess, setHasFullAccess] = useState(false);
 
   const [loading, setLoading] = useState(true);
-
   const [lastDoc, setLastDoc] = useState<any>(null);
-  const [firstDocs, setFirstDocs] = useState<any[]>([]); // Track start of each page for "Previous"
+  const [firstDocs, setFirstDocs] = useState<any[]>([]);
   const [pageIndex, setPageIndex] = useState(0);
   const [hasMore, setHasMore] = useState(true);
 
-  // Fetch Students From Firestore — Paginated
+  // ── Fetch Students ──────────────────────────────────────────────────────────
+  // Queries the `students` collection directly (no role filter — old docs may
+  // not have that field). For rows where name/email are missing (old schema),
+  // falls back to the matching users/{id} doc. New docs have name/email
+  // denormalized at creation time so they never need the fallback.
   const fetchStudents = async (direction: "next" | "prev" | "initial" = "initial") => {
     try {
       setLoading(true);
 
-      const statusFilter: AccountStatus[] = ["active"];
-      if (showSuspended) statusFilter.push("suspended");
-      if (showArchived) statusFilter.push("archived");
-
       let q = query(
-        collection(db, "users"),
-        where("role", "==", "student"),
-        where("accountStatus", "in", statusFilter),
-        orderBy("created_at", "desc"),
-        limit(20)
+        collection(db, "students"),
+        orderBy("createdAt", "desc"),
+        limit(80)
       );
 
       if (direction === "next" && lastDoc) {
         q = query(q, startAfter(lastDoc));
       } else if (direction === "prev" && pageIndex > 0) {
-        // Go back to the cached firstDoc of the previous page
-        const targetPageStart = firstDocs[pageIndex - 1];
-        if (targetPageStart) {
-          q = query(q, startAt(targetPageStart));
-        }
+        const start = firstDocs[pageIndex - 1];
+        if (start) q = query(q, startAt(start));
       }
 
       const snapshot = await getDocs(q);
 
-      const data = snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }));
-
-      setStudents(data);
-
-      if (snapshot.docs.length > 0) {
-        setHasMore(snapshot.docs.length === 20);
-        setLastDoc(snapshot.docs[snapshot.docs.length - 1]);
-
-        if (direction === "initial") {
-          setFirstDocs([snapshot.docs[0]]);
-          setPageIndex(0);
-        } else if (direction === "next") {
-          setFirstDocs(prev => [...prev, snapshot.docs[0]]);
-          setPageIndex(p => p + 1);
-        } else if (direction === "prev") {
-          setFirstDocs(prev => prev.slice(0, -1)); // Remove the pop we just backed out of
-          setPageIndex(p => p - 1);
-        }
-      } else {
+      if (snapshot.docs.length === 0) {
+        setStudents([]);
         if (direction === "initial") setHasMore(false);
+        return;
       }
+
+      // Map and enrich each document
+      const allDocs = await Promise.all(
+        snapshot.docs.map(async (snap) => {
+          const d = snap.data() as Record<string, any>;
+          const uid = snap.id;
+
+          let name = d.name || d.username || d.displayName || "";
+          let email = d.email || "";
+
+          // Backward compatibility: fetch users doc if identity is missing
+          if (!name || !email) {
+            try {
+              const userSnap = await getDoc(doc(db, "users", uid));
+              if (userSnap.exists()) {
+                const u = userSnap.data() as Record<string, any>;
+                name = name || u.name || u.username || u.displayName || "";
+                email = email || u.email || "";
+              }
+            } catch {
+              /* non-critical */
+            }
+          }
+
+          return {
+            id: uid,
+            name,
+            email,
+            dob: d.dob || null,
+            slug: d.slug || "",
+            age: d.age != null ? Number(d.age) : computeAge(d.dob),
+            language: d.language || d.languageTrack || "",
+            currentLevel: d.currentLevel || d.level || "",
+            is_paid: d.is_paid ?? false,
+            hasFullAccess: d.hasFullAccess ?? false,
+            accountStatus: (d.accountStatus ?? d.status ?? "active") as AccountStatus,
+          };
+        })
+      );
+
+      // Client-side status filter
+      const statusFilter: AccountStatus[] = ["active"];
+      if (showSuspended) statusFilter.push("suspended");
+      if (showArchived) statusFilter.push("archived");
+
+      const filtered = allDocs.filter((s) => statusFilter.includes(s.accountStatus));
+      const page = filtered.slice(0, 20);
+
+      setStudents(page);
+      setHasMore(filtered.length > 20);
+      setLastDoc(snapshot.docs[snapshot.docs.length - 1]);
+
+      if (direction === "initial") {
+        setFirstDocs([snapshot.docs[0]]);
+        setPageIndex(0);
+      } else if (direction === "next") {
+        setFirstDocs(prev => [...prev, snapshot.docs[0]]);
+        setPageIndex(p => p + 1);
+      } else if (direction === "prev") {
+        setFirstDocs(prev => prev.slice(0, -1));
+        setPageIndex(p => p - 1);
+      }
+
     } catch (err) {
       console.error("Error fetching students:", err);
-      toast.error("Query Error: Index might be building.");
+      toast.error("Failed to load students. Check Firestore rules or indexes.");
     } finally {
       setLoading(false);
     }
@@ -155,16 +208,12 @@ export default function StudentsClient() {
 
   const togglePaid = async (studentId: string, currentStatus: boolean) => {
     try {
-      await updateDoc(doc(db, "users", studentId), {
+      await updateDoc(doc(db, "students", studentId), {
         is_paid: !currentStatus,
-        status: !currentStatus ? "PAID" : "UNPAID"
       });
-
       setStudents((prev) =>
-        prev.map((student) =>
-          student.id === studentId
-            ? { ...student, is_paid: !currentStatus, status: !currentStatus ? "PAID" : "UNPAID" }
-            : student
+        prev.map((s) =>
+          s.id === studentId ? { ...s, is_paid: !currentStatus } : s
         )
       );
       toast.success("Payment status updated");
@@ -176,53 +225,32 @@ export default function StudentsClient() {
 
   const handleAddStudent = async (e: React.FormEvent) => {
     e.preventDefault();
-
     try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        newEmail,
-        newPassword
-      );
-
-      const user = userCredential.user;
-
-      const newUserDoc = {
-        email: newEmail,
-        role: "student",
-        is_paid: isPaid,
-        status: isPaid ? "PAID" : "UNPAID",
-        accountStatus: "active" as AccountStatus,
-        accountStatusReason: null,
-        accountStatusUpdatedAt: serverTimestamp(),
-        accountStatusUpdatedBy: auth.currentUser?.uid ?? null,
-        language: newLanguage,
-        currentLevel: newLevel,
-        hasFullAccess,
-        slug: `${slugify(newEmail.split('@')[0])}-${user.uid.slice(0, 4)}`,
-        updatedAt: serverTimestamp(),
-        created_at: new Date().toISOString(),
-      };
-
-      const { ensureUserProfile } = await import("@/lib/user-service");
-      await ensureUserProfile(user, newUserDoc as any);
-
-      setStudents((prev) => [{ id: user.uid, ...newUserDoc }, ...prev]);
+      const res = await fetch("/api/students", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: newEmail,
+          password: newPassword,
+          name: newUsername,
+          languageTrack: newLanguage,
+          level: newLevel,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || "Failed to create student");
 
       setShowAddModal(false);
-      setNewEmail("");
-      setNewPassword("");
-      setNewLanguage("");
-      setNewLevel("");
-      setIsPaid(false);
-      setHasFullAccess(false);
+      setNewEmail(""); setNewPassword(""); setNewUsername("");
+      setNewLanguage(""); setNewLevel("");
+      setIsPaid(false); setHasFullAccess(false);
       toast.success("Student created successfully!");
-
+      fetchStudents("initial");
     } catch (err: any) {
       toast.error("Error creating student: " + err.message);
     }
   };
 
-  // Write audit log
   const writeAuditLog = async (
     userId: string,
     previousStatus: AccountStatus,
@@ -231,10 +259,7 @@ export default function StudentsClient() {
   ) => {
     try {
       await addDoc(collection(db, "user_status_logs"), {
-        userId,
-        previousStatus,
-        newStatus,
-        reason,
+        userId, previousStatus, newStatus, reason,
         updatedBy: auth.currentUser?.uid ?? "unknown",
         timestamp: serverTimestamp(),
       });
@@ -253,27 +278,23 @@ export default function StudentsClient() {
     setActionModal(null);
 
     const student = students.find((s) => s.id === targetId);
-    const previousStatus: AccountStatus = student?.accountStatus ?? "active";
-
+    const previousStatus = (student?.accountStatus ?? "active") as AccountStatus;
     const newStatus: AccountStatus =
       action === "suspend" ? "suspended" :
         action === "archive" ? "archived" : "active";
-
     const reason =
       action === "suspend" ? "Suspended by admin" :
         action === "archive" ? "Archived by admin" : "Restored by admin";
 
     try {
-      await updateDoc(doc(db, "users", targetId), {
+      await updateDoc(doc(db, "students", targetId), {
         accountStatus: newStatus,
         accountStatusReason: reason,
         accountStatusUpdatedAt: serverTimestamp(),
         accountStatusUpdatedBy: auth.currentUser?.uid ?? null,
       });
-
       await writeAuditLog(targetId, previousStatus, newStatus, reason);
 
-      // Remove from list if filter doesn't include new status
       const shouldShow =
         newStatus === "active" ||
         (newStatus === "suspended" && showSuspended) ||
@@ -287,7 +308,7 @@ export default function StudentsClient() {
         setStudents((prev) => prev.filter((s) => s.id !== targetId));
       }
 
-      const labels = { suspend: "suspended", archive: "archived", restore: "restored" };
+      const labels: Record<string, string> = { suspend: "suspended", archive: "archived", restore: "restored" };
       toast.success(`Student ${labels[action]} successfully`);
     } catch (e: any) {
       console.error("Error updating student status:", e);
@@ -300,10 +321,8 @@ export default function StudentsClient() {
   }
 
   const availableLevels = newLanguage ? levelMap[newLanguage] || [] : [];
-
   const actionLabel = actionModal?.action === "suspend" ? "Suspend" :
     actionModal?.action === "archive" ? "Archive" : "Restore";
-
   const actionColor = actionModal?.action === "restore"
     ? "bg-green-600 hover:bg-green-700 shadow-green-500/30"
     : "bg-red-600 hover:bg-red-700 shadow-red-500/30";
@@ -330,8 +349,7 @@ export default function StudentsClient() {
           onClick={() => setShowSuspended((v) => !v)}
           className={`text-[10px] font-bold tracking-widest px-3 py-1.5 rounded-full border transition-colors ${showSuspended
             ? "bg-yellow-100 text-yellow-700 border-yellow-300"
-            : "bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100"
-            }`}
+            : "bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100"}`}
         >
           SUSPENDED
         </button>
@@ -339,8 +357,7 @@ export default function StudentsClient() {
           onClick={() => setShowArchived((v) => !v)}
           className={`text-[10px] font-bold tracking-widest px-3 py-1.5 rounded-full border transition-colors ${showArchived
             ? "bg-gray-200 text-gray-700 border-gray-400"
-            : "bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100"
-            }`}
+            : "bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100"}`}
         >
           ARCHIVED
         </button>
@@ -350,7 +367,7 @@ export default function StudentsClient() {
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="border-b-2 border-gray-100 text-xs font-bold text-gray-500 uppercase tracking-widest bg-gray-50/50">
-              <th className="py-4 px-4">Email</th>
+              <th className="py-4 px-4">Student</th>
               <th className="py-4 px-4">Language / Level</th>
               <th className="py-4 px-4 text-center">Payment Status</th>
               <th className="py-4 px-4">Account Status</th>
@@ -366,12 +383,23 @@ export default function StudentsClient() {
                   key={student.id}
                   className="border-b border-gray-50 hover:bg-gray-50/80 transition-colors"
                 >
-                  <td className="py-4 px-4 text-sm font-bold text-gray-900">
-                    <Link href={`/admin/students/${student.slug || student.id}`} className="hover:text-primary transition-colors flex items-center gap-2">
-                      <div className="size-8 bg-purple-50 text-primary rounded-full flex items-center justify-center shrink-0">
-                        {student.email.charAt(0).toUpperCase()}
+                  {/* Student identity — matches teachers page layout exactly */}
+                  <td className="py-4 px-4">
+                    <Link
+                      href={`/admin/students/${student.slug || student.id}`}
+                      className="hover:text-primary transition-colors flex items-center gap-3"
+                    >
+                      <div className="w-9 h-9 rounded-full bg-green-100 text-green-700 font-bold flex items-center justify-center shrink-0 text-sm">
+                        {student.name?.charAt(0)?.toUpperCase() ?? "S"}
                       </div>
-                      {student.email}
+                      <div className="flex flex-col">
+                        <span className="font-medium text-sm text-gray-900">
+                          {student.name ?? "Student"}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {student.email ?? "-"}
+                        </span>
+                      </div>
                     </Link>
                   </td>
 
@@ -387,8 +415,7 @@ export default function StudentsClient() {
                       onClick={() => togglePaid(student.id, student.is_paid)}
                       className={`text-[10px] font-black tracking-widest px-3 py-1.5 rounded-full border shadow-sm transition-transform active:scale-95 ${student.is_paid
                         ? "bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
-                        : "bg-red-50 text-red-700 border-red-200 hover:bg-red-100"
-                        }`}
+                        : "bg-red-50 text-red-700 border-red-200 hover:bg-red-100"}`}
                     >
                       {student.is_paid ? "PAID" : "UNPAID"}
                     </button>
@@ -418,8 +445,6 @@ export default function StudentsClient() {
                       >
                         Manage
                       </Link>
-
-                      {/* Action dropdown */}
                       <div className="relative group">
                         <button className="text-[10px] font-bold tracking-widest px-3 py-1.5 rounded-full border border-gray-200 text-gray-600 bg-gray-50 hover:bg-gray-100 transition-colors flex items-center gap-1">
                           Actions <span className="material-symbols-outlined text-[12px]">expand_more</span>
@@ -429,25 +454,19 @@ export default function StudentsClient() {
                             <button
                               onClick={() => triggerAction(student.id, "suspend")}
                               className="w-full text-left px-4 py-2.5 text-xs font-bold text-yellow-700 hover:bg-yellow-50 transition-colors"
-                            >
-                              Suspend
-                            </button>
+                            >Suspend</button>
                           )}
                           {accountStatus !== "archived" && (
                             <button
                               onClick={() => triggerAction(student.id, "archive")}
                               className="w-full text-left px-4 py-2.5 text-xs font-bold text-gray-600 hover:bg-gray-100 transition-colors"
-                            >
-                              Archive
-                            </button>
+                            >Archive</button>
                           )}
                           {accountStatus !== "active" && (
                             <button
                               onClick={() => triggerAction(student.id, "restore")}
                               className="w-full text-left px-4 py-2.5 text-xs font-bold text-green-700 hover:bg-green-50 transition-colors"
-                            >
-                              Restore
-                            </button>
+                            >Restore</button>
                           )}
                         </div>
                       </div>
@@ -469,11 +488,9 @@ export default function StudentsClient() {
         </table>
       </div>
 
-      {/* Pagination Controls */}
+      {/* Pagination */}
       <div className="flex items-center justify-between border-t border-gray-100 p-4 bg-gray-50/30">
-        <span className="text-xs font-semibold text-gray-500">
-          Page {pageIndex + 1}
-        </span>
+        <span className="text-xs font-semibold text-gray-500">Page {pageIndex + 1}</span>
         <div className="flex gap-2">
           <button
             onClick={() => fetchStudents("prev")}
@@ -495,84 +512,83 @@ export default function StudentsClient() {
       {/* CREATE STUDENT MODAL */}
       {showAddModal && (
         <div className="fixed inset-0 bg-gray-900/60 z-50 flex items-center justify-center backdrop-blur-sm p-4">
-          <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200">
+          <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
             <div className="px-6 py-5 border-b border-gray-100 bg-gray-50 flex justify-between items-center shrink-0">
-              <h3 className="text-xl font-black text-gray-900 m-0 text-center flex-1">
-                Onboard New Student
-              </h3>
+              <h3 className="text-xl font-black text-gray-900 m-0 text-center flex-1">Onboard New Student</h3>
             </div>
-
-            <form onSubmit={handleAddStudent} className="p-6 space-y-5 flex-1 overflow-y-auto">
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1">Email Address</label>
-                  <input
-                    type="email" required placeholder="student@example.com"
-                    value={newEmail} onChange={(e) => setNewEmail(e.target.value)}
-                    className="w-full px-4 py-2.5 border rounded-xl focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1">Temporary Password</label>
-                  <input
-                    type="text" required placeholder="Password123" minLength={6}
-                    value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full px-4 py-2.5 border rounded-xl focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 border-t pt-4">
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1">Track Language</label>
-                  <select required className="w-full px-4 py-2.5 border rounded-xl outline-none bg-white" value={newLanguage} onChange={(e) => { setNewLanguage(e.target.value); setNewLevel(""); }}>
-                    <option value="">Select Language</option>
-                    {Object.keys(levelMap).map(lang => <option key={lang} value={lang}>{lang}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1">Entry Level</label>
-                  <select required className="w-full px-4 py-2.5 border rounded-xl outline-none bg-white disabled:opacity-50" value={newLevel} disabled={!newLanguage} onChange={(e) => setNewLevel(e.target.value)}>
-                    <option value="">Select Level</option>
-                    {availableLevels.map(lvl => <option key={lvl} value={lvl}>{lvl}</option>)}
-                  </select>
-                </div>
-              </div>
-
-              <div className="space-y-3 border-t pt-4">
-                <label className="flex items-center gap-3 cursor-pointer bg-green-50/50 p-3 rounded-xl border border-green-100 hover:bg-green-50 transition-colors">
-                  <input type="checkbox" checked={isPaid} onChange={(e) => setIsPaid(e.target.checked)} className="size-5 rounded border-gray-300 text-green-600 focus:ring-green-500" />
-                  <div className="flex flex-col">
-                    <span className="font-bold text-green-800 text-sm">Account Paid</span>
-                    <span className="text-xs text-green-600">Grants immediate login access</span>
+            <div className="h-[calc(100vh-80px)] overflow-y-auto px-6 py-6">
+              <form onSubmit={handleAddStudent} className="space-y-5">
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-1">Email Address</label>
+                    <input
+                      type="email" required placeholder="student@example.com"
+                      value={newEmail} onChange={(e) => setNewEmail(e.target.value)}
+                      className="w-full px-4 py-2.5 border rounded-xl focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                    />
                   </div>
-                </label>
-
-                <label className="flex items-center gap-3 cursor-pointer bg-purple-50/50 p-3 rounded-xl border border-purple-100 hover:bg-purple-50 transition-colors">
-                  <input type="checkbox" checked={hasFullAccess} onChange={(e) => setHasFullAccess(e.target.checked)} className="size-5 rounded border-gray-300 text-purple-600 focus:ring-purple-500" />
-                  <div className="flex flex-col">
-                    <span className="font-bold text-purple-800 text-sm">Grant Full Access</span>
-                    <span className="text-xs text-purple-600">Student can bypass level-locks and see all language materials</span>
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-1">Full Name</label>
+                    <input
+                      type="text" required placeholder="Student full name"
+                      value={newUsername} onChange={(e) => setNewUsername(e.target.value)}
+                      className="w-full px-4 py-2.5 border rounded-xl focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                    />
                   </div>
-                </label>
-              </div>
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-1">Temporary Password</label>
+                    <input
+                      type="text" required placeholder="Password123" minLength={6}
+                      value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
+                      className="w-full px-4 py-2.5 border rounded-xl focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                    />
+                  </div>
+                </div>
 
-              <div className="flex gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowAddModal(false)}
-                  className="px-4 py-3 text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl flex-1 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-3 text-sm font-bold bg-primary hover:bg-primary/90 text-white rounded-xl shadow-md flex-1 transition-all active:scale-95"
-                >
-                  Create Profile
-                </button>
-              </div>
-            </form>
+                <div className="grid grid-cols-2 gap-4 border-t pt-4">
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-1">Track Language</label>
+                    <select required className="w-full px-4 py-2.5 border rounded-xl outline-none bg-white" value={newLanguage} onChange={(e) => { setNewLanguage(e.target.value); setNewLevel(""); }}>
+                      <option value="">Select Language</option>
+                      {Object.keys(levelMap).map(lang => <option key={lang} value={lang}>{lang}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-1">Entry Level</label>
+                    <select required className="w-full px-4 py-2.5 border rounded-xl outline-none bg-white disabled:opacity-50" value={newLevel} disabled={!newLanguage} onChange={(e) => setNewLevel(e.target.value)}>
+                      <option value="">Select Level</option>
+                      {availableLevels.map(lvl => <option key={lvl} value={lvl}>{lvl}</option>)}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="space-y-3 border-t pt-4">
+                  <label className="flex items-center gap-3 cursor-pointer bg-green-50/50 p-3 rounded-xl border border-green-100 hover:bg-green-50 transition-colors">
+                    <input type="checkbox" checked={isPaid} onChange={(e) => setIsPaid(e.target.checked)} className="size-5 rounded border-gray-300 text-green-600 focus:ring-green-500" />
+                    <div className="flex flex-col">
+                      <span className="font-bold text-green-800 text-sm">Account Paid</span>
+                      <span className="text-xs text-green-600">Grants immediate login access</span>
+                    </div>
+                  </label>
+                  <label className="flex items-center gap-3 cursor-pointer bg-purple-50/50 p-3 rounded-xl border border-purple-100 hover:bg-purple-50 transition-colors">
+                    <input type="checkbox" checked={hasFullAccess} onChange={(e) => setHasFullAccess(e.target.checked)} className="size-5 rounded border-gray-300 text-purple-600 focus:ring-purple-500" />
+                    <div className="flex flex-col">
+                      <span className="font-bold text-purple-800 text-sm">Grant Full Access</span>
+                      <span className="text-xs text-purple-600">Student can bypass level-locks and see all language materials</span>
+                    </div>
+                  </label>
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button type="button" onClick={() => setShowAddModal(false)} className="px-4 py-3 text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl flex-1 transition-colors">
+                    Cancel
+                  </button>
+                  <button type="submit" className="px-4 py-3 text-sm font-bold bg-primary hover:bg-primary/90 text-white rounded-xl shadow-md flex-1 transition-all active:scale-95">
+                    Create Profile
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}
@@ -581,8 +597,7 @@ export default function StudentsClient() {
       {actionModal && actionModal.isOpen && (
         <div className="fixed inset-0 bg-gray-900/60 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
           <div className="bg-white w-full max-w-sm rounded-[2rem] shadow-2xl overflow-hidden flex flex-col p-6 pt-8 pb-6 text-center border-2 border-gray-100">
-            <div className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 ${actionModal.action === "restore" ? "bg-green-100 text-green-600" : "bg-yellow-100 text-yellow-600"
-              }`}>
+            <div className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 ${actionModal.action === "restore" ? "bg-green-100 text-green-600" : "bg-yellow-100 text-yellow-600"}`}>
               <span className="material-symbols-outlined text-4xl">
                 {actionModal.action === "restore" ? "restore" : "warning"}
               </span>
@@ -594,16 +609,10 @@ export default function StudentsClient() {
               {actionModal.action === "restore" && "This will restore full login access for this student."}
             </p>
             <div className="flex gap-3">
-              <button
-                onClick={() => setActionModal(null)}
-                className="flex-1 py-3 px-4 rounded-xl font-bold border border-gray-200 text-gray-600 hover:bg-gray-50 transition-all"
-              >
+              <button onClick={() => setActionModal(null)} className="flex-1 py-3 px-4 rounded-xl font-bold border border-gray-200 text-gray-600 hover:bg-gray-50 transition-all">
                 Cancel
               </button>
-              <button
-                onClick={confirmAction}
-                className={`flex-1 py-3 px-4 rounded-xl font-bold text-white shadow-sm transition-all ${actionColor}`}
-              >
+              <button onClick={confirmAction} className={`flex-1 py-3 px-4 rounded-xl font-bold text-white shadow-sm transition-all ${actionColor}`}>
                 {actionLabel}
               </button>
             </div>

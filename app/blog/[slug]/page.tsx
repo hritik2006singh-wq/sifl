@@ -1,160 +1,129 @@
-import { adminDb } from "@/lib/firebase-admin";
-import { Metadata } from 'next';
-import Image from "next/image";
-import Link from "next/link";
+import { Metadata } from "next";
+import { BlogService } from "@/lib/blogService";
 import { notFound } from "next/navigation";
-import BlogCTABlock from "@/components/BlogCTABlock";
-import ShareButton from "@/components/ShareButton";
+import Image from "next/image";
 
-export const revalidate = 60; // Refresh cache every minute
-export const dynamic = "force-dynamic";
+// ISR: Revalidate this page in the background every 1 hour
+export const revalidate = 3600;
 
-type Props = {
-    params: { slug: string }
-};
-
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-    const { slug } = params;
-
-    try {
-        if (!adminDb) return { title: 'SIFL Blog' };
-
-        const snapshot = await adminDb
-            .collection("blogs")
-            .where("slug", "==", slug)
-            .where("status", "==", "published")
-            .limit(1)
-            .get();
-
-        if (snapshot.empty) {
-            return { title: 'Not Found | SIFL Blog' };
-        }
-
-        const blog = snapshot.docs[0].data();
-
-        return {
-            title: `${blog.metaTitle || blog.title} | SIFL Insights`,
-            description: blog.metaDescription || blog.excerpt || "Language learning insights from SIFL.",
-            keywords: blog.keywords || ["language learning", "study abroad", "SIFL"],
-            openGraph: {
-                title: blog.metaTitle || blog.title,
-                description: blog.metaDescription || blog.excerpt,
-                images: blog.coverImageUrl ? [blog.coverImageUrl] : ["/images/hero/logo.jpg"],
-                type: 'article',
-                publishedTime: blog.publishedAt ? new Date(blog.publishedAt.toDate()).toISOString() : undefined,
-            },
-            alternates: {
-                canonical: `https://sifl.edu.in/blog/${slug}`
-            }
-        };
-    } catch (e) {
-        return { title: 'SIFL Blog' };
-    }
+// Next.js 16 requires params to be a Promise
+interface Props {
+    params: Promise<{ slug: string }>;
 }
 
+// ── Generate Static Params at build time ──────────────────
+export async function generateStaticParams() {
+    const blogs = await BlogService.getPublishedBlogs();
+    return blogs.map((blog) => ({
+        slug: blog.slug,
+    }));
+}
+
+// ── SEO Metadata ──────────────────────────────────────────
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+    const { slug } = await params;
+    const blog = await BlogService.getBlogBySlug(slug);
+
+    if (!blog) {
+        return {
+            title: "Blog Not Found | SIFL",
+            description: "The requested article could not be found.",
+        };
+    }
+
+    return {
+        title: `${blog.title} | SIFL`,
+        description: blog.excerpt || `Read "${blog.title}" on the SIFL blog.`,
+        openGraph: {
+            title: blog.title,
+            description: blog.excerpt || "",
+            url: `https://sifl.edu.in/blog/${blog.slug}`,
+            images: blog.coverImageUrl
+                ? [{ url: blog.coverImageUrl, alt: blog.title }]
+                : [],
+            type: "article",
+            // Safe: only call toDate() if the field is a real Timestamp
+            publishedTime:
+                blog.publishedAt && typeof blog.publishedAt.toDate === "function"
+                    ? blog.publishedAt.toDate().toISOString()
+                    : undefined,
+        },
+        twitter: {
+            card: "summary_large_image",
+            title: blog.title,
+            description: blog.excerpt || "",
+            images: blog.coverImageUrl ? [blog.coverImageUrl] : [],
+        },
+    };
+}
+
+// ── Page Component ────────────────────────────────────────
 export default async function BlogPostPage({ params }: Props) {
-    const { slug } = params;
+    const { slug } = await params;
+    const blog = await BlogService.getBlogBySlug(slug);
 
-    let blogData: any = null;
-
-    try {
-        if (!adminDb) { notFound(); return; }
-
-        const snapshot = await adminDb
-            .collection("blogs")
-            .where("slug", "==", slug)
-            .where("status", "==", "published")
-            .limit(1)
-            .get();
-
-        if (snapshot.empty) {
-            notFound();
-        }
-
-        blogData = { id: snapshot.docs[0].id, ...snapshot.docs[0].data() };
-
-    } catch (error) {
-        console.error("Error loading blog details:", error);
+    // TypeScript narrowing: after notFound() the function never returns,
+    // but TS doesn't know that. We use a non-null type narrowing pattern below.
+    if (!blog || blog.status !== "published") {
         notFound();
     }
 
-    if (!blogData) notFound();
+    // After the notFound() guard, TS still sees blog as Blog | null.
+    // The `!` assertion is safe here because notFound() throws (never returns).
+    const safeBlog = blog!;
 
-    const jsonLd = {
-        '@context': 'https://schema.org',
-        '@type': 'Article',
-        headline: blogData.title ?? "",
-        description: blogData.metaDescription || blogData.excerpt || "",
-        image: blogData.coverImageUrl || "",
-        datePublished: blogData.publishedAt ? new Date(blogData.publishedAt.toDate()).toISOString() : "",
-        author: {
-            '@type': 'Organization',
-            name: 'SIFL'
-        },
-        publisher: {
-            '@type': 'Organization',
-            name: 'SIFL - Language Institute'
+    // Safe date formatting — handles string, Timestamp, or undefined
+    let publishedDate: string | null = null;
+    if (safeBlog.publishedAt && typeof safeBlog.publishedAt.toDate === "function") {
+        try {
+            publishedDate = safeBlog.publishedAt.toDate().toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+            });
+        } catch {
+            publishedDate = null;
         }
-    };
+    }
 
     return (
-        <main className="min-h-screen bg-slate-50 pt-20 md:pt-24 pb-16 md:pb-20">
-            <script
-                type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-            />
-
-            <article className="max-w-4xl mx-auto px-6">
-                <Link href="/blog" className="inline-flex items-center gap-2 text-emerald-600 font-bold text-sm tracking-widest uppercase mb-8 hover:text-emerald-500 transition-colors">
-                    <span className="material-symbols-outlined text-sm">arrow_back</span>
-                    Back to Blog Hub
-                </Link>
-
-                <header className="mb-12">
-                    <h1 className="text-3xl md:text-5xl font-black text-slate-900 leading-tight mb-6">
-                        {blogData.title}
-                    </h1>
-
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-8">
-                        <div className="flex items-center gap-4">
-                            <div className="size-12 rounded-full overflow-hidden relative border border-slate-200">
-                                <Image src="/images/hero/logo.jpg" alt="SIFL" fill className="object-cover" />
-                            </div>
-                            <div>
-                                <p className="font-bold text-slate-900">SIFL Team</p>
-                                <p className="text-sm font-medium text-slate-500">
-                                    {blogData.publishedAt ? new Date(blogData.publishedAt.toDate()).toLocaleDateString() : "Just Now"}
-                                </p>
-                            </div>
-                        </div>
-                        <ShareButton title={blogData.title} />
-                    </div>
-                </header>
-
-                {blogData.coverImageUrl && (
-                    <div className="relative w-full aspect-[21/9] rounded-3xl overflow-hidden mb-12 shadow-md bg-slate-200">
-                        <Image src={blogData.coverImageUrl} alt={blogData.title} fill className="object-cover" priority />
-                    </div>
-                )}
-
-                {blogData.excerpt && (
-                    <p className="text-xl md:text-2xl text-slate-600 leading-relaxed font-medium mb-12 italic border-l-4 border-emerald-500 pl-6">
-                        {blogData.excerpt}
+        <article className="max-w-4xl mx-auto px-6 py-12">
+            {/* Header */}
+            <header className="mb-10 text-center">
+                <h1 className="text-4xl md:text-5xl font-black text-gray-900 mb-6 leading-tight">
+                    {safeBlog.title}
+                </h1>
+                {publishedDate && (
+                    <p className="text-gray-500 font-medium">
+                        Published on {publishedDate}
                     </p>
                 )}
+            </header>
 
+            {/* Hero Image */}
+            {safeBlog.coverImageUrl && (
+                <div className="relative w-full h-[400px] md:h-[500px] mb-12 rounded-3xl overflow-hidden shadow-2xl">
+                    <Image
+                        src={safeBlog.coverImageUrl}
+                        alt={safeBlog.title}
+                        fill
+                        className="object-cover"
+                        priority
+                    />
+                </div>
+            )}
+
+            {/* Blog Content — safe fallback if content is empty */}
+            {safeBlog.content ? (
                 <div
-                    className="prose prose-sm md:prose-lg leading-loose md:leading-relaxed prose-emerald max-w-none mb-16 md:mb-20
-                               prose-headings:font-black prose-headings:tracking-tight 
-                               prose-p:text-slate-700
-                               prose-a:text-emerald-600 prose-a:font-semibold prose-a:no-underline hover:prose-a:text-emerald-700 hover:prose-a:underline
-                               prose-img:rounded-2xl prose-img:shadow-lg
-                               prose-strong:text-slate-900"
-                    dangerouslySetInnerHTML={{ __html: blogData.content }}
+                    className="prose prose-lg md:prose-xl prose-emerald max-w-none prose-headings:font-bold prose-img:rounded-xl"
+                    dangerouslySetInnerHTML={{ __html: safeBlog.content }}
                 />
-
-                <BlogCTABlock />
-            </article>
-        </main>
+            ) : (
+                <p className="text-gray-400 text-center py-12">
+                    This post has no content yet.
+                </p>
+            )}
+        </article>
     );
 }
