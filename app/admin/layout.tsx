@@ -64,6 +64,7 @@ export default function AdminLayout({
   const handleLogout = async () => {
     try {
       await signOut(auth);
+      document.cookie = "user_role=; path=/; max-age=0;";
       window.location.href = "/login";
     } catch (err) {
       console.error("Logout failed", err);

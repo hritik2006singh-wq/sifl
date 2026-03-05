@@ -82,6 +82,7 @@ function LoginContent() {
         // 3️⃣ STEP: Role-Based Routing
         try {
             const role = profile.role || "student";
+            document.cookie = `user_role=${role}; path=/; max-age=2592000; SameSite=Strict`;
 
             if (role === "admin") {
                 router.push("/admin");

@@ -8,14 +8,14 @@ export const ADMIN_ROUTES = [
 ];
 
 export const TEACHER_ROUTES = [
-    { name: "Overview", icon: "dashboard", path: "/teacher" },
+    { name: "Overview", icon: "dashboard", path: "/teacher/dashboard" },
     { name: "My Students", icon: "group", path: "/teacher/students" },
     { name: "Schedule", icon: "event_available", path: "/teacher/availability" },
     { name: "Profile", icon: "person", path: "/teacher/profile" }
 ];
 
 export const STUDENT_ROUTES = [
-    { name: "Overview", icon: "home", path: "/student" },
+    { name: "Overview", icon: "home", path: "/student/dashboard" },
     { name: "My Materials", icon: "video_library", path: "/student/materials" },
     { name: "Tasks & Tests", icon: "assignment", path: "/student/assignments" },
     { name: "Profile", icon: "person", path: "/student/profile" }

@@ -1,6 +1,14 @@
 import { NextResponse } from "next/server";
 import { adminAuth, adminDb } from "@/lib/firebase-admin";
 
+function slugify(name: string) {
+    return name
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, "-")
+        .replace(/[^\w-]+/g, "");
+}
+
 export async function POST(req: Request) {
     try {
         const body = await req.json();
@@ -42,8 +50,13 @@ export async function POST(req: Request) {
             primaryLanguage: primaryLanguage || "", // Requested
             languagesTaught: primaryLanguage || "", // Compatibility
             specializations: specializations || [],
+            slug: `${slugify(name || "user")}-${userRecord.uid.slice(0, 4)}`,
             createdAt: new Date().toISOString(),
         };
+
+        if (role === "admin") {
+            await adminAuth.setCustomUserClaims(userRecord.uid, { admin: true });
+        }
 
         await adminDb.collection("users").doc(userRecord.uid).set(userData);
 
