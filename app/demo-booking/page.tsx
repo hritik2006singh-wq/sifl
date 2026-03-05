@@ -32,8 +32,8 @@ export default function SchedulePage() {
     }>({ show: false, type: "success", message: "" });
     const closeModal = () => setModalState({ ...modalState, show: false });
 
-    // Fixed teacherId for this form, acting as the generic demo handler
-    const TEACHER_ID = "admin_general";
+    // Fixed teacherId for this form — must match the document saved by admin (availability/global)
+    const TEACHER_ID = "global";
 
     const validatePhone = (phone: string) => {
         return /^[0-9]{10}$/.test(phone);
@@ -55,7 +55,7 @@ export default function SchedulePage() {
 
                 if (!availSnap.exists()) {
                     setAvailableSlots([]);
-                    setDateStatus("Schedule not configured.");
+                    setDateStatus("No slots available for this date.");
                     return;
                 }
 
@@ -69,7 +69,12 @@ export default function SchedulePage() {
                 }
 
                 const weeklyTemplate: WeeklyTemplate = availData.weeklyTemplate || {};
-                const checkDate = new Date(formData.date);
+
+                // RISK-4: Parse YYYY-MM-DD manually to local midnight
+                // Using new Date("YYYY-MM-DD") parses as UTC, which shifts day in low offsets
+                const [year, month, day] = formData.date.split('-').map(Number);
+                const checkDate = new Date(year, month - 1, day);
+
                 const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
                 const dayName = days[checkDate.getDay()];
 

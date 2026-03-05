@@ -98,8 +98,9 @@ export default function ManageSchedulePage() {
                 const snap = await getDoc(ref);
 
                 if (snap.exists()) {
-                    // Merge fetched data over defaults so missing days keep defaults
-                    setSchedule({ ...DEFAULT_SCHEDULE, ...(snap.data() as WeekSchedule) });
+                    // Merge fetched weeklyTemplate over defaults so missing days keep defaults
+                    const stored = (snap.data()?.weeklyTemplate ?? snap.data()) as WeekSchedule;
+                    setSchedule({ ...DEFAULT_SCHEDULE, ...stored });
                 } else {
                     setSchedule(DEFAULT_SCHEDULE);
                 }
@@ -133,7 +134,7 @@ export default function ManageSchedulePage() {
         try {
             const docId = selectedId === "global" ? "global" : selectedId;
             const ref = doc(db, "availability", docId);
-            await setDoc(ref, schedule, { merge: true });
+            await setDoc(ref, { weeklyTemplate: schedule }, { merge: true });
             toast.success("Schedule saved successfully!");
         } catch (err: any) {
             console.error("[ManageSchedule] Save failed:", err);

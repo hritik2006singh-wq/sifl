@@ -14,7 +14,6 @@ function requireEnv(name: string, value: string | undefined) {
     return value;
 }
 
-console.log("Firebase key:", process.env.NEXT_PUBLIC_FIREBASE_API_KEY);
 
 const firebaseConfig = {
     apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY!,

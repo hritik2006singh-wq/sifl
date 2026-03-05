@@ -24,8 +24,8 @@ export const TeacherService = {
             const docRefs = await getDocs(q);
             return docRefs.docs.map(doc => doc.data() as Teacher);
         } catch (error: any) {
-            console.error("Error fetching all teachers:", error);
-            throw new Error("Failed to fetch teachers");
+            console.error("[TeacherService] Error fetching all teachers:", error);
+            return [];
         }
     },
 

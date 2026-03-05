@@ -1,0 +1,441 @@
+2026-03-05T17:41:42.935Z [console][error] Image with src "/images/hero/logo.jpg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+2026-03-05T17:59:12.259Z [console][error] ./hooks/useRoleGuard.ts:36:17
+Parsing ecmascript source code failed
+  34 |
+  35 |                 // Account Status Guard
+> 36 |                 const status = userData.status ?? "active";
+     |                 ^
+  37 |                 if (status !== "active") {
+  38 |                     await auth.signOut();
+  39 |                     if (status === "suspended") {
+
+Expected a semicolon
+
+Import traces:
+  Client Component Browser:
+    ./hooks/useRoleGuard.ts [Client Component Browser]
+    ./app/admin/page.tsx [Client Component Browser]
+    ./app/admin/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./hooks/useRoleGuard.ts [Client Component SSR]
+    ./app/admin/page.tsx [Client Component SSR]
+    ./app/admin/page.tsx [Server Component]
+2026-03-05T17:59:12.352Z [console][error] ./hooks/useRoleGuard.ts:36:17
+Parsing ecmascript source code failed
+  34 |
+  35 |                 // Account Status Guard
+> 36 |                 const status = userData.status ?? "active";
+     |                 ^
+  37 |                 if (status !== "active") {
+  38 |                     await auth.signOut();
+  39 |                     if (status === "suspended") {
+
+Expected a semicolon
+
+Import traces:
+  Client Component Browser:
+    ./hooks/useRoleGuard.ts [Client Component Browser]
+    ./app/admin/page.tsx [Client Component Browser]
+    ./app/admin/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./hooks/useRoleGuard.ts [Client Component SSR]
+    ./app/admin/page.tsx [Client Component SSR]
+    ./app/admin/page.tsx [Server Component]
+2026-03-05T17:59:17.264Z [console][error] ./hooks/useRoleGuard.ts:36:17
+Parsing ecmascript source code failed
+  34 |
+  35 |                 // Account Status Guard
+> 36 |                 const status = userData.status ?? "active";
+     |                 ^
+  37 |                 if (status !== "active") {
+  38 |                     await auth.signOut();
+  39 |                     if (status === "suspended") {
+
+Expected a semicolon
+
+Import traces:
+  Client Component Browser:
+    ./hooks/useRoleGuard.ts [Client Component Browser]
+    ./app/admin/page.tsx [Client Component Browser]
+    ./app/admin/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./hooks/useRoleGuard.ts [Client Component SSR]
+    ./app/admin/page.tsx [Client Component SSR]
+    ./app/admin/page.tsx [Server Component]
+2026-03-05T17:59:17.356Z [console][error] ./hooks/useRoleGuard.ts:36:17
+Parsing ecmascript source code failed
+  34 |
+  35 |                 // Account Status Guard
+> 36 |                 const status = userData.status ?? "active";
+     |                 ^
+  37 |                 if (status !== "active") {
+  38 |                     await auth.signOut();
+  39 |                     if (status === "suspended") {
+
+Expected a semicolon
+
+Import traces:
+  Client Component Browser:
+    ./hooks/useRoleGuard.ts [Client Component Browser]
+    ./app/admin/page.tsx [Client Component Browser]
+    ./app/admin/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./hooks/useRoleGuard.ts [Client Component SSR]
+    ./app/admin/page.tsx [Client Component SSR]
+    ./app/admin/page.tsx [Server Component]
+2026-03-05T17:59:22.271Z [console][error] ./hooks/useRoleGuard.ts:36:17
+Parsing ecmascript source code failed
+  34 |
+  35 |                 // Account Status Guard
+> 36 |                 const status = userData.status ?? "active";
+     |                 ^
+  37 |                 if (status !== "active") {
+  38 |                     await auth.signOut();
+  39 |                     if (status === "suspended") {
+
+Expected a semicolon
+
+Import traces:
+  Client Component Browser:
+    ./hooks/useRoleGuard.ts [Client Component Browser]
+    ./app/admin/page.tsx [Client Component Browser]
+    ./app/admin/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./hooks/useRoleGuard.ts [Client Component SSR]
+    ./app/admin/page.tsx [Client Component SSR]
+    ./app/admin/page.tsx [Server Component]
+2026-03-05T17:59:22.388Z [console][error] ./hooks/useRoleGuard.ts:36:17
+Parsing ecmascript source code failed
+  34 |
+  35 |                 // Account Status Guard
+> 36 |                 const status = userData.status ?? "active";
+     |                 ^
+  37 |                 if (status !== "active") {
+  38 |                     await auth.signOut();
+  39 |                     if (status === "suspended") {
+
+Expected a semicolon
+
+Import traces:
+  Client Component Browser:
+    ./hooks/useRoleGuard.ts [Client Component Browser]
+    ./app/admin/page.tsx [Client Component Browser]
+    ./app/admin/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./hooks/useRoleGuard.ts [Client Component SSR]
+    ./app/admin/page.tsx [Client Component SSR]
+    ./app/admin/page.tsx [Server Component]
+2026-03-05T17:59:27.310Z [console][error] ./hooks/useRoleGuard.ts:36:17
+Parsing ecmascript source code failed
+  34 |
+  35 |                 // Account Status Guard
+> 36 |                 const status = userData.status ?? "active";
+     |                 ^
+  37 |                 if (status !== "active") {
+  38 |                     await auth.signOut();
+  39 |                     if (status === "suspended") {
+
+Expected a semicolon
+
+Import traces:
+  Client Component Browser:
+    ./hooks/useRoleGuard.ts [Client Component Browser]
+    ./app/admin/page.tsx [Client Component Browser]
+    ./app/admin/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./hooks/useRoleGuard.ts [Client Component SSR]
+    ./app/admin/page.tsx [Client Component SSR]
+    ./app/admin/page.tsx [Server Component]
+2026-03-05T17:59:27.393Z [console][error] ./hooks/useRoleGuard.ts:36:17
+Parsing ecmascript source code failed
+  34 |
+  35 |                 // Account Status Guard
+> 36 |                 const status = userData.status ?? "active";
+     |                 ^
+  37 |                 if (status !== "active") {
+  38 |                     await auth.signOut();
+  39 |                     if (status === "suspended") {
+
+Expected a semicolon
+
+Import traces:
+  Client Component Browser:
+    ./hooks/useRoleGuard.ts [Client Component Browser]
+    ./app/admin/page.tsx [Client Component Browser]
+    ./app/admin/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./hooks/useRoleGuard.ts [Client Component SSR]
+    ./app/admin/page.tsx [Client Component SSR]
+    ./app/admin/page.tsx [Server Component]
+2026-03-05T17:59:32.311Z [console][error] ./hooks/useRoleGuard.ts:36:17
+Parsing ecmascript source code failed
+  34 |
+  35 |                 // Account Status Guard
+> 36 |                 const status = userData.status ?? "active";
+     |                 ^
+  37 |                 if (status !== "active") {
+  38 |                     await auth.signOut();
+  39 |                     if (status === "suspended") {
+
+Expected a semicolon
+
+Import traces:
+  Client Component Browser:
+    ./hooks/useRoleGuard.ts [Client Component Browser]
+    ./app/admin/page.tsx [Client Component Browser]
+    ./app/admin/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./hooks/useRoleGuard.ts [Client Component SSR]
+    ./app/admin/page.tsx [Client Component SSR]
+    ./app/admin/page.tsx [Server Component]
+2026-03-05T17:59:32.401Z [console][error] ./hooks/useRoleGuard.ts:36:17
+Parsing ecmascript source code failed
+  34 |
+  35 |                 // Account Status Guard
+> 36 |                 const status = userData.status ?? "active";
+     |                 ^
+  37 |                 if (status !== "active") {
+  38 |                     await auth.signOut();
+  39 |                     if (status === "suspended") {
+
+Expected a semicolon
+
+Import traces:
+  Client Component Browser:
+    ./hooks/useRoleGuard.ts [Client Component Browser]
+    ./app/admin/page.tsx [Client Component Browser]
+    ./app/admin/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./hooks/useRoleGuard.ts [Client Component SSR]
+    ./app/admin/page.tsx [Client Component SSR]
+    ./app/admin/page.tsx [Server Component]
+2026-03-05T17:59:12.267Z [console][error] ./hooks/useRoleGuard.ts:36:17
+Parsing ecmascript source code failed
+  34 |
+  35 |                 // Account Status Guard
+> 36 |                 const status = userData.status ?? "active";
+     |                 ^
+  37 |                 if (status !== "active") {
+  38 |                     await auth.signOut();
+  39 |                     if (status === "suspended") {
+
+Expected a semicolon
+
+Import traces:
+  Client Component Browser:
+    ./hooks/useRoleGuard.ts [Client Component Browser]
+    ./app/admin/page.tsx [Client Component Browser]
+    ./app/admin/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./hooks/useRoleGuard.ts [Client Component SSR]
+    ./app/admin/page.tsx [Client Component SSR]
+    ./app/admin/page.tsx [Server Component]
+2026-03-05T17:59:12.360Z [console][error] ./hooks/useRoleGuard.ts:36:17
+Parsing ecmascript source code failed
+  34 |
+  35 |                 // Account Status Guard
+> 36 |                 const status = userData.status ?? "active";
+     |                 ^
+  37 |                 if (status !== "active") {
+  38 |                     await auth.signOut();
+  39 |                     if (status === "suspended") {
+
+Expected a semicolon
+
+Import traces:
+  Client Component Browser:
+    ./hooks/useRoleGuard.ts [Client Component Browser]
+    ./app/admin/page.tsx [Client Component Browser]
+    ./app/admin/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./hooks/useRoleGuard.ts [Client Component SSR]
+    ./app/admin/page.tsx [Client Component SSR]
+    ./app/admin/page.tsx [Server Component]
+2026-03-05T17:59:17.272Z [console][error] ./hooks/useRoleGuard.ts:36:17
+Parsing ecmascript source code failed
+  34 |
+  35 |                 // Account Status Guard
+> 36 |                 const status = userData.status ?? "active";
+     |                 ^
+  37 |                 if (status !== "active") {
+  38 |                     await auth.signOut();
+  39 |                     if (status === "suspended") {
+
+Expected a semicolon
+
+Import traces:
+  Client Component Browser:
+    ./hooks/useRoleGuard.ts [Client Component Browser]
+    ./app/admin/page.tsx [Client Component Browser]
+    ./app/admin/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./hooks/useRoleGuard.ts [Client Component SSR]
+    ./app/admin/page.tsx [Client Component SSR]
+    ./app/admin/page.tsx [Server Component]
+2026-03-05T17:59:17.364Z [console][error] ./hooks/useRoleGuard.ts:36:17
+Parsing ecmascript source code failed
+  34 |
+  35 |                 // Account Status Guard
+> 36 |                 const status = userData.status ?? "active";
+     |                 ^
+  37 |                 if (status !== "active") {
+  38 |                     await auth.signOut();
+  39 |                     if (status === "suspended") {
+
+Expected a semicolon
+
+Import traces:
+  Client Component Browser:
+    ./hooks/useRoleGuard.ts [Client Component Browser]
+    ./app/admin/page.tsx [Client Component Browser]
+    ./app/admin/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./hooks/useRoleGuard.ts [Client Component SSR]
+    ./app/admin/page.tsx [Client Component SSR]
+    ./app/admin/page.tsx [Server Component]
+2026-03-05T17:59:22.279Z [console][error] ./hooks/useRoleGuard.ts:36:17
+Parsing ecmascript source code failed
+  34 |
+  35 |                 // Account Status Guard
+> 36 |                 const status = userData.status ?? "active";
+     |                 ^
+  37 |                 if (status !== "active") {
+  38 |                     await auth.signOut();
+  39 |                     if (status === "suspended") {
+
+Expected a semicolon
+
+Import traces:
+  Client Component Browser:
+    ./hooks/useRoleGuard.ts [Client Component Browser]
+    ./app/admin/page.tsx [Client Component Browser]
+    ./app/admin/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./hooks/useRoleGuard.ts [Client Component SSR]
+    ./app/admin/page.tsx [Client Component SSR]
+    ./app/admin/page.tsx [Server Component]
+2026-03-05T17:59:22.396Z [console][error] ./hooks/useRoleGuard.ts:36:17
+Parsing ecmascript source code failed
+  34 |
+  35 |                 // Account Status Guard
+> 36 |                 const status = userData.status ?? "active";
+     |                 ^
+  37 |                 if (status !== "active") {
+  38 |                     await auth.signOut();
+  39 |                     if (status === "suspended") {
+
+Expected a semicolon
+
+Import traces:
+  Client Component Browser:
+    ./hooks/useRoleGuard.ts [Client Component Browser]
+    ./app/admin/page.tsx [Client Component Browser]
+    ./app/admin/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./hooks/useRoleGuard.ts [Client Component SSR]
+    ./app/admin/page.tsx [Client Component SSR]
+    ./app/admin/page.tsx [Server Component]
+2026-03-05T17:59:27.318Z [console][error] ./hooks/useRoleGuard.ts:36:17
+Parsing ecmascript source code failed
+  34 |
+  35 |                 // Account Status Guard
+> 36 |                 const status = userData.status ?? "active";
+     |                 ^
+  37 |                 if (status !== "active") {
+  38 |                     await auth.signOut();
+  39 |                     if (status === "suspended") {
+
+Expected a semicolon
+
+Import traces:
+  Client Component Browser:
+    ./hooks/useRoleGuard.ts [Client Component Browser]
+    ./app/admin/page.tsx [Client Component Browser]
+    ./app/admin/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./hooks/useRoleGuard.ts [Client Component SSR]
+    ./app/admin/page.tsx [Client Component SSR]
+    ./app/admin/page.tsx [Server Component]
+2026-03-05T17:59:27.400Z [console][error] ./hooks/useRoleGuard.ts:36:17
+Parsing ecmascript source code failed
+  34 |
+  35 |                 // Account Status Guard
+> 36 |                 const status = userData.status ?? "active";
+     |                 ^
+  37 |                 if (status !== "active") {
+  38 |                     await auth.signOut();
+  39 |                     if (status === "suspended") {
+
+Expected a semicolon
+
+Import traces:
+  Client Component Browser:
+    ./hooks/useRoleGuard.ts [Client Component Browser]
+    ./app/admin/page.tsx [Client Component Browser]
+    ./app/admin/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./hooks/useRoleGuard.ts [Client Component SSR]
+    ./app/admin/page.tsx [Client Component SSR]
+    ./app/admin/page.tsx [Server Component]
+2026-03-05T17:59:32.319Z [console][error] ./hooks/useRoleGuard.ts:36:17
+Parsing ecmascript source code failed
+  34 |
+  35 |                 // Account Status Guard
+> 36 |                 const status = userData.status ?? "active";
+     |                 ^
+  37 |                 if (status !== "active") {
+  38 |                     await auth.signOut();
+  39 |                     if (status === "suspended") {
+
+Expected a semicolon
+
+Import traces:
+  Client Component Browser:
+    ./hooks/useRoleGuard.ts [Client Component Browser]
+    ./app/admin/page.tsx [Client Component Browser]
+    ./app/admin/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./hooks/useRoleGuard.ts [Client Component SSR]
+    ./app/admin/page.tsx [Client Component SSR]
+    ./app/admin/page.tsx [Server Component]
+2026-03-05T17:59:32.409Z [console][error] ./hooks/useRoleGuard.ts:36:17
+Parsing ecmascript source code failed
+  34 |
+  35 |                 // Account Status Guard
+> 36 |                 const status = userData.status ?? "active";
+     |                 ^
+  37 |                 if (status !== "active") {
+  38 |                     await auth.signOut();
+  39 |                     if (status === "suspended") {
+
+Expected a semicolon
+
+Import traces:
+  Client Component Browser:
+    ./hooks/useRoleGuard.ts [Client Component Browser]
+    ./app/admin/page.tsx [Client Component Browser]
+    ./app/admin/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./hooks/useRoleGuard.ts [Client Component SSR]
+    ./app/admin/page.tsx [Client Component SSR]
+    ./app/admin/page.tsx [Server Component]

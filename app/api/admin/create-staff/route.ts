@@ -60,6 +60,21 @@ export async function POST(req: Request) {
 
         await adminDb.collection("users").doc(userRecord.uid).set(userData);
 
+        // RISK-2 Fix: If role is teacher, also write to the teachers collection
+        if (role === "teacher") {
+            const teacherData = {
+                uid: userRecord.uid,
+                name: name || "",
+                email: email,
+                phone: phone || "",
+                primaryLanguage: primaryLanguage || "",
+                specializations: specializations || [],
+                status: "active",
+                createdAt: new Date().toISOString()
+            };
+            await adminDb.collection("teachers").doc(userRecord.uid).set(teacherData);
+        }
+
         return NextResponse.json({
             success: true,
             uid: userRecord.uid,

@@ -19,13 +19,13 @@ export function useRoleGuard(requiredRole: "admin" | "teacher" | "student") {
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
             if (!currentUser) {
-                // Not authenticated, send to login
                 router.push("/login");
                 return;
             }
 
             try {
-                // Fetch user profile from unified users/{uid} collection
+                // Fetch user profile — UserService.getUserProfile throws on Firestore error.
+                // We catch that below and redirect to avoid a blank/crashed page.
                 const userData = await UserService.getUserProfile(currentUser.uid);
 
                 if (!userData) {
@@ -55,17 +55,18 @@ export function useRoleGuard(requiredRole: "admin" | "teacher" | "student") {
                     return;
                 }
 
-                // Authorized!
+                // Authorized
                 setUser({ ...userData, uid: currentUser.uid });
             } catch (error) {
-                console.error("Error in role guard:", error);
-                router.push("/");
+                console.error("[useRoleGuard] Auth check failed:", error);
+                // Do not redirect to / on transient Firestore errors — just stop loading
+                // so the error boundary can catch a thrown error or the page shows gracefully
+                setLoading(false);
             } finally {
                 setLoading(false);
             }
         });
 
-        // Cleanup subscription
         return () => unsubscribe();
     }, [router, requiredRole]);
 
@@ -78,12 +79,13 @@ export function useRoleGuard(requiredRole: "admin" | "teacher" | "student") {
                 setUser({ uid: user.uid, ...userSnap.data() });
             }
         } catch (e) {
-            console.error("Failed to refresh user", e);
+            console.error("[useRoleGuard] Failed to refresh user:", e);
         }
     };
 
     return { user, loading, refreshUser };
 }
+
 export function useAdminGuard() {
     return useRoleGuard("admin");
 }

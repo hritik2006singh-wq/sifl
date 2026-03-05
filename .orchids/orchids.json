@@ -1,0 +1,7 @@
+{
+  "projectId": "f1657d33-1cd9-4d81-beba-1a0cf3fa9c5e",
+  "createdAt": 1772732342018,
+  "version": "1.0",
+  "startupCommands": ["npx next dev --port 3000"],
+  "templateId": "any"
+}

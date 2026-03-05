@@ -24,8 +24,8 @@ export const StudentService = {
             const docRefs = await getDocs(q);
             return docRefs.docs.map(doc => doc.data() as Student);
         } catch (error: any) {
-            console.error("Error fetching all students:", error);
-            throw new Error("Failed to fetch students");
+            console.error("[StudentService] Error fetching all students:", error);
+            return [];
         }
     },
 

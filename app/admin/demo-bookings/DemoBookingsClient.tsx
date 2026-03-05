@@ -90,7 +90,7 @@ export default function DemoBookingsClient() {
 
                 if (!availSnap.exists()) {
                     setAvailableSlots([]);
-                    setDateStatus("Schedule not configured.");
+                    setDateStatus("No slots available for this date.");
                     return;
                 }
 
@@ -104,7 +104,11 @@ export default function DemoBookingsClient() {
                 }
 
                 const weeklyTemplate: WeeklyTemplate = availData.weeklyTemplate || {};
-                const checkDate = new Date(newDate);
+
+                // RISK-4: Parse YYYY-MM-DD manually to local midnight
+                const [year, month, day] = newDate.split('-').map(Number);
+                const checkDate = new Date(year, month - 1, day);
+
                 const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
                 const dayName = days[checkDate.getDay()];
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase-client";
 import { useRouter } from "next/navigation";
 import { collection, query, where, getDocs, getCountFromServer } from "firebase/firestore";
@@ -16,9 +16,6 @@ import {
   Filler,
 } from "chart.js";
 import { Line } from "react-chartjs-2";
-import { onAuthStateChanged } from "firebase/auth";
-import { useEffect } from "react";
-import { getAuth } from "firebase/auth";
 
 ChartJS.register(
   CategoryScale,
@@ -31,20 +28,6 @@ ChartJS.register(
 );
 
 export default function AdminDashboardPage() {
-  useEffect(() => {
-    const auth = getAuth();
-
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        const token = await user.getIdTokenResult(true);
-        console.log("🔥 TOKEN CLAIMS:", token.claims);
-      } else {
-        console.log("❌ No user logged in");
-      }
-    });
-
-    return () => unsubscribe();
-  }, []);
   const router = useRouter();
   const { user, loading } = useAdminGuard();
 
@@ -90,28 +73,22 @@ export default function AdminDashboardPage() {
       const materialsQuery = collection(db, "materials");
       const totalMaterialsSnap = await getCountFromServer(materialsQuery);
 
-      // 4. Pending Demos
-      const pendingDemosQuery = query(collection(db, "demo_bookings"), where("status", "==", "pending"));
-      const pendingDemosSnap = await getCountFromServer(pendingDemosQuery);
+        // 4. Pending Demos
+        const pendingDemosQuery = query(collection(db, "demoBookings"), where("status", "==", "pending"));
+        const pendingDemosSnap = await getCountFromServer(pendingDemosQuery);
 
-      // 5. Today's Demos
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const todaysDemosQuery = query(collection(db, "demo_bookings"), where("createdAt", ">=", today.toISOString()));
-      let todaysDemosCount = 0;
-      try {
-        const todaySnap = await getCountFromServer(todaysDemosQuery);
-        todaysDemosCount = todaySnap.data().count;
-      } catch (e) {
-        // Fallback if index missing or using created_at
-        const fallbackQuery = query(collection(db, "demo_bookings"), where("created_at", ">=", today.toISOString()));
+        // 5. Today's Demos
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const todaysDemosQuery = query(collection(db, "demoBookings"), where("createdAt", ">=", today.toISOString()));
+        let todaysDemosCount = 0;
         try {
-          const fallbackSnap = await getCountFromServer(fallbackQuery);
-          todaysDemosCount = fallbackSnap.data().count;
-        } catch (fallbackErr) {
-          // Ignore
+          const todaySnap = await getCountFromServer(todaysDemosQuery);
+          todaysDemosCount = todaySnap.data().count;
+        } catch (e) {
+          // Fallback — createdAt may not be indexed yet
+          todaysDemosCount = 0;
         }
-      }
 
       setMetrics({
         totalStudents: totalStudentsSnap.data().count,
@@ -133,7 +110,7 @@ export default function AdminDashboardPage() {
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-      const weeklyDemosQuery = query(collection(db, "demo_bookings"));
+        const weeklyDemosQuery = query(collection(db, "demoBookings"));
       const weeklySnap = await getDocs(weeklyDemosQuery);
 
       const aggregatedData = [0, 0, 0, 0, 0, 0, 0];
@@ -373,10 +350,5 @@ export default function AdminDashboardPage() {
         </div>
       </div>
     </>
-  );
+    );
 }
-const auth = getAuth()
-
-auth.currentUser?.getIdTokenResult().then((token) => {
-  console.log("TOKEN CLAIMS:", token.claims)
-})

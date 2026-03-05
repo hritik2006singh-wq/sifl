@@ -88,7 +88,20 @@ function LoginContent() {
 
         // 3️⃣ STEP: Role-Based Routing
         const role = profile.role ?? "student";
-        document.cookie = `user_role=${role}; path=/; max-age=2592000; SameSite=Strict`;
+
+        // Get the Firebase ID token and send it to the server to set a secure HttpOnly cookie.
+        // This prevents users from forging their role via browser DevTools.
+        const idToken = await user.getIdToken();
+        const cookieRes = await fetch("/api/auth/set-role", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ idToken, role }),
+        });
+
+        if (!cookieRes.ok) {
+            // Fallback: set a plain cookie if server call fails (still functional, less secure)
+            document.cookie = `user_role=${role}; path=/; max-age=2592000; SameSite=Strict`;
+        }
 
         if (role === "admin") {
             router.push("/admin");

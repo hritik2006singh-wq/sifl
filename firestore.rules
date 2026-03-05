@@ -40,10 +40,24 @@ service cloud.firestore {
       allow read: if request.auth != null; // Refine based on actual assignment structure
     }
 
-    match /demo_bookings/{bookingId} {
-      // Anyone can create a demo booking
+    match /demoBookings/{bookingId} {
+      // Anyone can create a demo booking (public form)
       allow create: if true;
       allow read, update, delete: if isAdmin();
+    }
+
+    match /availability/{docId} {
+      // Authenticated users can read (used by booking page)
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /slots/{slotId} {
+      // Anyone can read slots (to see availability)
+      allow read: if true;
+      // Booking form uses a transaction to write slots — allow if creating/updating
+      allow create, update: if true;
+      allow delete: if isAdmin();
     }
     
     match /materials/{materialId} {

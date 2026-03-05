@@ -29,46 +29,54 @@ export default function AdminLayout({
   const [pendingBookings, setPendingBookings] = useState(0);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  useEffect(() => {
-    const fetchPendingBookings = async () => {
-      try {
-        const { query, collection, where, onSnapshot } = await import("firebase/firestore");
-        const q = query(collection(db, "demoBookings"), where("status", "==", "pending"));
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-          setPendingBookings(snapshot.docs.length);
-        });
-        return unsubscribe;
-      } catch (err) {
-        console.error("Failed to fetch pending bookings", err);
-      }
-    };
+    useEffect(() => {
+      let unsubBookings: (() => void) | null = null;
+      let cancelled = false;
 
-    let unsubBookings: any = null;
-    fetchPendingBookings().then(unsub => unsubBookings = unsub);
-
-    const unsubscribeAuth = auth.onAuthStateChanged(async (user) => {
-      if (user) {
+      const fetchPendingBookings = async () => {
         try {
-          const profile = await UserService.getUserProfile(user.uid);
-          setDbUser(profile ? { id: user.uid, ...profile } : null);
+          const { query, collection, where, onSnapshot } = await import("firebase/firestore");
+          if (cancelled) return;
+          const q = query(collection(db, "demoBookings"), where("status", "==", "pending"));
+          unsubBookings = onSnapshot(q, (snapshot) => {
+            setPendingBookings(snapshot.docs.length);
+          }, (err) => {
+            console.error("[AdminLayout] Pending bookings listener error:", err);
+          });
         } catch (err) {
-          console.error("Failed to load admin profile:", err);
+          console.error("[AdminLayout] Failed to set up pending bookings listener:", err);
+        }
+      };
+
+      fetchPendingBookings();
+
+      const unsubscribeAuth = auth.onAuthStateChanged(async (user) => {
+        if (user) {
+          try {
+            const profile = await UserService.getUserProfile(user.uid);
+            setDbUser(profile ? { id: user.uid, ...profile } : null);
+          } catch (err) {
+            console.error("Failed to load admin profile:", err);
+            setDbUser(null);
+          }
+        } else {
           setDbUser(null);
         }
-      } else {
-        setDbUser(null);
-      }
-    });
-    return () => {
-      unsubscribeAuth();
-      if (unsubBookings) unsubBookings();
-    };
-  }, []);
+      });
+
+      return () => {
+        cancelled = true;
+        unsubscribeAuth();
+        if (unsubBookings) unsubBookings();
+      };
+    }, []);
 
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      document.cookie = "user_role=; path=/; max-age=0;";
+      // Clear the HttpOnly role cookie via a server request
+      // (HttpOnly cookies cannot be deleted via document.cookie from the browser)
+      await fetch("/api/auth/set-role", { method: "DELETE" });
       window.location.href = "/login";
     } catch (err) {
       console.error("Logout failed", err);
