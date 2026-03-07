@@ -24,7 +24,7 @@ const universities = [
     { name: "Germany", logo: "/images/Flag/german.jpg" },
     { name: "Spain", logo: "/images/Flag/spain.jpg" },
     { name: "Japan", logo: "/images/Flag/jap.jpg" },
-    { name: "Frence", logo: "/images/Flag/french.jpg" },
+    { name: "France", logo: "/images/Flag/french.jpg" },
 ];
 
 const duplicatedUniversities = [...universities, ...universities, ...universities, ...universities];
@@ -72,6 +72,7 @@ export default function HeroSection() {
             if (rAF.current) cancelAnimationFrame(rAF.current);
         };
     }, []);
+
     // Carousel auto-advance
     useEffect(() => {
         const timer = setInterval(() => {
@@ -162,7 +163,7 @@ export default function HeroSection() {
                             lineHeight: 1.6,
                         }}
                     >
-                        Your trusted pathway to fluency with "SIFL".
+                        Your trusted pathway to fluency with &quot;SIFL&quot;.
                     </p>
 
                     {/* CTA BUTTONS — centered */}
@@ -172,7 +173,7 @@ export default function HeroSection() {
                                 size="lg"
                                 className="bg-[#10b981] hover:bg-[#059669] text-white font-bold border-none shadow-xl transition-all duration-300 h-14 px-8 text-lg min-w-[200px]"
                             >
-                            Book Free Demo
+                                Book Free Demo
                             </Button>
                         </Link>
 
@@ -248,14 +249,13 @@ export default function HeroSection() {
                                 <div
                                     key={index}
                                     className="flex flex-col items-center transition-all duration-300"
-                                    style={{
-                                        width: "160px",
-                                    }}
+                                    style={{ width: "160px" }}
                                 >
+                                    {/* mobile-flutter-flag: on ≤768px — 0.8s flutter keyframe with scale(0.5) */}
                                     <img
                                         src={uni.logo}
                                         alt={uni.name}
-                                        className="h-14 w-auto object-contain"
+                                        className="h-14 w-auto object-contain mobile-flutter-flag"
                                     />
                                     <span className="text-sm mt-2 text-slate-700 whitespace-nowrap">
                                         {uni.name}

@@ -4,6 +4,14 @@ import { usePathname } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import LeadCapture from "@/components/LeadCapture";
+import MobileBottomNav from "@/components/MobileBottomNav";
+
+const mobileNavItems = [
+    { label: "Home", path: "/", icon: "home", exact: true },
+    { label: "Programs", path: "/programs", icon: "menu_book" },
+    { label: "Book Demo", path: "/demo-booking", icon: "calendar_month" },
+    { label: "About", path: "/ysifl", icon: "info" },
+];
 
 export default function GlobalLayoutWrapper({
     children,
@@ -25,9 +33,12 @@ export default function GlobalLayoutWrapper({
     return (
         <>
             <Navbar />
-            <main>{children}</main>
+            {/* mobile-bottom-safe adds padding so content clears the fixed bottom nav */}
+            <main className="mobile-bottom-safe">{children}</main>
             <Footer />
             <LeadCapture />
+            {/* MobileBottomNav is self-contained: fixed bottom-0, md:hidden */}
+            <MobileBottomNav items={mobileNavItems} />
         </>
     );
 }

@@ -105,10 +105,109 @@ h4, h5, h6 {
   to { transform: translateY(0); opacity: 1; }
 }
 
-/* Touch & App Feel Defaults */
+/* ═══════════════════════════════════════════════════════════════
+   MOBILE FLAG FLUTTER — keyframe defined globally so it can be
+   referenced from within the @media block below.
+   The scale(0.5) is baked into every frame so the flag is always
+   half-size on mobile while animating.
+═══════════════════════════════════════════════════════════════ */
+@keyframes flutter {
+  0%   { transform: scale(0.5) rotate(0deg)   translateY(0px);  }
+  12%  { transform: scale(0.5) rotate(-5deg)  translateY(-2px); }
+  25%  { transform: scale(0.5) rotate(5deg)   translateY(1px);  }
+  37%  { transform: scale(0.5) rotate(-4deg)  translateY(-1px); }
+  50%  { transform: scale(0.5) rotate(5deg)   translateY(2px);  }
+  62%  { transform: scale(0.5) rotate(-3deg)  translateY(-1px); }
+  75%  { transform: scale(0.5) rotate(4deg)   translateY(0px);  }
+  87%  { transform: scale(0.5) rotate(-2deg)  translateY(-1px); }
+  100% { transform: scale(0.5) rotate(0deg)   translateY(0px);  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MOBILE — max-width: 768px
+   ALL rules below are strictly mobile-scoped. Desktop untouched.
+═══════════════════════════════════════════════════════════════ */
 @media (max-width: 768px) {
+  /* ── Tap highlight suppression ─────────────────────────────── */
   * {
     -webkit-tap-highlight-color: transparent;
   }
-}
 
+  /* ── Touch target floors (WCAG 2.5.5) ─────────────────────── */
+  button,
+  a,
+  [role="button"] {
+    min-height: 44px;
+  }
+
+  /* ── Flag flutter ──────────────────────────────────────────── */
+  /* Add class "mobile-flutter-flag" to each flag <img>.
+     Scale(0.5) is baked into keyframe = assets 50% smaller.
+     Duration 0.8s = rapid flutter as specified.              */
+  .mobile-flutter-flag {
+    animation: flutter 0.8s infinite linear;
+    transform-origin: center bottom;
+    will-change: transform;
+    display: inline-block;
+  }
+
+  /* ── Carousel container ────────────────────────────────────── */
+  /* Add class "mobile-carousel-container" to scroll wrappers.
+     On desktop, md: Tailwind classes override these.         */
+  .mobile-carousel-container {
+    display: flex !important;
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    scroll-snap-type: x mandatory !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+  }
+  .mobile-carousel-container::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  /* ── Carousel card (85% width = 15% peek of next card) ─────── */
+  .mobile-carousel-card {
+    min-width: 85% !important;
+    max-width: 85% !important;
+    margin-right: 1rem !important;
+    flex-shrink: 0 !important;
+    scroll-snap-align: center !important;
+  }
+  /* Eliminate trailing gap after last card */
+  .mobile-carousel-card:last-child {
+    margin-right: 0.5rem !important;
+  }
+
+  /* ── Scroll-dot indicators ─────────────────────────────────── */
+  .mobile-carousel-dots {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    padding-top: 12px;
+  }
+  .mobile-carousel-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: #cbd5e1;
+    transition: background 0.3s ease, width 0.25s ease;
+  }
+  .mobile-carousel-dot.active {
+    background: #004d33;
+    width: 20px;
+  }
+
+  /* ── Bottom-nav safe area padding ─────────────────────────── */
+  /* Applied to <main> in GlobalLayoutWrapper on non-dashboard pages */
+  .mobile-bottom-safe {
+    padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* ── Hero content vertical breathing room on mobile ────────── */
+  .hero {
+    height: 100svh; /* small viewport height unit — avoids toolbar overlap */
+  }
+}
