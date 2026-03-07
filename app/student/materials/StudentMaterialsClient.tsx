@@ -14,6 +14,7 @@ export default function StudentMaterialsClient() {
 
     // Preview File Modal
     const [previewMaterial, setPreviewMaterial] = useState<any>(null);
+    const [isVideoLoaded, setIsVideoLoaded] = useState(false);
 
     useEffect(() => {
         const fetchContent = async () => {
@@ -158,10 +159,28 @@ export default function StudentMaterialsClient() {
                         </div>
                         <div className="flex-1 bg-black/50 rounded-2xl overflow-hidden shadow-2xl border border-white/10 min-h-[300px] md:min-h-[500px]">
                             {previewMaterial.fileType === "video" ? (
-                                <video controls controlsList="nodownload" className="w-full h-full min-h-[300px] object-contain">
-                                    <source src={previewMaterial.fileUrl} type="video/mp4" />
-                                    Your browser does not support the video tag.
-                                </video>
+                                <div className="relative w-full h-full min-h-[300px]">
+                                    {!isVideoLoaded && (
+                                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900/80 rounded-2xl z-10">
+                                            <div className="relative">
+                                                <div className="w-16 h-16 rounded-full border-4 border-white/20 border-t-white animate-spin" />
+                                                <span className="material-symbols-outlined text-white/70 text-3xl absolute inset-0 flex items-center justify-center">play_arrow</span>
+                                            </div>
+                                            <p className="text-white/50 text-sm font-semibold mt-4 tracking-wide">Loading video...</p>
+                                        </div>
+                                    )}
+                                    <video
+                                        controls
+                                        controlsList="nodownload"
+                                        preload="metadata"
+                                        poster={previewMaterial.thumbnailUrl || undefined}
+                                        onLoadedData={() => setIsVideoLoaded(true)}
+                                        className={`w-full h-full min-h-[300px] object-contain transition-opacity duration-300 ${isVideoLoaded ? 'opacity-100' : 'opacity-0'}`}
+                                    >
+                                        <source src={previewMaterial.fileUrl} type="video/mp4" />
+                                        Your browser does not support the video tag.
+                                    </video>
+                                </div>
                             ) : (
                                 <iframe src={`${previewMaterial.fileUrl}#toolbar=0`} className="w-full h-full border-none bg-white object-contain" />
                             )}
@@ -186,7 +205,7 @@ export default function StudentMaterialsClient() {
                 {materials.map((m, index) => (
                     <div
                         key={m.id}
-                        onClick={() => setPreviewMaterial(m)}
+                        onClick={() => { setPreviewMaterial(m); setIsVideoLoaded(false); }}
                         className="bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow hover:border-primary/20 transition-all p-6 flex flex-col md:flex-row items-center gap-6 group cursor-pointer"
                     >
 

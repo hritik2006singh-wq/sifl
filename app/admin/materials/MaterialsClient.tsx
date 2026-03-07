@@ -47,6 +47,7 @@ export default function MaterialsClient() {
 
   // Preview Modal
   const [previewMaterial, setPreviewMaterial] = useState<any>(null);
+  const [isVideoLoaded, setIsVideoLoaded] = useState(false);
 
   // Selected State
   const [selectedLanguage, setSelectedLanguage] = useState("");
@@ -304,10 +305,28 @@ export default function MaterialsClient() {
             </div>
             <div className="flex-1 bg-black/50 rounded-2xl overflow-hidden shadow-2xl border border-white/10 min-h-[300px] md:min-h-[500px]">
               {previewMaterial.fileType === "video" ? (
-                <video controls controlsList="nodownload" className="w-full h-full min-h-[300px] object-contain">
-                  <source src={previewMaterial.fileUrl} type="video/mp4" />
-                  Your browser does not support the video tag.
-                </video>
+                <div className="relative w-full h-full min-h-[300px]">
+                  {!isVideoLoaded && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900/80 rounded-2xl z-10">
+                      <div className="relative">
+                        <div className="w-16 h-16 rounded-full border-4 border-white/20 border-t-white animate-spin" />
+                        <span className="material-symbols-outlined text-white/70 text-3xl absolute inset-0 flex items-center justify-center">play_arrow</span>
+                      </div>
+                      <p className="text-white/50 text-sm font-semibold mt-4 tracking-wide">Loading video...</p>
+                    </div>
+                  )}
+                  <video
+                    controls
+                    controlsList="nodownload"
+                    preload="metadata"
+                    poster={previewMaterial.thumbnailUrl || undefined}
+                    onLoadedData={() => setIsVideoLoaded(true)}
+                    className={`w-full h-full min-h-[300px] object-contain transition-opacity duration-300 ${isVideoLoaded ? 'opacity-100' : 'opacity-0'}`}
+                  >
+                    <source src={previewMaterial.fileUrl} type="video/mp4" />
+                    Your browser does not support the video tag.
+                  </video>
+                </div>
               ) : (
                 <iframe src={`${previewMaterial.fileUrl}#toolbar=0`} className="w-full h-full border-none bg-white object-contain" />
               )}
@@ -373,7 +392,7 @@ export default function MaterialsClient() {
         ) : !loading && (
           <ul className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {materials.map(m => (
-              <li key={m.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-5 border border-gray-100 rounded-2xl hover:border-primary/20 hover:shadow-md transition-all group bg-white cursor-pointer" onClick={() => setPreviewMaterial(m)}>
+              <li key={m.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-5 border border-gray-100 rounded-2xl hover:border-primary/20 hover:shadow-md transition-all group bg-white cursor-pointer" onClick={() => { setPreviewMaterial(m); setIsVideoLoaded(false); }}>
                 <div className="flex items-start sm:items-center gap-4 mb-4 sm:mb-0">
                   {m.fileType === "video" ? (
                     <div className="p-3 bg-blue-50 text-blue-600 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
@@ -416,157 +435,159 @@ export default function MaterialsClient() {
 
 
       {/* UPLOAD MODAL */}
-      {showUploadModal && (
-        <div className="fixed inset-0 bg-gray-900/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-white w-full max-w-lg shadow-2xl overflow-hidden rounded-3xl animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
-            <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50 shrink-0">
-              <h2 className="text-xl font-bold text-gray-800 m-0 flex items-center gap-2">
-                <span className="material-symbols-outlined text-primary">cloud_upload</span>
-                Upload Material
-              </h2>
-              <button
-                type="button"
-                onClick={() => { if (!uploading) setShowUploadModal(false) }}
-                disabled={uploading}
-                className="text-gray-400 hover:text-gray-600 size-8 flex items-center justify-center rounded-full disabled:opacity-20 border bg-white"
-              >
-                <span className="material-symbols-outlined">close</span>
-              </button>
-            </div>
-
-            <form onSubmit={handleUpload} className="p-6 space-y-5 overflow-y-auto">
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1">Content Title</label>
-                  <input
-                    type="text" required placeholder="Naming your file clearly..."
-                    value={title} onChange={(e) => setTitle(e.target.value)} disabled={uploading}
-                    className="w-full border rounded-xl px-4 py-3 border-gray-300 focus:ring-2 focus:ring-primary/20 outline-none transition"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-1">Language</label>
-                    <select
-                      required className="w-full border rounded-xl px-4 py-3 border-gray-300 focus:ring-2 focus:ring-primary/20 outline-none transition bg-white"
-                      value={selectedLanguage} onChange={(e) => { setSelectedLanguage(e.target.value); setSelectedLevel(""); }} disabled={uploading}
-                    >
-                      <option value="">Choose Map</option>
-                      {Object.keys(levelMap).map(lang => <option key={lang} value={lang}>{lang}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-1">Target Level</label>
-                    <select
-                      required className="w-full border rounded-xl px-4 py-3 border-gray-300 focus:ring-2 focus:ring-primary/20 outline-none transition bg-white disabled:bg-gray-50"
-                      value={selectedLevel} onChange={(e) => setSelectedLevel(e.target.value)} disabled={uploading || !selectedLanguage}
-                    >
-                      <option value="">Target Floor</option>
-                      {availableLevelsForUpload.map(lvl => <option key={lvl} value={lvl}>{lvl}</option>)}
-                    </select>
-                  </div>
-                </div>
+      {
+        showUploadModal && (
+          <div className="fixed inset-0 bg-gray-900/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+            <div className="bg-white w-full max-w-lg shadow-2xl overflow-hidden rounded-3xl animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
+              <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50 shrink-0">
+                <h2 className="text-xl font-bold text-gray-800 m-0 flex items-center gap-2">
+                  <span className="material-symbols-outlined text-primary">cloud_upload</span>
+                  Upload Material
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => { if (!uploading) setShowUploadModal(false) }}
+                  disabled={uploading}
+                  className="text-gray-400 hover:text-gray-600 size-8 flex items-center justify-center rounded-full disabled:opacity-20 border bg-white"
+                >
+                  <span className="material-symbols-outlined">close</span>
+                </button>
               </div>
 
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">Attached Source Document</label>
-                <div
-                  className={`border-2 border-dashed rounded-2xl p-6 flex flex-col items-center justify-center transition-all bg-gray-50/50 cursor-pointer ${dragActive ? 'border-primary bg-primary/5' : 'border-gray-200 hover:border-primary/40'} ${uploading ? 'opacity-50 pointer-events-none' : ''}`}
-                  onDragEnter={handleDrag}
-                  onDragLeave={handleDrag}
-                  onDragOver={handleDrag}
-                  onDrop={handleDrop}
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <input type="file" required={!fileHandle} className="hidden" ref={fileInputRef} accept="application/pdf,video/mp4" onChange={(e) => setFileHandle(e.target.files ? e.target.files[0] : null)} disabled={uploading} />
+              <form onSubmit={handleUpload} className="p-6 space-y-5 overflow-y-auto">
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-1">Content Title</label>
+                    <input
+                      type="text" required placeholder="Naming your file clearly..."
+                      value={title} onChange={(e) => setTitle(e.target.value)} disabled={uploading}
+                      className="w-full border rounded-xl px-4 py-3 border-gray-300 focus:ring-2 focus:ring-primary/20 outline-none transition"
+                    />
+                  </div>
 
-                  {fileHandle ? (
-                    <div className="flex flex-col items-center justify-center w-full">
-                      <div className="flex items-center gap-4 w-full justify-center">
-                        <div className={`p-4 rounded-xl ${fileHandle.type.includes('video') ? 'bg-blue-100 text-blue-600' : 'bg-red-100 text-red-600'}`}>
-                          <span className="material-symbols-outlined text-3xl">{fileHandle.type.includes('video') ? 'videocam' : 'picture_as_pdf'}</span>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-1">Language</label>
+                      <select
+                        required className="w-full border rounded-xl px-4 py-3 border-gray-300 focus:ring-2 focus:ring-primary/20 outline-none transition bg-white"
+                        value={selectedLanguage} onChange={(e) => { setSelectedLanguage(e.target.value); setSelectedLevel(""); }} disabled={uploading}
+                      >
+                        <option value="">Choose Map</option>
+                        {Object.keys(levelMap).map(lang => <option key={lang} value={lang}>{lang}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-1">Target Level</label>
+                      <select
+                        required className="w-full border rounded-xl px-4 py-3 border-gray-300 focus:ring-2 focus:ring-primary/20 outline-none transition bg-white disabled:bg-gray-50"
+                        value={selectedLevel} onChange={(e) => setSelectedLevel(e.target.value)} disabled={uploading || !selectedLanguage}
+                      >
+                        <option value="">Target Floor</option>
+                        {availableLevelsForUpload.map(lvl => <option key={lvl} value={lvl}>{lvl}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Attached Source Document</label>
+                  <div
+                    className={`border-2 border-dashed rounded-2xl p-6 flex flex-col items-center justify-center transition-all bg-gray-50/50 cursor-pointer ${dragActive ? 'border-primary bg-primary/5' : 'border-gray-200 hover:border-primary/40'} ${uploading ? 'opacity-50 pointer-events-none' : ''}`}
+                    onDragEnter={handleDrag}
+                    onDragLeave={handleDrag}
+                    onDragOver={handleDrag}
+                    onDrop={handleDrop}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <input type="file" required={!fileHandle} className="hidden" ref={fileInputRef} accept="application/pdf,video/mp4" onChange={(e) => setFileHandle(e.target.files ? e.target.files[0] : null)} disabled={uploading} />
+
+                    {fileHandle ? (
+                      <div className="flex flex-col items-center justify-center w-full">
+                        <div className="flex items-center gap-4 w-full justify-center">
+                          <div className={`p-4 rounded-xl ${fileHandle.type.includes('video') ? 'bg-blue-100 text-blue-600' : 'bg-red-100 text-red-600'}`}>
+                            <span className="material-symbols-outlined text-3xl">{fileHandle.type.includes('video') ? 'videocam' : 'picture_as_pdf'}</span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-bold text-gray-900 truncate">{fileHandle.name}</p>
+                            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-0.5">{(fileHandle.size / (1024 * 1024)).toFixed(2)} MB</p>
+                          </div>
+                          <button type="button" onClick={(e) => { e.stopPropagation(); setFileHandle(null) }} className="p-2 text-gray-400 hover:text-red-500 rounded-full hover:bg-red-50 transition-colors">
+                            <span className="material-symbols-outlined text-xl">delete</span>
+                          </button>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-bold text-gray-900 truncate">{fileHandle.name}</p>
-                          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-0.5">{(fileHandle.size / (1024 * 1024)).toFixed(2)} MB</p>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="size-14 rounded-full bg-white border shadow-sm text-gray-400 flex items-center justify-center mb-3">
+                          <span className="material-symbols-outlined text-2xl">attach_file</span>
                         </div>
-                        <button type="button" onClick={(e) => { e.stopPropagation(); setFileHandle(null) }} className="p-2 text-gray-400 hover:text-red-500 rounded-full hover:bg-red-50 transition-colors">
-                          <span className="material-symbols-outlined text-xl">delete</span>
-                        </button>
+                        <p className="text-sm font-bold text-gray-900 mb-1">Click or drag Drop PDF/MP4 here</p>
+                        <p className="text-xs font-medium text-gray-500">Unlimited size directly bound to Cloudflare R2.</p>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {/* PROGRESS OVERLAY WHEN UPLOADING */}
+                {uploading && (
+                  <div className="bg-gray-50 p-4 border rounded-2xl animate-in fade-in zoom-in-95 duration-300">
+                    <div className="flex justify-between items-end mb-2">
+                      <span className="text-sm font-black text-primary flex items-center gap-1">
+                        <span className="material-symbols-outlined text-[16px] animate-bounce">sync_alt</span>
+                        Uploading directly to Storage...
+                      </span>
+                      <span className="text-xl font-black text-gray-900">{uploadProgress}%</span>
+                    </div>
+                    <div className="h-3 w-full bg-gray-200 rounded-full overflow-hidden shadow-inner mb-3">
+                      <div
+                        className="h-full bg-primary transition-all duration-300 ease-out flex items-center justify-end pr-2 relative overflow-hidden"
+                        style={{ width: `${uploadProgress}%` }}
+                      >
+                        <div className="absolute inset-0 bg-white/20 w-full animate-[progress_1s_linear_infinite]" style={{ backgroundImage: 'linear-gradient(45deg, rgba(255,255,255,0.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.15) 75%, transparent 75%, transparent)', backgroundSize: '1rem 1rem' }}></div>
                       </div>
                     </div>
+                    <div className="flex justify-between items-center text-xs font-bold text-gray-500 uppercase tracking-widest">
+                      <span><span className="material-symbols-outlined text-[12px] inline-block align-middle mr-1">speed</span>{uploadSpeed}</span>
+                      <span><span className="material-symbols-outlined text-[12px] inline-block align-middle mr-1">timer</span>{uploadEta}</span>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex justify-end gap-3 pt-4 border-t">
+                  {uploading ? (
+                    <button
+                      type="button"
+                      onClick={handleCancelUpload}
+                      className="px-6 py-3 text-sm text-red-600 font-bold bg-red-50 rounded-xl hover:bg-red-100 flex-1 transition-colors flex justify-center items-center gap-2 active:scale-95"
+                    >
+                      <span className="material-symbols-outlined text-[18px]">cancel</span>
+                      Cancel Upload
+                    </button>
                   ) : (
                     <>
-                      <div className="size-14 rounded-full bg-white border shadow-sm text-gray-400 flex items-center justify-center mb-3">
-                        <span className="material-symbols-outlined text-2xl">attach_file</span>
-                      </div>
-                      <p className="text-sm font-bold text-gray-900 mb-1">Click or drag Drop PDF/MP4 here</p>
-                      <p className="text-xs font-medium text-gray-500">Unlimited size directly bound to Cloudflare R2.</p>
+                      <button
+                        type="button"
+                        disabled={uploading}
+                        onClick={() => setShowUploadModal(false)}
+                        className="px-6 py-3 text-sm text-gray-600 font-bold bg-gray-100 rounded-xl hover:bg-gray-200 flex-1 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={uploading}
+                        className="bg-primary hover:bg-primary/90 text-white px-8 py-3 rounded-xl text-sm font-bold flex-1 transition-all flex justify-center items-center gap-2 active:scale-95"
+                      >
+                        Publish Now
+                      </button>
                     </>
                   )}
                 </div>
-              </div>
-
-              {/* PROGRESS OVERLAY WHEN UPLOADING */}
-              {uploading && (
-                <div className="bg-gray-50 p-4 border rounded-2xl animate-in fade-in zoom-in-95 duration-300">
-                  <div className="flex justify-between items-end mb-2">
-                    <span className="text-sm font-black text-primary flex items-center gap-1">
-                      <span className="material-symbols-outlined text-[16px] animate-bounce">sync_alt</span>
-                      Uploading directly to Storage...
-                    </span>
-                    <span className="text-xl font-black text-gray-900">{uploadProgress}%</span>
-                  </div>
-                  <div className="h-3 w-full bg-gray-200 rounded-full overflow-hidden shadow-inner mb-3">
-                    <div
-                      className="h-full bg-primary transition-all duration-300 ease-out flex items-center justify-end pr-2 relative overflow-hidden"
-                      style={{ width: `${uploadProgress}%` }}
-                    >
-                      <div className="absolute inset-0 bg-white/20 w-full animate-[progress_1s_linear_infinite]" style={{ backgroundImage: 'linear-gradient(45deg, rgba(255,255,255,0.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.15) 75%, transparent 75%, transparent)', backgroundSize: '1rem 1rem' }}></div>
-                    </div>
-                  </div>
-                  <div className="flex justify-between items-center text-xs font-bold text-gray-500 uppercase tracking-widest">
-                    <span><span className="material-symbols-outlined text-[12px] inline-block align-middle mr-1">speed</span>{uploadSpeed}</span>
-                    <span><span className="material-symbols-outlined text-[12px] inline-block align-middle mr-1">timer</span>{uploadEta}</span>
-                  </div>
-                </div>
-              )}
-
-              <div className="flex justify-end gap-3 pt-4 border-t">
-                {uploading ? (
-                  <button
-                    type="button"
-                    onClick={handleCancelUpload}
-                    className="px-6 py-3 text-sm text-red-600 font-bold bg-red-50 rounded-xl hover:bg-red-100 flex-1 transition-colors flex justify-center items-center gap-2 active:scale-95"
-                  >
-                    <span className="material-symbols-outlined text-[18px]">cancel</span>
-                    Cancel Upload
-                  </button>
-                ) : (
-                  <>
-                    <button
-                      type="button"
-                      disabled={uploading}
-                      onClick={() => setShowUploadModal(false)}
-                      className="px-6 py-3 text-sm text-gray-600 font-bold bg-gray-100 rounded-xl hover:bg-gray-200 flex-1 transition-colors"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={uploading}
-                      className="bg-primary hover:bg-primary/90 text-white px-8 py-3 rounded-xl text-sm font-bold flex-1 transition-all flex justify-center items-center gap-2 active:scale-95"
-                    >
-                      Publish Now
-                    </button>
-                  </>
-                )}
-              </div>
-            </form>
+              </form>
+            </div>
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+    </div >
   );
 }
