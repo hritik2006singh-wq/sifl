@@ -1,4 +1,4 @@
-import { collection, doc, getDocs, updateDoc, setDoc, query, orderBy, serverTimestamp } from "firebase/firestore";
+import { collection, doc, getDocs, updateDoc, setDoc, deleteDoc, query, orderBy, serverTimestamp, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase-client";
 import { DemoBooking, BookingStatus } from "@/models/booking.model";
 
@@ -45,7 +45,28 @@ export const BookingService = {
     },
 
     async deleteBooking(bookingId: string): Promise<void> {
-        const { deleteDoc, doc } = await import("firebase/firestore");
         await deleteDoc(doc(db, "demoBookings", bookingId));
+    },
+
+    /**
+     * Subscribe to real-time booking updates via onSnapshot.
+     * Returns an unsubscribe function.
+     */
+    subscribeToBookings(callback: (bookings: DemoBooking[]) => void): () => void {
+        const bookingsRef = collection(db, "demoBookings");
+        const q = query(bookingsRef, orderBy("createdAt", "desc"));
+        const unsubscribe = onSnapshot(
+            q,
+            (snapshot) => {
+                const bookings = snapshot.docs.map(
+                    (d) => ({ id: d.id, ...d.data() } as unknown as DemoBooking)
+                );
+                callback(bookings);
+            },
+            (error) => {
+                console.error("[BookingService] Real-time listener error:", error);
+            }
+        );
+        return unsubscribe;
     }
 };

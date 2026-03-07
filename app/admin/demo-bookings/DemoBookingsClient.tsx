@@ -32,19 +32,14 @@ export default function DemoBookingsClient() {
   const [outcomePassword, setOutcomePassword] = useState("");
   const [outcomeSubmitting, setOutcomeSubmitting] = useState(false);
 
-  const fetchBookings = async () => {
-    try {
-      const data = await BookingService.getAllBookings();
-      setBookings(data.map((b) => ({ ...b, id: b.bookingId })));
-    } catch (err) {
-      console.error("Error fetching bookings:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    if (user) fetchBookings();
+    if (!user) return;
+    setLoading(true);
+    const unsubscribe = BookingService.subscribeToBookings((data) => {
+      setBookings(data.map((b: any) => ({ ...b, id: b.bookingId || b.id })));
+      setLoading(false);
+    });
+    return () => unsubscribe();
   }, [user]);
 
   // ── Approve ──────────────────────────────────────────────────────────────
@@ -61,7 +56,6 @@ export default function DemoBookingsClient() {
         }
       } catch { /* best-effort */ }
       toast.success("Booking approved!");
-      setBookings((prev) => prev.map((b) => b.id === booking.id ? { ...b, status: "approved" } : b));
     } catch (error) {
       toast.error("Failed to approve booking.");
     }
@@ -81,7 +75,6 @@ export default function DemoBookingsClient() {
         }
       } catch { /* best-effort */ }
       toast.success("Booking rejected.");
-      setBookings((prev) => prev.map((b) => b.id === booking.id ? { ...b, status: "rejected" } : b));
     } catch (error) {
       toast.error("Failed to reject booking.");
     }
@@ -104,7 +97,6 @@ export default function DemoBookingsClient() {
       } catch { /* best-effort */ }
 
       await deleteDoc(doc(db, "demoBookings", booking.id));
-      setBookings((prev) => prev.filter((b) => b.id !== booking.id));
       toast.success("Booking deleted and slot freed.");
     } catch {
       toast.error("Failed to delete booking.");
@@ -150,7 +142,6 @@ export default function DemoBookingsClient() {
         toast.success("Demo marked as Failed.");
       }
 
-      setBookings((prev) => prev.map((b) => b.id === booking.id ? { ...b, status: outcome } : b));
       setOutcomeModal(null);
       setOutcomePassword("");
     } catch (err: any) {
@@ -271,7 +262,6 @@ export default function DemoBookingsClient() {
 
       toast.success("Successfully rescheduled.");
       setShowRescheduleModal(false);
-      fetchBookings();
     } catch (error: any) {
       toast.error(error.message || "Failed to reschedule.");
     } finally {
@@ -338,7 +328,7 @@ export default function DemoBookingsClient() {
                       Approve
                     </button>
                   )}
-                  {booking.status !== "rejected" && booking.status !== "hit" && booking.status !== "failed" && (
+                  {booking.status !== "rejected" && booking.status !== "approved" && booking.status !== "accepted" && booking.status !== "hit" && booking.status !== "failed" && (
                     <button onClick={(e) => { e.stopPropagation(); handleReject(booking); }} className="px-4 py-2 bg-red-50 text-red-600 border border-red-200 rounded-lg text-xs font-bold hover:bg-red-100 transition-colors">
                       Reject
                     </button>
@@ -413,7 +403,7 @@ export default function DemoBookingsClient() {
                       Approve
                     </button>
                   )}
-                  {booking.status !== "rejected" && booking.status !== "hit" && booking.status !== "failed" && (
+                  {booking.status !== "rejected" && booking.status !== "approved" && booking.status !== "accepted" && booking.status !== "hit" && booking.status !== "failed" && (
                     <button onClick={(e) => { e.stopPropagation(); handleReject(booking); }} className="flex-1 text-xs font-bold bg-red-50 text-red-700 py-2.5 rounded-xl border border-red-100 hover:bg-red-100 transition-colors">
                       Reject
                     </button>

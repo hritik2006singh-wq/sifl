@@ -9,6 +9,7 @@ import {
   doc,
   updateDoc,
   addDoc,
+  setDoc,
   query,
   orderBy,
   limit,
@@ -51,6 +52,10 @@ const levelMap: Record<string, string[]> = {
   Spanish: ["A1", "A2", "B1", "B2", "C1", "C2"],
 };
 
+type WeeklyTemplate = {
+  [day: string]: { enabled: boolean; start: string; end: string };
+};
+
 function StatusBadge({ status }: { status: AccountStatus }) {
   if (status === "suspended") {
     return (
@@ -78,6 +83,237 @@ type ActionModal = {
   targetId: string;
   action: "suspend" | "archive" | "restore";
 };
+
+// ══════════════════════════════════════════════════════════════
+// Schedule a Class — Inline Modal Component
+// ══════════════════════════════════════════════════════════════
+function ScheduleClassModal({
+  student,
+  schedDate,
+  setSchedDate,
+  schedTimeSlot,
+  setSchedTimeSlot,
+  schedSlots,
+  setSchedSlots,
+  schedDateStatus,
+  setSchedDateStatus,
+  schedSubmitting,
+  setSchedSubmitting,
+  onClose,
+}: {
+  student: any;
+  schedDate: string;
+  setSchedDate: (v: string) => void;
+  schedTimeSlot: string;
+  setSchedTimeSlot: (v: string) => void;
+  schedSlots: { time: string; status: string }[];
+  setSchedSlots: (v: { time: string; status: string }[]) => void;
+  schedDateStatus: string;
+  setSchedDateStatus: (v: string) => void;
+  schedSubmitting: boolean;
+  setSchedSubmitting: (v: boolean) => void;
+  onClose: () => void;
+}) {
+  // Fetch slots when date changes
+  useEffect(() => {
+    const fetchSlots = async () => {
+      if (!schedDate) return;
+      setSchedDateStatus("Loading slots...");
+      setSchedTimeSlot("");
+      try {
+        const tId = student.teacherId || "global";
+        const availRef = doc(db, "availability", tId);
+        const availSnap = await getDoc(availRef);
+
+        if (!availSnap.exists()) {
+          setSchedSlots([]);
+          setSchedDateStatus("No availability found for the assigned teacher.");
+          return;
+        }
+
+        const availData = availSnap.data();
+        const blockedDates = availData.blockedDates || {};
+        if (blockedDates[schedDate]) {
+          setSchedSlots([]);
+          setSchedDateStatus("No sessions available on this date.");
+          return;
+        }
+
+        const weeklyTemplate: WeeklyTemplate = availData.weeklyTemplate || {};
+        const [year, month, day] = schedDate.split("-").map(Number);
+        const checkDate = new Date(year, month - 1, day);
+        const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+        const dayName = days[checkDate.getDay()];
+        const dayConfig = weeklyTemplate[dayName];
+
+        if (!dayConfig || !dayConfig.enabled) {
+          setSchedSlots([]);
+          setSchedDateStatus("No sessions available on this day.");
+          return;
+        }
+
+        const generatedSlots: { time: string; status: string }[] = [];
+        const parseTime = (t: string) => {
+          const [h, m] = t.split(":").map(Number);
+          return h * 60 + m;
+        };
+        const startMins = parseTime(dayConfig.start);
+        const endMins = parseTime(dayConfig.end);
+
+        for (let m = startMins; m < endMins; m += 30) {
+          const hh = Math.floor(m / 60).toString().padStart(2, "0");
+          const mm = (m % 60).toString().padStart(2, "0");
+          generatedSlots.push({ time: `${hh}:${mm}`, status: "available" });
+        }
+
+        // Check existing bookings for these slots
+        const slotsQuery = query(
+          collection(db, "slots"),
+          where("teacherId", "==", tId),
+          where("date", "==", schedDate)
+        );
+        const slotsSnap = await getDocs(slotsQuery);
+        const existingSlotsMap: { [time: string]: string } = {};
+        slotsSnap.forEach((d) => {
+          existingSlotsMap[d.data().time] = d.data().status;
+        });
+
+        const mergedSlots = generatedSlots.map((s) => {
+          if (existingSlotsMap[s.time] && existingSlotsMap[s.time] !== "available") {
+            return { ...s, status: existingSlotsMap[s.time] };
+          }
+          return s;
+        });
+
+        setSchedSlots(mergedSlots);
+        setSchedDateStatus(mergedSlots.length > 0 ? "" : "No slots remaining for this date.");
+      } catch (err) {
+        console.error("Error fetching slots:", err);
+        setSchedDateStatus("Error fetching time slots.");
+      }
+    };
+
+    fetchSlots();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [schedDate]);
+
+  const handleConfirmSchedule = async () => {
+    if (!schedDate || !schedTimeSlot) {
+      toast.error("Please select a date and time slot.");
+      return;
+    }
+    setSchedSubmitting(true);
+    try {
+      const tId = student.teacherId || "global";
+      const slotId = `${tId}_${schedDate}_${schedTimeSlot}`;
+      const slotRef = doc(db, "slots", slotId);
+
+      // Mark the slot as booked
+      await setDoc(slotRef, {
+        date: schedDate,
+        time: schedTimeSlot,
+        teacherId: tId,
+        status: "confirmed",
+        studentId: student.id,
+        confirmedAt: new Date().toISOString(),
+      }, { merge: true });
+
+      // Create a class booking doc
+      await addDoc(collection(db, "classBookings"), {
+        studentId: student.id,
+        studentName: student.name || "",
+        studentEmail: student.email || "",
+        teacherId: tId,
+        date: schedDate,
+        timeSlot: schedTimeSlot,
+        status: "confirmed",
+        createdAt: serverTimestamp(),
+      });
+
+      toast.success(`Class scheduled for ${student.name} on ${schedDate} at ${schedTimeSlot}`);
+      onClose();
+    } catch (err: any) {
+      console.error("Schedule error:", err);
+      toast.error(err.message || "Failed to schedule class.");
+    } finally {
+      setSchedSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+      <div className="bg-white rounded-2xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto shadow-xl space-y-4">
+        <h3 className="text-xl font-bold border-b pb-2">Schedule a Class</h3>
+        <p className="text-sm text-gray-500">
+          Scheduling for: <span className="font-bold text-gray-900">{student.name || "Student"}</span>
+          <br />
+          <span className="text-xs text-gray-400">{student.email || ""}</span>
+        </p>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+          <input
+            type="date"
+            min={new Date().toISOString().split("T")[0]}
+            value={schedDate}
+            onChange={(e) => setSchedDate(e.target.value)}
+            className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-primary/20 outline-none"
+          />
+        </div>
+
+        {schedDate && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Select Time Slot</label>
+            {schedDateStatus ? (
+              <div className="p-3 bg-gray-50 border border-dashed rounded-xl text-center text-sm font-medium text-gray-600">
+                {schedDateStatus}
+              </div>
+            ) : (
+              <div className="grid grid-cols-4 gap-2">
+                {schedSlots.map((slot) => {
+                  const isAvailable = slot.status === "available";
+                  const isPending = slot.status === "pending";
+                  const isSelected = schedTimeSlot === slot.time;
+                  return (
+                    <button
+                      key={slot.time}
+                      disabled={!isAvailable}
+                      onClick={() => isAvailable && setSchedTimeSlot(slot.time)}
+                      className={`py-2 text-xs font-bold rounded-lg border flex flex-col items-center gap-0.5
+                        ${isSelected ? "bg-primary text-white border-primary" :
+                          isAvailable ? "bg-white text-gray-700 hover:border-primary/50" :
+                            isPending ? "bg-amber-50 text-amber-500 border-amber-200 opacity-70 cursor-not-allowed" :
+                              "bg-gray-100 text-gray-400 opacity-40 cursor-not-allowed"}`}
+                    >
+                      <span>{slot.time}</span>
+                      {isPending && <span className="text-[8px] font-black text-amber-400">PENDING</span>}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className="flex justify-end gap-3 pt-4 border-t">
+          <button
+            onClick={onClose}
+            className="px-5 py-2 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 border border-gray-200"
+          >
+            Cancel
+          </button>
+          <button
+            disabled={!schedTimeSlot || schedSubmitting}
+            onClick={handleConfirmSchedule}
+            className="px-5 py-2 rounded-xl text-sm font-bold bg-primary text-white hover:bg-primary/90 disabled:opacity-50"
+          >
+            {schedSubmitting ? "Scheduling..." : "Confirm Schedule"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function StudentsClient() {
   const [students, setStudents] = useState<any[]>([]);
@@ -122,19 +358,46 @@ export default function StudentsClient() {
   const [pageIndex, setPageIndex] = useState(0);
   const [hasMore, setHasMore] = useState(true);
 
-  // Fetch teachers for dropdown
+  // ── Schedule Modal State ──────────────────────────────────────────────────
+  const [scheduleModal, setScheduleModal] = useState<{ open: boolean; student: any | null }>({
+    open: false,
+    student: null,
+  });
+  const [schedDate, setSchedDate] = useState("");
+  const [schedTimeSlot, setSchedTimeSlot] = useState("");
+  const [schedSlots, setSchedSlots] = useState<{ time: string; status: string }[]>([]);
+  const [schedDateStatus, setSchedDateStatus] = useState("");
+  const [schedSubmitting, setSchedSubmitting] = useState(false);
+
+  // Fetch teachers + admins for dropdown (T5: include admins as they can teach)
   useEffect(() => {
-    const fetchTeachers = async () => {
+    const fetchTeachersAndAdmins = async () => {
       try {
-        const snap = await getDocs(
-          query(collection(db, "teachers"), orderBy("createdAt", "desc"))
-        );
-        setTeachers(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+        const [teacherSnap, adminSnap] = await Promise.all([
+          getDocs(query(collection(db, "teachers"), orderBy("createdAt", "desc"))).catch(() => null),
+          getDocs(collection(db, "admins")).catch(() => null),
+        ]);
+        const teacherList = teacherSnap
+          ? teacherSnap.docs.map((d) => ({ id: d.id, ...d.data(), _source: "teacher" }))
+          : [];
+        const adminList = adminSnap
+          ? adminSnap.docs.map((d) => ({ id: d.id, ...d.data(), _source: "admin" }))
+          : [];
+        // Merge and deduplicate by ID
+        const seenIds = new Set<string>();
+        const combined: any[] = [];
+        for (const t of teacherList) {
+          if (!seenIds.has(t.id)) { seenIds.add(t.id); combined.push(t); }
+        }
+        for (const a of adminList) {
+          if (!seenIds.has(a.id)) { seenIds.add(a.id); combined.push(a); }
+        }
+        setTeachers(combined);
       } catch {
         // non-critical
       }
     };
-    fetchTeachers();
+    fetchTeachersAndAdmins();
   }, []);
 
   // ── Fetch Students ───────────────────────────────────────────────────────
@@ -192,10 +455,12 @@ export default function StudentsClient() {
             slug: d.slug || "",
             age: d.age != null ? Number(d.age) : computeAge(d.dob),
             language: d.language || d.languageTrack || "",
-            currentLevel: d.currentLevel || d.level || "",
+            currentLevel: d.currentLevel ?? d.level ?? "",
             is_paid: d.is_paid ?? false,
             hasFullAccess: d.hasFullAccess ?? false,
             accountStatus: (d.accountStatus ?? d.status ?? "active") as AccountStatus,
+            profileImage: d.profileImage || "",
+            teacherId: d.assignedTeacherId || d.assigned_teacher_id || "",
           };
         })
       );
@@ -433,9 +698,17 @@ export default function StudentsClient() {
                 <tr key={student.id} className="border-b border-gray-50 hover:bg-gray-50/80 transition-colors">
                   <td className="py-4 px-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-full bg-green-100 text-green-700 font-bold flex items-center justify-center shrink-0 text-sm">
-                        {student.name?.charAt(0)?.toUpperCase() ?? "S"}
-                      </div>
+                      {student.profileImage ? (
+                        <img
+                          src={student.profileImage}
+                          alt={student.name || "Student"}
+                          className="w-9 h-9 rounded-full object-cover border border-gray-200 shrink-0"
+                        />
+                      ) : (
+                        <div className="w-9 h-9 rounded-full bg-green-100 text-green-700 font-bold flex items-center justify-center shrink-0 text-sm">
+                          {student.name?.charAt(0)?.toUpperCase() ?? "S"}
+                        </div>
+                      )}
                       <div className="flex flex-col">
                         <span className="font-semibold text-sm text-gray-900">{student.name ?? "Student"}</span>
                         <span className="text-xs text-gray-500">{student.email ?? "-"}</span>
@@ -478,13 +751,19 @@ export default function StudentsClient() {
                         Manage CRM
                       </Link>
                       {/* ── SCHEDULE A CLASS BUTTON ── */}
-                      <Link
-                        href={`/admin/schedule?student=${student.id}`}
+                      <button
+                        onClick={() => {
+                          setScheduleModal({ open: true, student });
+                          setSchedDate("");
+                          setSchedTimeSlot("");
+                          setSchedSlots([]);
+                          setSchedDateStatus("");
+                        }}
                         className="inline-flex items-center gap-1.5 px-3 py-2 text-primary bg-primary/5 font-bold text-xs rounded-lg border border-primary/10 hover:bg-primary/15 transition-colors"
                       >
                         <span className="material-symbols-outlined text-[14px]">calendar_month</span>
                         Schedule a Class
-                      </Link>
+                      </button>
 
                       {/* ── ACTIONS DROPDOWN ── */}
                       <div className="relative group">
@@ -742,6 +1021,26 @@ export default function StudentsClient() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ══════════════════════════════════════════════════════════════
+          SCHEDULE A CLASS MODAL
+      ══════════════════════════════════════════════════════════════ */}
+      {scheduleModal.open && scheduleModal.student && (
+        <ScheduleClassModal
+          student={scheduleModal.student}
+          schedDate={schedDate}
+          setSchedDate={setSchedDate}
+          schedTimeSlot={schedTimeSlot}
+          setSchedTimeSlot={setSchedTimeSlot}
+          schedSlots={schedSlots}
+          setSchedSlots={setSchedSlots}
+          schedDateStatus={schedDateStatus}
+          setSchedDateStatus={setSchedDateStatus}
+          schedSubmitting={schedSubmitting}
+          setSchedSubmitting={setSchedSubmitting}
+          onClose={() => setScheduleModal({ open: false, student: null })}
+        />
       )}
     </div>
   );

@@ -114,6 +114,7 @@ export default function StudentDetailClient({ id }: { id: string }) {
     const [assignSubmitting, setAssignSubmitting] = useState(false);
     const [assignments, setAssignments] = useState<any[]>([]);
     const [assignmentsLoading, setAssignmentsLoading] = useState(false);
+    const [pfpUploading, setPfpUploading] = useState(false);
 
     const fetchAssignments = async () => {
         setAssignmentsLoading(true);
@@ -612,6 +613,60 @@ export default function StudentDetailClient({ id }: { id: string }) {
         }
     };
 
+    // ── Profile Picture Upload ─────────────────────────────────────────────────
+    const handleStudentPfpUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (!file.type.startsWith("image/")) {
+            toast.error("Please select an image file.");
+            return;
+        }
+        if (file.size > 50 * 1024 * 1024) {
+            toast.error("Image must be less than 50 MB.");
+            return;
+        }
+
+        setPfpUploading(true);
+        try {
+            const presignRes = await fetch("/api/upload-profile-picture", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    filename: `student-${id}.${file.name.split(".").pop() || "jpg"}`,
+                    contentType: file.type,
+                }),
+            });
+            const presignData = await presignRes.json();
+            if (!presignRes.ok || !presignData.success) {
+                throw new Error(presignData.error || "Failed to get upload URL");
+            }
+
+            await fetch(presignData.uploadUrl, {
+                method: "PUT",
+                headers: { "Content-Type": file.type },
+                body: file,
+            });
+
+            const publicUrl = presignData.publicUrl;
+            // Update students collection
+            await updateDoc(doc(db, "students", id), { profileImage: publicUrl });
+            // Also try to update users collection
+            try {
+                await updateDoc(doc(db, "users", id), { profileImage: publicUrl });
+            } catch { /* users doc may not exist */ }
+
+            setStudent((prev) => prev ? { ...prev, profileImage: publicUrl } : prev);
+            toast.success("Profile picture updated!");
+        } catch (err: any) {
+            console.error("Student PFP upload error:", err);
+            toast.error(err.message || "Failed to upload profile picture.");
+        } finally {
+            setPfpUploading(false);
+            e.target.value = "";
+        }
+    };
+
     // ── Guard: still loading ───────────────────────────────────────────────────
     if (authLoading || loading) {
         return <BufferLoader />;
@@ -709,9 +764,36 @@ export default function StudentDetailClient({ id }: { id: string }) {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Left Column: Profile */}
                 <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm col-span-1">
-                    <div className="size-20 bg-primary/10 rounded-full flex items-center justify-center text-primary text-3xl font-bold mb-4">
-                        {(student.name || student.email || "?").charAt(0).toUpperCase()}
+                    <div className="relative group w-max mb-4">
+                        {student.profileImage ? (
+                            <img
+                                src={student.profileImage}
+                                alt={student.name || "Student"}
+                                className="w-20 h-20 rounded-full object-cover border-2 border-gray-200"
+                            />
+                        ) : (
+                            <div className="size-20 bg-primary/10 rounded-full flex items-center justify-center text-primary text-3xl font-bold">
+                                {(student.name || student.email || "?").charAt(0).toUpperCase()}
+                            </div>
+                        )}
+                        <label
+                            htmlFor="student-pfp-input"
+                            className="absolute -bottom-1 -right-1 w-7 h-7 bg-primary text-white rounded-full flex items-center justify-center cursor-pointer shadow-md hover:bg-primary/90 transition-colors"
+                        >
+                            <span className="material-symbols-outlined text-[14px]">photo_camera</span>
+                        </label>
+                        <input
+                            id="student-pfp-input"
+                            type="file"
+                            accept="image/*"
+                            onChange={handleStudentPfpUpload}
+                            className="hidden"
+                            disabled={pfpUploading}
+                        />
                     </div>
+                    {pfpUploading && (
+                        <p className="text-xs text-blue-600 font-medium mb-2">Uploading...</p>
+                    )}
                     <h2 className="text-xl font-bold mb-0.5">{student.name || "—"}</h2>
                     <p className="text-sm text-gray-500 mb-1">{student.email ?? "—"}</p>
                     <p className="text-gray-400 text-xs mb-6">
@@ -918,8 +1000,8 @@ export default function StudentDetailClient({ id }: { id: string }) {
                                         </div>
                                         <div className="flex items-center gap-3 ml-3 shrink-0">
                                             <span className={`text-[10px] font-black tracking-widest px-2.5 py-1 rounded-full border ${a.status === "submitted" ? "bg-green-50 text-green-700 border-green-200" :
-                                                    a.status === "graded" ? "bg-blue-50 text-blue-700 border-blue-200" :
-                                                        "bg-amber-50 text-amber-700 border-amber-200"
+                                                a.status === "graded" ? "bg-blue-50 text-blue-700 border-blue-200" :
+                                                    "bg-amber-50 text-amber-700 border-amber-200"
                                                 }`}>
                                                 {(a.status || "assigned").toUpperCase()}
                                             </span>

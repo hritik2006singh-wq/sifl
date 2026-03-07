@@ -1,12 +1,46 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { db, storage } from "@/lib/firebase-client";
+import { useEffect, useState, useRef, useCallback } from "react";
+import { db } from "@/lib/firebase-client";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { useAdminGuard } from "@/hooks/useRoleGuard";
 import { updatePassword } from "firebase/auth";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import ReactCrop, { type Crop, centerCrop, makeAspectCrop } from "react-image-crop";
+import "react-image-crop/dist/ReactCrop.css";
 
+const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB
+
+function centerAspectCrop(mediaWidth: number, mediaHeight: number, aspect: number): Crop {
+    return centerCrop(
+        makeAspectCrop({ unit: "%", width: 50 }, aspect, mediaWidth, mediaHeight),
+        mediaWidth,
+        mediaHeight
+    );
+}
+
+async function getCroppedBlob(
+    image: HTMLImageElement,
+    crop: Crop
+): Promise<Blob | null> {
+    const canvas = document.createElement("canvas");
+    const scaleX = image.naturalWidth / image.width;
+    const scaleY = image.naturalHeight / image.height;
+
+    const pixelCropX = (crop.unit === "%" ? (crop.x / 100) * image.width : crop.x) * scaleX;
+    const pixelCropY = (crop.unit === "%" ? (crop.y / 100) * image.height : crop.y) * scaleY;
+    const pixelCropW = (crop.unit === "%" ? (crop.width / 100) * image.width : crop.width) * scaleX;
+    const pixelCropH = (crop.unit === "%" ? (crop.height / 100) * image.height : crop.height) * scaleY;
+
+    canvas.width = pixelCropW;
+    canvas.height = pixelCropH;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return null;
+
+    ctx.drawImage(image, pixelCropX, pixelCropY, pixelCropW, pixelCropH, 0, 0, pixelCropW, pixelCropH);
+    return new Promise((resolve) =>
+        canvas.toBlob((blob) => resolve(blob), "image/jpeg", 0.92)
+    );
+}
 
 export default function SettingsClient() {
     const { user, loading: authLoading } = useAdminGuard();
@@ -21,10 +55,20 @@ export default function SettingsClient() {
     const [maintenanceMode, setMaintenanceMode] = useState(false);
     const [logoUrl, setLogoUrl] = useState("");
 
+    // Profile Picture State
+    const [profileImage, setProfileImage] = useState("");
+    const [showCropModal, setShowCropModal] = useState(false);
+    const [imgSrc, setImgSrc] = useState("");
+    const [crop, setCrop] = useState<Crop>();
+    const imgRef = useRef<HTMLImageElement>(null);
+    const [uploadingPfp, setUploadingPfp] = useState(false);
+
+    // Logo upload
+    const [uploadingLogo, setUploadingLogo] = useState(false);
+
     // UI states
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
-    const [uploadingLogo, setUploadingLogo] = useState(false);
     const [message, setMessage] = useState({ text: "", type: "" });
 
     useEffect(() => {
@@ -32,6 +76,16 @@ export default function SettingsClient() {
             if (user) {
                 setAdminName(user.name || "");
                 setEmail(user.email || "");
+            }
+
+            // Fetch profile image
+            if (user?.uid) {
+                try {
+                    const userDoc = await getDoc(doc(db, "users", user.uid));
+                    if (userDoc.exists()) {
+                        setProfileImage(userDoc.data()?.profileImage || "");
+                    }
+                } catch { /* ignore */ }
             }
 
             try {
@@ -63,8 +117,6 @@ export default function SettingsClient() {
             });
 
             if (newPassword.trim() && user.auth) {
-                // If using actual firebase auth user object, handle password
-                // Ensure auth state is recent enough, otherwise it might throw "requires-recent-login"
                 await updatePassword(user.auth, newPassword);
                 setNewPassword("");
             }
@@ -95,6 +147,87 @@ export default function SettingsClient() {
         }
     };
 
+    // ── Profile Picture Upload ─────────────────────────────────────────────
+    const onSelectFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (!file.type.startsWith("image/")) {
+            setMessage({ text: "Please select an image file.", type: "error" });
+            return;
+        }
+        if (file.size > MAX_FILE_SIZE) {
+            setMessage({ text: "Image must be less than 50 MB.", type: "error" });
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.addEventListener("load", () => {
+            setImgSrc(reader.result?.toString() || "");
+            setShowCropModal(true);
+        });
+        reader.readAsDataURL(file);
+        e.target.value = ""; // reset so same file can be re-selected
+    };
+
+    const onImageLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
+        const { width, height } = e.currentTarget;
+        setCrop(centerAspectCrop(width, height, 1));
+        imgRef.current = e.currentTarget;
+    }, []);
+
+    const handleCropUpload = async () => {
+        if (!imgRef.current || !crop) return;
+        setUploadingPfp(true);
+        setMessage({ text: "", type: "" });
+
+        try {
+            const croppedBlob = await getCroppedBlob(imgRef.current, crop);
+            if (!croppedBlob) throw new Error("Failed to crop image");
+
+            // Get presigned URL from our API
+            const presignRes = await fetch("/api/upload-profile-picture", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    filename: `admin-${user.uid}.jpg`,
+                    contentType: "image/jpeg",
+                }),
+            });
+            const presignData = await presignRes.json();
+            if (!presignRes.ok || !presignData.success) {
+                throw new Error(presignData.error || "Failed to get upload URL");
+            }
+
+            // Upload to R2
+            await fetch(presignData.uploadUrl, {
+                method: "PUT",
+                headers: { "Content-Type": "image/jpeg" },
+                body: croppedBlob,
+            });
+
+            // Save URL to Firestore
+            const publicUrl = presignData.publicUrl;
+            await updateDoc(doc(db, "users", user.uid), { profileImage: publicUrl });
+
+            // Also try to update admins collection if it exists
+            try {
+                await updateDoc(doc(db, "admins", user.uid), { profileImage: publicUrl });
+            } catch { /* admins doc may not exist */ }
+
+            setProfileImage(publicUrl);
+            setShowCropModal(false);
+            setImgSrc("");
+            setMessage({ text: "Profile picture updated!", type: "success" });
+        } catch (err: any) {
+            console.error("Profile picture upload error:", err);
+            setMessage({ text: err.message || "Failed to upload profile picture.", type: "error" });
+        } finally {
+            setUploadingPfp(false);
+        }
+    };
+
+    // ── Logo Upload ────────────────────────────────────────────────────────
     const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -102,15 +235,31 @@ export default function SettingsClient() {
         setUploadingLogo(true);
         setMessage({ text: "", type: "" });
         try {
-            const storageRef = ref(storage, `branding/logo_${Date.now()}_${file.name}`);
-            await uploadBytes(storageRef, file);
-            const downloadUrl = await getDownloadURL(storageRef);
+            // Use presigned URL via the general upload-profile-picture route (or generate-upload-url)
+            const presignRes = await fetch("/api/generate-upload-url", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    filename: `logo_${Date.now()}_${file.name}`,
+                    contentType: file.type,
+                }),
+            });
+            const presignData = await presignRes.json();
+            if (!presignRes.ok || !presignData.success) {
+                throw new Error(presignData.error || "Failed to get upload URL");
+            }
 
-            await updateDoc(doc(db, "institute_settings", "global"), {
-                logo_url: downloadUrl
+            await fetch(presignData.uploadUrl, {
+                method: "PUT",
+                headers: { "Content-Type": file.type },
+                body: file,
             });
 
-            setLogoUrl(downloadUrl);
+            await updateDoc(doc(db, "institute_settings", "global"), {
+                logo_url: presignData.publicUrl,
+            });
+
+            setLogoUrl(presignData.publicUrl);
             setMessage({ text: "Logo uploaded and saved successfully.", type: "success" });
         } catch (err: any) {
             console.error("Error uploading logo:", err);
@@ -144,6 +293,40 @@ export default function SettingsClient() {
                         <span className="material-symbols-outlined text-primary">person</span>
                         Admin Profile
                     </h2>
+
+                    {/* Profile Picture Section */}
+                    <div className="flex items-center gap-4">
+                        <div className="relative">
+                            {profileImage ? (
+                                <img
+                                    src={profileImage}
+                                    alt="Profile"
+                                    className="w-20 h-20 rounded-full object-cover border-2 border-gray-200"
+                                />
+                            ) : (
+                                <div className="w-20 h-20 rounded-full bg-slate-200 flex items-center justify-center border-2 border-gray-200">
+                                    <span className="material-symbols-outlined text-3xl text-slate-400">person</span>
+                                </div>
+                            )}
+                        </div>
+                        <div>
+                            <label
+                                htmlFor="pfp-input"
+                                className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary/10 text-primary font-bold text-xs rounded-lg border border-primary/20 hover:bg-primary/20 transition-colors cursor-pointer"
+                            >
+                                <span className="material-symbols-outlined text-[14px]">photo_camera</span>
+                                Change Profile Picture
+                            </label>
+                            <input
+                                id="pfp-input"
+                                type="file"
+                                accept="image/*"
+                                onChange={onSelectFile}
+                                className="hidden"
+                            />
+                            <p className="text-[10px] text-gray-400 mt-1">Max 50MB, image files only</p>
+                        </div>
+                    </div>
 
                     <div className="space-y-4">
                         <div>
@@ -257,6 +440,51 @@ export default function SettingsClient() {
                     </div>
                 </div>
             </div>
+
+            {/* ══════════════════════════════════════════════════════════════
+                IMAGE CROP MODAL
+            ══════════════════════════════════════════════════════════════ */}
+            {showCropModal && imgSrc && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                    <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+                        <h3 className="text-xl font-bold border-b pb-2">Crop Profile Picture</h3>
+                        <p className="text-sm text-gray-500">Drag to select the area you want as your profile picture.</p>
+
+                        <div className="flex items-center justify-center bg-gray-50 rounded-xl border p-2">
+                            <ReactCrop
+                                crop={crop}
+                                onChange={(c) => setCrop(c)}
+                                aspect={1}
+                                circularCrop
+                            >
+                                <img
+                                    src={imgSrc}
+                                    onLoad={onImageLoad}
+                                    alt="Preview"
+                                    style={{ maxHeight: "400px", maxWidth: "100%" }}
+                                />
+                            </ReactCrop>
+                        </div>
+
+                        <div className="flex gap-3 pt-2">
+                            <button
+                                onClick={() => { setShowCropModal(false); setImgSrc(""); }}
+                                className="flex-1 py-3 rounded-xl font-bold border border-gray-200 text-gray-600 hover:bg-gray-50"
+                                disabled={uploadingPfp}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleCropUpload}
+                                disabled={uploadingPfp}
+                                className="flex-1 py-3 rounded-xl font-bold bg-primary text-white hover:bg-primary/90 disabled:opacity-50"
+                            >
+                                {uploadingPfp ? "Uploading..." : "Save Profile Picture"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
