@@ -37,7 +37,12 @@ service cloud.firestore {
 
     match /assignments/{assignmentId} {
       allow read, write: if isAdmin();
-      allow read: if request.auth != null; // Refine based on actual assignment structure
+      allow read: if request.auth != null && (
+        resource.data.studentId == request.auth.uid ||
+        resource.data.teacherId == request.auth.uid
+      );
+      allow create: if isAdmin();
+      allow delete: if isAdmin();
     }
 
     match /demoBookings/{bookingId} {

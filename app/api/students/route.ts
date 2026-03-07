@@ -13,18 +13,30 @@ function slugify(name: string) {
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
-        const { email, password, name, languageTrack, level, dob } = body;
+        const { email, password, name, languageTrack, level, dob, isPaid, hasFullAccess } = body;
+
+        if (!adminAuth || !adminDb) {
+            return NextResponse.json({ error: 'Firebase Admin not initialized' }, { status: 500 });
+        }
 
         if (!email || !password || !name) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
         }
 
         // 1. Create Firebase Auth user
-        const userRecord = await adminAuth.createUser({
-            email,
-            password,
-            displayName: name,
-        });
+        let userRecord;
+        try {
+            userRecord = await adminAuth.createUser({
+                email,
+                password,
+                displayName: name,
+            });
+        } catch (authError: any) {
+            if (authError.code === 'auth/email-already-exists') {
+                return NextResponse.json({ error: 'A student with this email already exists.' }, { status: 409 });
+            }
+            throw authError;
+        }
 
         const uid = userRecord.uid;
         const slug = `${slugify(name)}-${uid.slice(0, 4)}`;
@@ -54,8 +66,8 @@ export async function POST(req: NextRequest) {
             // ── LMS-specific fields ────────────────────────────────────────────
             language: languageTrack || '',
             currentLevel: level || '',
-            is_paid: false,
-            hasFullAccess: false,
+            is_paid: isPaid ?? false,
+            hasFullAccess: hasFullAccess ?? false,
             accountStatus: 'active',
             role: 'student',
             createdAt: FieldValue.serverTimestamp(),

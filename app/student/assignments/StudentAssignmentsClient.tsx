@@ -3,7 +3,8 @@
 import { useStudentGuard } from "@/hooks/useRoleGuard";
 import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase-client";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { collection, query, where, getDocs, doc, getDoc, updateDoc } from "firebase/firestore";
+import toast from "react-hot-toast";
 
 export default function StudentAssignmentsClient() {
     const { user, loading: authLoading } = useStudentGuard();
@@ -21,7 +22,7 @@ export default function StudentAssignmentsClient() {
                 // Assuming assignments are assigned to the class or to the student directly.
                 // For now, simulating an empty array if no specific collection logic is given
                 // the objective says: "Block access to materials and assignments if the student is unpaid with a clean message"
-                const assignmentsQuery = query(collection(db, "assignments"), where("studentIds", "array-contains", user.uid));
+                const assignmentsQuery = query(collection(db, "assignments"), where("studentId", "==", user.uid));
                 const assignmentsSnap = await getDocs(assignmentsQuery);
                 setAssignments(assignmentsSnap.docs.map(m => ({ id: m.id, ...m.data() })));
             } catch (err) {
@@ -39,6 +40,30 @@ export default function StudentAssignmentsClient() {
     if (authLoading || loading) {
         return <div className="p-8 text-gray-500">Loading assignments...</div>;
     }
+
+    const handleView = async (assignment: any) => {
+        let url = "";
+        if (assignment.material_id) {
+            try {
+                const mDoc = await getDoc(doc(db, "materials", assignment.material_id));
+                if (mDoc.exists()) url = mDoc.data().fileUrl || "";
+            } catch (e) {
+                console.error("Error fetching material:", e);
+            }
+        }
+
+        if (assignment.status === "assigned") {
+            try {
+                await updateDoc(doc(db, "assignments", assignment.id), { status: "viewed" });
+                setAssignments(prev => prev.map(a => a.id === assignment.id ? { ...a, status: "viewed" } : a));
+            } catch (e) {
+                console.error("Error updating assignment status:", e);
+            }
+        }
+
+        if (url) window.open(url, "_blank");
+        else toast.error("Material URL not found");
+    };
 
     if (!user?.is_paid) {
         return (
@@ -72,11 +97,19 @@ export default function StudentAssignmentsClient() {
                                     </div>
                                     <div>
                                         <h3 className="font-bold text-purple-900">{a.title || "Untitled Assignment"}</h3>
-                                        <p className="text-sm text-purple-700/70">{a.dueDate ? `Due: ${new Date(a.dueDate).toLocaleDateString()}` : "No due date"}</p>
+                                        <p className="text-sm text-purple-700/70">
+                                            {a.dueDate ? `Due: ${new Date(a.dueDate).toLocaleDateString()}` : "No due date"}
+                                            <span className="mx-2">•</span>
+                                            Status: <span className="font-semibold uppercase text-xs">{a.status || "assigned"}</span>
+                                        </p>
+                                        {a.notes && <p className="text-sm mt-1 text-gray-600 bg-white/50 p-2 rounded">{a.notes}</p>}
                                     </div>
                                 </div>
-                                <button className="px-4 py-2 bg-purple-600 text-white text-sm font-bold rounded-lg hover:bg-purple-700 transition">
-                                    Start
+                                <button
+                                    onClick={() => handleView(a)}
+                                    className="px-4 py-2 bg-purple-600 text-white text-sm font-bold rounded-lg hover:bg-purple-700 transition"
+                                >
+                                    View Material
                                 </button>
                             </div>
                         ))}

@@ -42,5 +42,10 @@ export const BookingService = {
             console.error("Error creating booking:", error);
             throw new Error("Failed to create booking");
         }
+    },
+
+    async deleteBooking(bookingId: string): Promise<void> {
+        const { deleteDoc, doc } = await import("firebase/firestore");
+        await deleteDoc(doc(db, "demoBookings", bookingId));
     }
 };

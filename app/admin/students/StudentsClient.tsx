@@ -95,6 +95,12 @@ export default function StudentsClient() {
   const [isPaid, setIsPaid] = useState(false);
   const [hasFullAccess, setHasFullAccess] = useState(false);
 
+  const resetForm = () => {
+    setNewEmail(""); setNewPassword(""); setNewUsername("");
+    setNewLanguage(""); setNewLevel("");
+    setIsPaid(false); setHasFullAccess(false);
+  };
+
   const [loading, setLoading] = useState(true);
   const [lastDoc, setLastDoc] = useState<any>(null);
   const [firstDocs, setFirstDocs] = useState<any[]>([]);
@@ -235,6 +241,8 @@ export default function StudentsClient() {
           name: newUsername,
           languageTrack: newLanguage,
           level: newLevel,
+          isPaid,
+          hasFullAccess,
         }),
       });
       const data = await res.json();
@@ -335,7 +343,7 @@ export default function StudentsClient() {
           All Students
         </h2>
         <button
-          onClick={() => setShowAddModal(true)}
+          onClick={() => { resetForm(); setShowAddModal(true); }}
           className="bg-primary text-white px-5 py-2.5 rounded-lg text-sm font-bold shadow-md hover:bg-primary/90 transition-all flex items-center gap-2"
         >
           <span className="material-symbols-outlined text-[18px]">person_add</span> Add Student
@@ -441,9 +449,10 @@ export default function StudentsClient() {
                     <div className="flex items-center justify-end gap-2">
                       <Link
                         href={`/admin/students/${student.slug || student.id}`}
-                        className="text-sm text-primary font-bold hover:underline"
+                        className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary/10 text-primary font-bold text-xs rounded-lg border border-primary/20 hover:bg-primary/20 transition-colors"
                       >
-                        Manage
+                        <span className="material-symbols-outlined text-[14px]">manage_accounts</span>
+                        Manage CRM
                       </Link>
                       <div className="relative group">
                         <button className="text-[10px] font-bold tracking-widest px-3 py-1.5 rounded-full border border-gray-200 text-gray-600 bg-gray-50 hover:bg-gray-100 transition-colors flex items-center gap-1">
@@ -536,12 +545,21 @@ export default function StudentsClient() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-1">Temporary Password</label>
+                    <label className="block text-sm font-bold text-gray-700 mb-1">
+                      Temporary Password <span className="text-red-500">*</span>
+                    </label>
                     <input
-                      type="text" required placeholder="Password123" minLength={6}
-                      value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
+                      type="text"
+                      required
+                      placeholder="e.g. Welcome@123"
+                      minLength={6}
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
                       className="w-full px-4 py-2.5 border rounded-xl focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                     />
+                    <p className="text-xs text-gray-400 mt-1">
+                      Student will use this to log in for the first time.
+                    </p>
                   </div>
                 </div>
 

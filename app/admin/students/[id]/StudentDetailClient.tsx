@@ -106,6 +106,47 @@ export default function StudentDetailClient({ id }: { id: string }) {
     const [student, setStudent] = useState<StudentData | null>(null);
     const [submissions, setSubmissions] = useState<any[]>([]);
 
+    const [showAssignModal, setShowAssignModal] = useState(false);
+    const [assignMaterialId, setAssignMaterialId] = useState("");
+    const [assignTitle, setAssignTitle] = useState("");
+    const [assignDueDate, setAssignDueDate] = useState("");
+    const [assignNotes, setAssignNotes] = useState("");
+    const [assignSubmitting, setAssignSubmitting] = useState(false);
+    const [assignments, setAssignments] = useState<any[]>([]);
+    const [assignmentsLoading, setAssignmentsLoading] = useState(false);
+
+    const fetchAssignments = async () => {
+        setAssignmentsLoading(true);
+        try {
+            const q = query(
+                collection(db, "assignments"),
+                where("studentId", "==", id)
+            );
+            const snap = await getDocs(q);
+            const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+            // Enrich with material title
+            const enriched = await Promise.all(data.map(async (a: any) => {
+                if (a.material_id) {
+                    try {
+                        const matDoc = await getDoc(doc(db, "materials", a.material_id));
+                        if (matDoc.exists()) {
+                            return { ...a, materialTitle: matDoc.data()?.title || "Untitled" };
+                        }
+                    } catch { /* non-critical */ }
+                }
+                return { ...a, materialTitle: a.title || "—" };
+            }));
+
+            setAssignments(enriched);
+        } catch (e) {
+            console.error("Error fetching assignments:", e);
+            setAssignments([]);
+        } finally {
+            setAssignmentsLoading(false);
+        }
+    };
+
     // Feature Access
     const [allMaterials, setAllMaterials] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -299,11 +340,53 @@ export default function StudentDetailClient({ id }: { id: string }) {
                 toast.error("An unexpected error occurred while loading student data.");
             } finally {
                 setLoading(false);
+                fetchAssignments();
             }
         };
 
         fetchStudentData();
     }, [id, user]);
+
+    const handleCreateAssignment = async () => {
+        if (!assignMaterialId || !assignTitle) {
+            toast.error("Please select a material and enter a title.");
+            return;
+        }
+        setAssignSubmitting(true);
+        try {
+            const newRef = doc(collection(db, "assignments"));
+            await setDoc(newRef, {
+                title: assignTitle,
+                material_id: assignMaterialId,
+                studentId: student?.id ?? id,
+                teacherId: student?.assignedTeacherId ?? auth.currentUser?.uid ?? "",
+                dueDate: assignDueDate || null,
+                notes: assignNotes || "",
+                status: "assigned",
+                createdAt: serverTimestamp(),
+            });
+            toast.success("Assignment created and linked to student!");
+            setShowAssignModal(false);
+            setAssignMaterialId(""); setAssignTitle(""); setAssignDueDate(""); setAssignNotes("");
+            fetchAssignments(); // refresh list
+        } catch (err: any) {
+            console.error(err);
+            toast.error("Failed to create assignment.");
+        } finally {
+            setAssignSubmitting(false);
+        }
+    };
+
+    const handleDeleteAssignment = async (assignmentId: string) => {
+        if (!confirm("Delete this assignment?")) return;
+        try {
+            await deleteDoc(doc(db, "assignments", assignmentId));
+            setAssignments(prev => prev.filter(a => a.id !== assignmentId));
+            toast.success("Assignment deleted.");
+        } catch (err) {
+            toast.error("Failed to delete assignment.");
+        }
+    };
 
     // ── Update Profile ─────────────────────────────────────────────────────────
     const handleUpdateProfile = async () => {
@@ -739,6 +822,13 @@ export default function StudentDetailClient({ id }: { id: string }) {
                         >
                             <span className="material-symbols-outlined text-[18px]">quiz</span> Create Test
                         </button>
+
+                        <button
+                            onClick={() => setShowAssignModal(true)}
+                            className="w-full py-2 border border-amber-200 text-amber-700 hover:bg-amber-50 text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+                        >
+                            <span className="material-symbols-outlined text-[18px]">assignment</span> Assign Material
+                        </button>
                     </div>
                 </div>
 
@@ -794,6 +884,58 @@ export default function StudentDetailClient({ id }: { id: string }) {
                         ) : (
                             <div className="py-8 text-center text-gray-400 italic bg-gray-50 rounded-lg border border-dashed border-gray-200">
                                 No tests taken yet.
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Assigned Work section */}
+                    <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-bold flex items-center gap-2">
+                                <span className="material-symbols-outlined text-amber-600">assignment</span>
+                                Assigned Work
+                            </h3>
+                            <button
+                                onClick={() => setShowAssignModal(true)}
+                                className="text-xs font-bold text-primary hover:underline flex items-center gap-1"
+                            >
+                                <span className="material-symbols-outlined text-[14px]">add</span> New Assignment
+                            </button>
+                        </div>
+
+                        {assignmentsLoading ? (
+                            <div className="py-6 text-center text-sm text-gray-400">Loading assignments...</div>
+                        ) : assignments.length > 0 ? (
+                            <ul className="space-y-3">
+                                {assignments.map((a: any) => (
+                                    <li key={a.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-bold text-sm text-gray-900 truncate">{a.title}</p>
+                                            <p className="text-xs text-gray-500 mt-0.5">
+                                                Material: <span className="font-semibold">{a.materialTitle}</span>
+                                                {a.dueDate && <> · Due: <span className="text-red-500 font-semibold">{a.dueDate}</span></>}
+                                            </p>
+                                        </div>
+                                        <div className="flex items-center gap-3 ml-3 shrink-0">
+                                            <span className={`text-[10px] font-black tracking-widest px-2.5 py-1 rounded-full border ${a.status === "submitted" ? "bg-green-50 text-green-700 border-green-200" :
+                                                    a.status === "graded" ? "bg-blue-50 text-blue-700 border-blue-200" :
+                                                        "bg-amber-50 text-amber-700 border-amber-200"
+                                                }`}>
+                                                {(a.status || "assigned").toUpperCase()}
+                                            </span>
+                                            <button
+                                                onClick={() => handleDeleteAssignment(a.id)}
+                                                className="text-gray-300 hover:text-red-500 transition-colors"
+                                            >
+                                                <span className="material-symbols-outlined text-[18px]">delete</span>
+                                            </button>
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <div className="py-8 text-center text-gray-400 italic bg-gray-50 rounded-lg border border-dashed border-gray-200 text-sm">
+                                No assignments yet. Click "New Assignment" to create one.
                             </div>
                         )}
                     </div>
@@ -1077,6 +1219,89 @@ export default function StudentDetailClient({ id }: { id: string }) {
                                 </div>
                             </div>
                         )}
+                    </div>
+                </div>
+            )}
+            {showAssignModal && (
+                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[60] p-4">
+                    <div className="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-md space-y-4">
+                        <div className="flex items-center justify-between border-b pb-3">
+                            <h2 className="text-xl font-bold flex items-center gap-2">
+                                <span className="material-symbols-outlined text-amber-600">assignment</span>
+                                Assign Material
+                            </h2>
+                            <button onClick={() => setShowAssignModal(false)} className="text-gray-400 hover:text-gray-600">
+                                <span className="material-symbols-outlined">close</span>
+                            </button>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-bold text-gray-700 mb-1">Assignment Title</label>
+                            <input
+                                type="text"
+                                placeholder="e.g. Chapter 3 Reading"
+                                value={assignTitle}
+                                onChange={e => setAssignTitle(e.target.value)}
+                                className="w-full border rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-amber-300"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-bold text-gray-700 mb-1">Select Material (PDF)</label>
+                            <select
+                                value={assignMaterialId}
+                                onChange={e => setAssignMaterialId(e.target.value)}
+                                className="w-full border rounded-xl px-4 py-2.5 bg-white outline-none focus:ring-2 focus:ring-amber-300"
+                            >
+                                <option value="">-- Choose a material --</option>
+                                {allMaterials
+                                    .filter((m: any) => m.fileType === "pdf")
+                                    .map((m: any) => (
+                                        <option key={m.id} value={m.id}>
+                                            {m.title} [{m.language} · {m.level}]
+                                        </option>
+                                    ))}
+                            </select>
+                            <p className="text-xs text-gray-400 mt-1">Only PDF materials are shown as assignable documents.</p>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-bold text-gray-700 mb-1">Due Date (optional)</label>
+                            <input
+                                type="date"
+                                value={assignDueDate}
+                                onChange={e => setAssignDueDate(e.target.value)}
+                                className="w-full border rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-amber-300"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-bold text-gray-700 mb-1">Notes for Student (optional)</label>
+                            <textarea
+                                placeholder="e.g. Focus on pages 12-20, summarise vocabulary"
+                                value={assignNotes}
+                                onChange={e => setAssignNotes(e.target.value)}
+                                rows={3}
+                                className="w-full border rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-amber-300 resize-none"
+                            />
+                        </div>
+
+                        <div className="flex gap-3 pt-2 border-t">
+                            <button
+                                onClick={() => setShowAssignModal(false)}
+                                className="flex-1 py-3 rounded-xl font-bold border border-gray-200 text-gray-600 hover:bg-gray-50"
+                                disabled={assignSubmitting}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleCreateAssignment}
+                                disabled={assignSubmitting}
+                                className="flex-1 py-3 rounded-xl font-bold bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-50"
+                            >
+                                {assignSubmitting ? "Assigning..." : "Assign Now"}
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

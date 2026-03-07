@@ -1,6 +1,6 @@
 import { FieldValue, Timestamp } from "firebase/firestore";
 
-export type BookingStatus = "pending" | "accepted" | "rejected";
+export type BookingStatus = "pending" | "accepted" | "approved" | "rejected" | "hit" | "failed";
 
 export interface DemoBooking {
     bookingId: string;

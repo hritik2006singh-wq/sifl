@@ -25,6 +25,12 @@ export default function DemoBookingsClient() {
     const [rescheduleLoading, setRescheduleLoading] = useState(false);
     const [dateStatus, setDateStatus] = useState("");
 
+    // Outcome & Delete State
+    const [outcomeModal, setOutcomeModal] = useState<{ show: boolean; booking: any } | null>(null);
+    const [outcomePassword, setOutcomePassword] = useState("");
+    const [outcomeSubmitting, setOutcomeSubmitting] = useState(false);
+    const [deletingId, setDeletingId] = useState<string | null>(null);
+
     const fetchBookings = async () => {
         try {
             const data = await BookingService.getAllBookings();
@@ -64,6 +70,101 @@ export default function DemoBookingsClient() {
         } catch (error) {
             console.error(error);
             toast.error("Failed to reject booking.");
+        }
+    };
+
+    const handleApprove = async (booking: any) => {
+        try {
+            await BookingService.updateBookingStatus(booking.id, "approved");
+            // Lock the slot as confirmed
+            try {
+                const tId = booking.teacherId || "admin_general";
+                const slotId = `${tId}_${booking.date}_${booking.timeSlot}`;
+                const slotRef = doc(db, "slots", slotId);
+                const slotDoc = await getDoc(slotRef);
+                if (slotDoc.exists()) {
+                    const { updateDoc } = await import("firebase/firestore");
+                    await updateDoc(slotRef, { status: "confirmed", confirmedAt: new Date().toISOString() });
+                }
+            } catch { /* slot update is best-effort */ }
+            toast.success("Booking approved!");
+            setBookings(prev => prev.map(b => b.id === booking.id ? { ...b, status: "approved" } : b));
+        } catch (error) {
+            console.error(error);
+            toast.error("Failed to approve booking.");
+        }
+    };
+
+    const handleMarkOutcome = async (outcome: "hit" | "failed") => {
+        if (!outcomeModal) return;
+        const booking = outcomeModal.booking;
+
+        if (outcome === "hit" && !outcomePassword) {
+            toast.error("Please enter a temporary password to create the student account.");
+            return;
+        }
+
+        setOutcomeSubmitting(true);
+        try {
+            await BookingService.updateBookingStatus(booking.id, outcome);
+
+            if (outcome === "hit") {
+                const res = await fetch("/api/students", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        email: booking.email,
+                        name: booking.name,
+                        password: outcomePassword,
+                        languageTrack: booking.language || "",
+                        level: "",
+                        isPaid: false,
+                        hasFullAccess: false,
+                    }),
+                });
+                const data = await res.json();
+                if (!res.ok && data.error !== "A student with this email already exists.") {
+                    throw new Error(data.error || "Failed to create student account");
+                }
+                toast.success("Demo marked as HIT — student account created!");
+            } else {
+                toast.success("Demo marked as Failed.");
+            }
+
+            setBookings(prev =>
+                prev.map(b => b.id === booking.id ? { ...b, status: outcome } : b)
+            );
+            setOutcomeModal(null);
+            setOutcomePassword("");
+        } catch (err: any) {
+            toast.error(err.message || "Operation failed.");
+        } finally {
+            setOutcomeSubmitting(false);
+        }
+    };
+
+    const handleDeleteBooking = async (booking: any) => {
+        if (!confirm(`Delete booking for ${booking.name}? This will also free the time slot.`)) return;
+        setDeletingId(booking.id);
+        try {
+            try {
+                const tId = booking.teacherId || "admin_general";
+                const slotId = `${tId}_${booking.date}_${booking.timeSlot}`;
+                const slotRef = doc(db, "slots", slotId);
+                const slotDoc = await getDoc(slotRef);
+                if (slotDoc.exists()) {
+                    const { updateDoc } = await import("firebase/firestore");
+                    await updateDoc(slotRef, { status: "available", bookingId: null });
+                }
+            } catch { /* best-effort slot cleanup */ }
+
+            await BookingService.deleteBooking(booking.id);
+            setBookings(prev => prev.filter(b => b.id !== booking.id));
+            toast.success("Booking deleted and slot freed.");
+        } catch (err: any) {
+            toast.error("Failed to delete booking.");
+        } finally {
+            setDeletingId(null);
         }
     };
 
@@ -260,26 +361,53 @@ export default function DemoBookingsClient() {
                                 <td className="py-4 px-6">
                                     <span className={`inline-flex items-center px-2.5 py-0.5 mt-1 rounded-full text-xs font-bold capitalize border ${booking.status === 'approved' ? 'bg-green-100 text-green-800 border-green-200' :
                                         booking.status === 'pending' ? 'bg-amber-100 text-amber-800 border-amber-200' :
-                                            'bg-red-100 text-red-800 border-red-200'
+                                            booking.status === 'hit' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' :
+                                                booking.status === 'failed' ? 'bg-slate-100 text-slate-700 border-slate-200' :
+                                                    'bg-red-100 text-red-800 border-red-200'
                                         }`}>
                                         {booking.status}
                                     </span>
                                 </td>
-                                <td className="py-4 px-6 text-right space-x-3">
-                                    <button
-                                        onClick={() => openRescheduleModal(booking)}
-                                        className="text-blue-600 font-medium text-sm hover:underline"
-                                    >
-                                        Reschedule
-                                    </button>
-                                    {booking.status !== 'rejected' && (
+                                <td className="py-4 px-6 text-right">
+                                    <div className="flex items-center justify-end gap-3 flex-wrap">
+                                        {booking.status === "pending" && (
+                                            <button
+                                                onClick={() => handleApprove(booking)}
+                                                className="text-green-600 font-medium text-sm hover:underline"
+                                            >
+                                                Approve
+                                            </button>
+                                        )}
+                                        {booking.status !== "rejected" && booking.status !== "hit" && booking.status !== "failed" && (
+                                            <button
+                                                onClick={() => handleReject(booking)}
+                                                className="text-red-600 font-medium text-sm hover:underline"
+                                            >
+                                                Reject
+                                            </button>
+                                        )}
+                                        {(booking.status === "pending" || booking.status === "approved") && (
+                                            <button
+                                                onClick={() => { setOutcomeModal({ show: true, booking }); setOutcomePassword(""); }}
+                                                className="text-purple-600 font-medium text-sm hover:underline"
+                                            >
+                                                Mark Outcome
+                                            </button>
+                                        )}
                                         <button
-                                            onClick={() => handleReject(booking)}
-                                            className="text-red-600 font-medium text-sm hover:underline"
+                                            onClick={() => openRescheduleModal(booking)}
+                                            className="text-blue-600 font-medium text-sm hover:underline"
                                         >
-                                            Reject
+                                            Reschedule
                                         </button>
-                                    )}
+                                        <button
+                                            onClick={() => handleDeleteBooking(booking)}
+                                            disabled={deletingId === booking.id}
+                                            className="text-gray-400 font-medium text-sm hover:text-red-500 hover:underline disabled:opacity-50"
+                                        >
+                                            {deletingId === booking.id ? "..." : "Delete"}
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         ))}
@@ -303,7 +431,9 @@ export default function DemoBookingsClient() {
                             </div>
                             <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold capitalize border ${booking.status === 'approved' ? 'bg-green-100 text-green-800 border-green-200' :
                                 booking.status === 'pending' ? 'bg-amber-100 text-amber-800 border-amber-200' :
-                                    'bg-red-100 text-red-800 border-red-200'
+                                    booking.status === 'hit' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' :
+                                        booking.status === 'failed' ? 'bg-slate-100 text-slate-700 border-slate-200' :
+                                            'bg-red-100 text-red-800 border-red-200'
                                 }`}>
                                 {booking.status}
                             </span>
@@ -320,14 +450,16 @@ export default function DemoBookingsClient() {
                             </div>
                         </div>
 
-                        <div className="flex gap-2 pt-1">
-                            <button
-                                onClick={() => openRescheduleModal(booking)}
-                                className="flex-1 text-sm font-bold bg-blue-50 text-blue-700 py-2.5 rounded-xl border border-blue-100 hover:bg-blue-100 transition-colors"
-                            >
-                                Reschedule
-                            </button>
-                            {booking.status !== 'rejected' && (
+                        <div className="flex gap-2 pt-1 flex-wrap">
+                            {booking.status === "pending" && (
+                                <button
+                                    onClick={() => handleApprove(booking)}
+                                    className="flex-1 text-sm font-bold bg-green-50 text-green-700 py-2.5 rounded-xl border border-green-100 hover:bg-green-100 transition-colors"
+                                >
+                                    Approve
+                                </button>
+                            )}
+                            {booking.status !== "rejected" && booking.status !== "hit" && booking.status !== "failed" && (
                                 <button
                                     onClick={() => handleReject(booking)}
                                     className="flex-1 text-sm font-bold bg-red-50 text-red-700 py-2.5 rounded-xl border border-red-100 hover:bg-red-100 transition-colors"
@@ -335,6 +467,27 @@ export default function DemoBookingsClient() {
                                     Reject
                                 </button>
                             )}
+                            {(booking.status === "pending" || booking.status === "approved") && (
+                                <button
+                                    onClick={() => { setOutcomeModal({ show: true, booking }); setOutcomePassword(""); }}
+                                    className="flex-1 text-sm font-bold bg-purple-50 text-purple-700 py-2.5 rounded-xl border border-purple-100 hover:bg-purple-100 transition-colors"
+                                >
+                                    Outcome
+                                </button>
+                            )}
+                            <button
+                                onClick={() => openRescheduleModal(booking)}
+                                className="flex-1 text-sm font-bold bg-blue-50 text-blue-700 py-2.5 rounded-xl border border-blue-100 hover:bg-blue-100 transition-colors"
+                            >
+                                Reschedule
+                            </button>
+                            <button
+                                onClick={() => handleDeleteBooking(booking)}
+                                disabled={deletingId === booking.id}
+                                className="flex-1 text-sm font-bold bg-gray-50 text-gray-500 py-2.5 rounded-xl border border-gray-200 hover:bg-gray-100 hover:text-red-500 transition-colors disabled:opacity-50"
+                            >
+                                {deletingId === booking.id ? "..." : "Delete"}
+                            </button>
                         </div>
                     </div>
                 ))}
@@ -374,19 +527,30 @@ export default function DemoBookingsClient() {
                                     ) : (
                                         <div className="grid grid-cols-4 gap-2">
                                             {availableSlots.map(slot => {
-                                                const isBooked = slot.status !== "available";
-                                                const isSelected = newTimeSlot === slot.time;
+                                                const isAvailable = slot.status === "available";
+                                                const isPending = slot.status === "pending";
                                                 return (
                                                     <button
                                                         key={slot.time}
-                                                        disabled={isBooked}
-                                                        onClick={() => setNewTimeSlot(slot.time)}
-                                                        className={`py-2 text-xs font-bold rounded-lg border ${isBooked ? "bg-gray-100 text-gray-400 opacity-50 cursor-not-allowed" :
-                                                            isSelected ? "bg-primary text-white border-primary" :
-                                                                "bg-white text-gray-700 hover:border-primary/50"
+                                                        type="button"
+                                                        disabled={!isAvailable || rescheduleLoading}
+                                                        onClick={() => isAvailable && setNewTimeSlot(slot.time)}
+                                                        className={`py-2 rounded-xl text-sm font-semibold transition-all border flex flex-col items-center justify-center gap-0.5
+                                                          ${isAvailable && newTimeSlot !== slot.time
+                                                                ? "bg-white text-gray-700 border-gray-200 hover:border-primary/50 hover:bg-primary/5 cursor-pointer"
+                                                                : isAvailable && newTimeSlot === slot.time
+                                                                    ? "bg-primary text-white border-primary shadow-md scale-105 cursor-pointer"
+                                                                    : isPending
+                                                                        ? "bg-amber-50 text-amber-600 border-amber-200 cursor-not-allowed opacity-75"
+                                                                        : "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed opacity-40"
                                                             }`}
                                                     >
-                                                        {slot.time}
+                                                        <span>{slot.time}</span>
+                                                        {isPending && (
+                                                            <span className="text-[9px] font-black tracking-wide text-amber-400 leading-none">
+                                                                PENDING
+                                                            </span>
+                                                        )}
                                                     </button>
                                                 )
                                             })}
@@ -409,6 +573,59 @@ export default function DemoBookingsClient() {
                                 className="px-5 py-2 rounded-xl text-sm font-bold bg-primary text-white hover:bg-primary/90 disabled:opacity-50"
                             >
                                 {rescheduleLoading ? "Saving..." : "Confirm Reschedule"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {outcomeModal?.show && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                    <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-5">
+                        <h3 className="text-xl font-bold border-b pb-2">Mark Demo Outcome</h3>
+                        <p className="text-sm text-gray-500">
+                            Student: <span className="font-bold text-gray-900">{outcomeModal.booking.name}</span>
+                        </p>
+
+                        <div className="bg-amber-50 p-3 rounded-xl border border-amber-100 text-sm text-amber-800 font-medium">
+                            If marked as <strong>HIT</strong>, a new student account will be created automatically
+                            using the demo email. Set a temporary password below.
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-bold text-gray-700 mb-1">
+                                Temporary Password (required for HIT)
+                            </label>
+                            <input
+                                type="text"
+                                placeholder="e.g. Welcome123"
+                                value={outcomePassword}
+                                onChange={e => setOutcomePassword(e.target.value)}
+                                className="w-full px-4 py-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-primary/20"
+                            />
+                        </div>
+
+                        <div className="flex gap-3 pt-2">
+                            <button
+                                onClick={() => setOutcomeModal(null)}
+                                className="flex-1 py-3 rounded-xl font-bold border border-gray-200 text-gray-600 hover:bg-gray-50"
+                                disabled={outcomeSubmitting}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={() => handleMarkOutcome("failed")}
+                                className="flex-1 py-3 rounded-xl font-bold bg-slate-500 text-white hover:bg-slate-600"
+                                disabled={outcomeSubmitting}
+                            >
+                                {outcomeSubmitting ? "..." : "Failed"}
+                            </button>
+                            <button
+                                onClick={() => handleMarkOutcome("hit")}
+                                className="flex-1 py-3 rounded-xl font-bold bg-emerald-600 text-white hover:bg-emerald-700"
+                                disabled={outcomeSubmitting}
+                            >
+                                {outcomeSubmitting ? "..." : "🎯 Hit!"}
                             </button>
                         </div>
                     </div>

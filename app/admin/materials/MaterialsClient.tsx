@@ -297,14 +297,14 @@ export default function MaterialsClient() {
             </button>
           </div>
 
-          <div className="w-full h-full max-w-6xl max-h-[90vh] flex flex-col mt-12 p-4">
+          <div className="w-full max-w-6xl h-[90vh] flex flex-col mt-12 p-4">
             <div className="text-white mb-4">
               <h3 className="text-2xl font-bold">{previewMaterial.title}</h3>
               <p className="text-white/60 text-sm font-semibold tracking-wider uppercase">{previewMaterial.fileType} • {(previewMaterial.fileSize / (1024 * 1024)).toFixed(2)} MB</p>
             </div>
-            <div className="flex-1 bg-black/50 rounded-2xl overflow-hidden shadow-2xl border border-white/10">
+            <div className="flex-1 bg-black/50 rounded-2xl overflow-hidden shadow-2xl border border-white/10 min-h-[300px] md:min-h-[500px]">
               {previewMaterial.fileType === "video" ? (
-                <video controls controlsList="nodownload" className="w-full h-full object-contain">
+                <video controls controlsList="nodownload" className="w-full h-full min-h-[300px] object-contain">
                   <source src={previewMaterial.fileUrl} type="video/mp4" />
                   Your browser does not support the video tag.
                 </video>

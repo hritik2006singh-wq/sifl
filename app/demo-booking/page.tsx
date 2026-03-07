@@ -278,23 +278,31 @@ export default function SchedulePage() {
                             ) : (
                                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
                                     {availableSlots.map((slot) => {
-                                        const isBooked = slot.status !== "available";
-                                        const isSelected = formData.time_slot === slot.time;
+                                        const isAvailable = slot.status === "available";
+                                        const isPending = slot.status === "pending";
 
                                         return (
                                             <button
                                                 key={slot.time}
                                                 type="button"
-                                                disabled={isBooked || loading}
-                                                onClick={() => setFormData({ ...formData, time_slot: slot.time })}
-                                                className={`py-2 rounded-xl text-sm font-semibold transition-all border ${isBooked
-                                                    ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed opacity-50"
-                                                    : isSelected
-                                                        ? "bg-primary text-white border-primary shadow-md transform scale-105"
-                                                        : "bg-white text-gray-700 border-gray-200 hover:border-primary/50 hover:bg-primary/5 cursor-pointer"
+                                                disabled={!isAvailable || loading}
+                                                onClick={() => isAvailable && setFormData({ ...formData, time_slot: slot.time })}
+                                                className={`py-2 rounded-xl text-sm font-semibold transition-all border flex flex-col items-center justify-center gap-0.5
+                                                  ${isAvailable && formData.time_slot !== slot.time
+                                                        ? "bg-white text-gray-700 border-gray-200 hover:border-primary/50 hover:bg-primary/5 cursor-pointer"
+                                                        : isAvailable && formData.time_slot === slot.time
+                                                            ? "bg-primary text-white border-primary shadow-md scale-105 cursor-pointer"
+                                                            : isPending
+                                                                ? "bg-amber-50 text-amber-600 border-amber-200 cursor-not-allowed opacity-75"
+                                                                : "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed opacity-40"
                                                     }`}
                                             >
-                                                {slot.time}
+                                                <span>{slot.time}</span>
+                                                {isPending && (
+                                                    <span className="text-[9px] font-black tracking-wide text-amber-400 leading-none">
+                                                        PENDING
+                                                    </span>
+                                                )}
                                             </button>
                                         );
                                     })}
