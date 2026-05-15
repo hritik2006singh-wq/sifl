@@ -1,13 +1,16 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
 
-export default function Navbar() {
+interface NavbarProps {
+  isMobileMenuOpen: boolean;
+  setIsMobileMenuOpen: (open: boolean) => void;
+}
+
+export default function Navbar({ isMobileMenuOpen, setIsMobileMenuOpen }: NavbarProps) {
   const pathname = usePathname();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const links = [
     { name: "Home", href: "/" },
@@ -20,19 +23,16 @@ export default function Navbar() {
 
   return (
     <>
-      {/* Floating Glass Navbar */}
-      <header className="fixed md:top-4 md:left-1/2 md:-translate-x-1/2 md:w-[calc(100%-2rem)] max-w-7xl z-50 md:h-16 flex items-center transition-all duration-300
-        bg-white/70 backdrop-blur-md
-        border md:border-white/40 md:rounded-2xl
-        shadow-[0_8px_32px_rgba(0,0,0,0.08)] md:shadow-[0_8px_32px_rgba(0,0,0,0.08)]
-        max-md:sticky max-md:top-0 max-md:-mx-4 max-md:w-[cal(100%+2rem)] max-md:px-4 max-md:h-14 max-md:border-b max-md:border-gray-200 max-md:rounded-none max-md:shadow-sm
+      <header className="z-50 flex items-center transition-all duration-300
+        fixed md:top-4 md:left-1/2 md:-translate-x-1/2 md:w-[calc(100%-2rem)] md:max-w-7xl md:h-16
+        md:bg-white/70 md:backdrop-blur-md md:border md:border-white/40 md:rounded-2xl md:shadow-[0_8px_32px_rgba(0,0,0,0.08)]
+        max-md:sticky max-md:top-0 max-md:w-full max-md:h-14 max-md:px-4
+        max-md:bg-white/20 max-md:backdrop-blur-xl max-md:border-b max-md:border-white/20
       ">
         <div className="w-full px-4 lg:px-6 flex items-center justify-between">
 
-          {/* Left: Logo (Image Holder Added) */}
+          {/* Logo */}
           <Link href="/" className="flex items-center gap-3 cursor-pointer flex-shrink-0">
-
-            {/* Logo Image Holder */}
             <div className="relative h-9 w-9 rounded-xl overflow-hidden bg-white/40 backdrop-blur-md border border-white/30 shadow-sm">
               <Image
                 src="/images/hero/logo.jpg"
@@ -42,7 +42,6 @@ export default function Navbar() {
                 priority
               />
             </div>
-
             <span className="text-base font-semibold tracking-tight text-primary">
               SIFL
             </span>
@@ -73,48 +72,24 @@ export default function Navbar() {
             })}
           </nav>
 
-          {/* CTA + Hamburger */}
-          <div className="flex items-center gap-4">
-
-            {/* Desktop CTA */}
+          {/* Desktop CTA */}
+          <div className="hidden md:flex items-center gap-4">
             <Link
               href="/login"
-              className="hidden md:inline-flex items-center px-4 py-2 rounded-xl
+              className="inline-flex items-center px-4 py-2 rounded-xl
                 text-gray-800 font-medium text-sm
                 hover:bg-black/5 transition-all duration-200"
             >
               Login
             </Link>
-
             <Link
               href="/demo-booking"
-              className="hidden md:inline-flex items-center px-5 py-2 rounded-xl
+              className="inline-flex items-center px-5 py-2 rounded-xl
                 bg-primary text-white text-sm font-semibold
                 shadow-md hover:scale-[1.02] transition-all duration-200"
             >
               Book Free Demo
             </Link>
-
-            {/* Hamburger */}
-            <button
-              className="md:hidden p-2 text-gray-800 focus:outline-none"
-              onClick={() => setIsMobileMenuOpen(true)}
-              aria-label="Open menu"
-            >
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              </svg>
-            </button>
           </div>
         </div>
       </header>
@@ -127,7 +102,7 @@ export default function Navbar() {
         />
       )}
 
-      {/* Mobile Drawer (Glass Styled) */}
+      {/* Mobile Drawer */}
       <div
         className={`fixed top-0 right-0 h-full w-[80%]
         bg-white/70 backdrop-blur-2xl

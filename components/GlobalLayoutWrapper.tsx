@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { usePathname } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -10,7 +11,6 @@ const mobileNavItems = [
     { label: "Home", path: "/", icon: "home", exact: true },
     { label: "Programs", path: "/programs", icon: "menu_book" },
     { label: "Book Demo", path: "/demo-booking", icon: "calendar_month" },
-    { label: "About", path: "/ysifl", icon: "info" },
 ];
 
 export default function GlobalLayoutWrapper({
@@ -19,6 +19,8 @@ export default function GlobalLayoutWrapper({
     children: React.ReactNode;
 }) {
     const pathname = usePathname();
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
     const isDashboard =
         pathname?.startsWith("/admin") ||
         pathname?.startsWith("/teacher") ||
@@ -32,13 +34,17 @@ export default function GlobalLayoutWrapper({
 
     return (
         <>
-            <Navbar />
-            {/* mobile-bottom-safe adds padding so content clears the fixed bottom nav */}
+            <Navbar
+                isMobileMenuOpen={isMobileMenuOpen}
+                setIsMobileMenuOpen={setIsMobileMenuOpen}
+            />
             <main className="mobile-bottom-safe">{children}</main>
             <Footer />
             <LeadCapture />
-            {/* MobileBottomNav is self-contained: fixed bottom-0, md:hidden */}
-            <MobileBottomNav items={mobileNavItems} />
+            <MobileBottomNav
+                items={mobileNavItems}
+                onOpenMenu={() => setIsMobileMenuOpen(true)}
+            />
         </>
     );
 }
