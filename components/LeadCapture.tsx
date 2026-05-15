@@ -33,16 +33,7 @@ export default function LeadCapture() {
 
     return (
         <>
-            {/* Mobile Sticky CTA */}
-            {isMobile && (
-                <div className="fixed bottom-4 left-4 right-4 z-40 md:hidden animate-fade-in-up">
-                    <Link href="/demo-booking" className="block w-full">
-                        <button className="w-full bg-primary text-white font-bold py-3.5 px-6 rounded-xl shadow-[0_10px_25px_rgba(0,77,51,0.4)] flex items-center justify-center gap-2 active:scale-95 transition-transform border border-white/20">
-                            <span className="text-lg"></span> Book Free Demo
-                        </button>
-                    </Link>
-                </div>
-            )}
+            {/* Mobile Sticky CTA — hidden; bottom nav already has Book Demo tab */}
 
             {/* Desktop Exit Intent Modal */}
             {showExitModal && (
