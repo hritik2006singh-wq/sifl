@@ -161,7 +161,7 @@ export default function StudentLayoutClient({ children }: { children: React.Reac
                     {children}
                 </div>
             </main>
-            <MobileBottomNav items={mobileNavItems} />
+            <MobileBottomNav items={mobileNavItems} onOpenMenu={() => {}} />
         </div>
     );
 }

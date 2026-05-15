@@ -113,7 +113,7 @@ export default function TeacherLayoutClient({ children }: { children: React.Reac
                     {children}
                 </div>
             </main>
-            <MobileBottomNav items={mobileNavItems} />
+            <MobileBottomNav items={mobileNavItems} onOpenMenu={() => {}} />
         </div>
     );
 }
