@@ -6,7 +6,7 @@ export default function WhatsAppFAB() {
             href="https://wa.me/9136513535"
             target="_blank"
             rel="noopener noreferrer"
-            className="fixed bottom-6 right-6 z-50 flex items-center justify-center size-14 bg-green-500 text-white rounded-full shadow-lg hover:shadow-green-500/30 hover:-translate-y-1 transition-all active:scale-95 border-2 border-white"
+            className="fixed bottom-6 right-6 z-50 max-md:bottom-[calc(5rem+env(safe-area-inset-bottom,0px))] flex items-center justify-center size-14 bg-green-500 text-white rounded-full shadow-lg hover:shadow-green-500/30 hover:-translate-y-1 transition-all active:scale-95 border-2 border-white"
             aria-label="Chat with us on WhatsApp"
         >
             {/* Simple SVG icon for WhatsApp to avoid extra dependencies */}
