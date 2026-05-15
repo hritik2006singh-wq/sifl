@@ -35,7 +35,7 @@ export default function MobileBottomNav({ items, onOpenMenu }: MobileBottomNavPr
 
     return (
         <nav
-            className={`md:hidden fixed bottom-0 inset-x-0 bg-white/85 backdrop-blur-lg border-t border-gray-200 z-50 flex items-center justify-around pb-[env(safe-area-inset-bottom)] px-2 shadow-[0_-4px_24px_rgba(0,0,0,0.04)] transition-all duration-300 ${
+            className={`md:hidden fixed bottom-0 inset-x-0 bg-white border-t border-gray-200 z-50 flex items-center justify-around pb-[env(safe-area-inset-bottom)] px-2 shadow-[0_-4px_24px_rgba(0,0,0,0.04)] transition-all duration-300 ${
                 isCompact ? "h-12" : "h-16"
             }`}
         >
@@ -57,7 +57,7 @@ export default function MobileBottomNav({ items, onOpenMenu }: MobileBottomNavPr
                                 isCompact ? "px-3 py-0.5" : "px-4 py-1"
                             } ${
                                 isActive
-                                    ? "bg-primary/10"
+                                    ? "bg-gray-100"
                                     : "bg-transparent group-hover:bg-gray-100/50"
                             }`}
                         >
