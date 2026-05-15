@@ -26,8 +26,8 @@ export default function Navbar({ isMobileMenuOpen, setIsMobileMenuOpen }: Navbar
       <header className="z-50 flex items-center transition-all duration-300
         fixed md:top-4 md:left-1/2 md:-translate-x-1/2 md:w-[calc(100%-2rem)] md:max-w-7xl md:h-16
         md:bg-white/70 md:backdrop-blur-md md:border md:border-white/40 md:rounded-2xl md:shadow-[0_8px_32px_rgba(0,0,0,0.08)]
-        max-md:sticky max-md:top-0 max-md:w-full max-md:h-14 max-md:px-4
-        max-md:bg-white/20 max-md:backdrop-blur-xl max-md:border-b max-md:border-white/20
+        max-md:fixed max-md:top-0 max-md:left-0 max-md:right-0 max-md:h-14 max-md:px-4
+        max-md:bg-transparent max-md:border-none max-md:shadow-none
       ">
         <div className="w-full px-4 lg:px-6 flex items-center justify-between">
 
